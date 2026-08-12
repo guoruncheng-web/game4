@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.game-box-bg {
+  background:
+    radial-gradient(circle at 8% 8%, rgb(255 216 77 / 30%) 0 4px, transparent 5px),
+    radial-gradient(circle at 91% 14%, rgb(169 154 244 / 35%) 0 5px, transparent 6px),
+    radial-gradient(circle at 78% 4%, rgb(255 255 255 / 92%) 0 42px, transparent 43px),
+    linear-gradient(180deg, #d9f5ff 0%, #f5fff8 45%, #edfff7 100%);
+  background-attachment: fixed;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
