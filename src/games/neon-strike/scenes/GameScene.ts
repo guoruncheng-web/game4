@@ -283,7 +283,8 @@ export class GameScene extends Phaser.Scene {
     this.scoreText = this.add.text(136, 43, '000000', { fontFamily: 'monospace', fontSize: '32px', color: '#efffff', fontStyle: 'bold', stroke: '#062033', strokeThickness: 4 }).setDepth(30);
     this.statusText = this.add.text(487, 20, '', { fontFamily: 'monospace', fontSize: '17px', color: '#bffaff', fontStyle: 'bold', align: 'right', lineSpacing: 6 }).setOrigin(1, 0).setDepth(30);
     // Boss 血条挪到 HUD 框下沿,不再和右上角的状态文本抢位置
-    this.bossLabel = this.add.text(64, 132, 'CORE CARRIER', { fontFamily: 'monospace', fontSize: '14px', color: '#ff6b63', fontStyle: 'bold', letterSpacing: 1 }).setVisible(false).setDepth(31);
+    // x=96 是给左边的暂停按钮(x 25~67)让位,别退回 64
+    this.bossLabel = this.add.text(96, 125, 'CORE CARRIER', { fontFamily: 'monospace', fontSize: '14px', color: '#ff6b63', fontStyle: 'bold', letterSpacing: 1 }).setVisible(false).setDepth(31);
     this.bossBarBack = this.add.rectangle(323, 152, 284, 12, 0x17090d, 0.78).setVisible(false).setDepth(30);
     this.bossBar = this.add.rectangle(181, 152, 284, 8, 0xff4b52).setOrigin(0, 0.5).setVisible(false).setDepth(31);
     this.bossPhase = this.add.text(505, 132, 'PHASE 1', { fontFamily: 'monospace', fontSize: '11px', color: '#ff776d' }).setOrigin(1, 0).setDepth(31).setVisible(false);
@@ -300,11 +301,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createPauseButton() {
-    const icon = this.add.graphics({ x: 46, y: 62 }).setDepth(31);
+    // y=132 而不是贴顶:页面左上角有个 48px 的"返回首页" DOM 按钮压在画布上面,
+    // 画布按 FIT 铺满时(视口接近 9:16)两者会重叠,点下去是离开游戏而不是暂停。
+    // 仍然保持在 y<150 的 HUD 带内,这样 bindPointer 的"HUD 区不移动战机"守卫依然生效。
+    const x = 46, y = 132;
+    const icon = this.add.graphics({ x, y }).setDepth(31);
     icon.fillStyle(0x0a2434, 0.9).fillCircle(0, 0, 21);
     icon.lineStyle(2, COLORS.cyan, 0.85).strokeCircle(0, 0, 21);
     icon.fillStyle(0xbdf6ff, 1).fillRect(-7, -9, 5, 18).fillRect(3, -9, 5, 18);
-    const zone = this.add.zone(46, 62, 52, 52).setOrigin(0.5).setDepth(32)
+    const zone = this.add.zone(x, y, 52, 52).setOrigin(0.5).setDepth(32)
       .setInteractive({ useHandCursor: true });
     zone.on('pointerup', () => this.pauseGame());
   }
