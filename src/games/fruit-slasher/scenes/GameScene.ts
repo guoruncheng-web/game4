@@ -1,6 +1,7 @@
 import * as Phaser from 'phaser';
 import { createBackground } from '../background';
 import {
+  DIFFICULTIES,
   difficultyAt,
   FRUIT_COLORS,
   FRUIT_KINDS,
@@ -8,7 +9,13 @@ import {
   GAME_HEIGHT,
   GAME_WIDTH,
   GAMEPLAY,
+  MODES,
+  PALETTE,
+  type DifficultyId,
+  type DifficultySpec,
   type FruitKind,
+  type GameMode,
+  type ModeSpec,
 } from '../config';
 import { sfx } from '../sfx';
 import { fruitHalfTexture, fruitTexture } from '../textures';
@@ -20,7 +27,11 @@ export type GameOverData = {
   score: number;
   sliced: number;
   bestCombo: number;
-  reason: 'miss' | 'bomb';
+  reason: 'miss' | 'bomb' | 'time';
+  mode: GameMode;
+  difficulty: DifficultyId;
+  /** 撑到时间结束 = 完成一局,经典模式永远是 false */
+  completed: boolean;
 };
 
 export class GameScene extends Phaser.Scene {
@@ -34,7 +45,7 @@ export class GameScene extends Phaser.Scene {
   private spawnTimer?: Phaser.Time.TimerEvent;
   private startedAt = 0;
   private score = 0;
-  private lives = GAMEPLAY.lives;
+  private lives: number = DIFFICULTIES.standard.lives;
   private strokeHits = 0;
   private sliced = 0;
   private bestCombo = 0;
@@ -42,7 +53,26 @@ export class GameScene extends Phaser.Scene {
   private bombInPreviousWave = false;
   private rng = new Phaser.Math.RandomDataGenerator();
 
+  private mode: GameMode = 'classic';
+  private modeSpec: ModeSpec = MODES.classic;
+  private difficulty: DifficultyId = 'standard';
+  private diff: DifficultySpec = DIFFICULTIES.standard;
+  /** 正在挥刀的那根手指;null = 没有 */
+  private strokePointer: number | null = null;
+  private lastMoveAt = 0;
+  private timerText?: Phaser.GameObjects.Text;
+  /** 限时模式的剩余毫秒;非限时模式为 null */
+  private remainMs: number | null = null;
+  private pausedAt = 0;
+
   constructor() { super('FruitGame'); }
+
+  init(data: { mode?: GameMode; difficulty?: DifficultyId }) {
+    this.mode = data?.mode && MODES[data.mode] ? data.mode : 'classic';
+    this.modeSpec = MODES[this.mode];
+    this.difficulty = data?.difficulty && DIFFICULTIES[data.difficulty] ? data.difficulty : 'standard';
+    this.diff = DIFFICULTIES[this.difficulty];
+  }
 
   create() {
     this.resetState();
@@ -62,16 +92,37 @@ export class GameScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(100);
     this.tweens.add({ targets: guide, alpha: 0, delay: 2600, duration: 600, onComplete: () => guide.destroy() });
 
+    this.input.keyboard?.on('keydown-P', () => this.pauseGame());
+    this.input.keyboard?.on('keydown-ESC', () => this.pauseGame());
+    // 场景暂停时 Clock.now 不推进,恢复那一帧却会跳到当前时间,
+    // startedAt 是绝对时间戳,不补偿的话难度曲线会直接跳过暂停时长。
+    this.events.on(Phaser.Scenes.Events.PAUSE, () => { this.pausedAt = this.game.loop.time; });
+    this.events.on(Phaser.Scenes.Events.RESUME, () => { this.startedAt += this.game.loop.time - this.pausedAt; });
+    const onGameResume = (pauseDuration: number) => { this.startedAt += pauseDuration; };
+    this.game.events.on(Phaser.Core.Events.RESUME, onGameResume);
+
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.spawnTimer?.remove(false);
       this.input.removeAllListeners();
+      this.input.keyboard?.removeAllListeners();
+      this.events.off(Phaser.Scenes.Events.PAUSE);
+      this.events.off(Phaser.Scenes.Events.RESUME);
+      this.game.events.off(Phaser.Core.Events.RESUME, onGameResume);
       this.points = [];
       this.previousPoint = null;
     });
   }
 
-  update(time: number) {
+  update(time: number, delta: number) {
     if (this.ending) return;
+    if (this.remainMs !== null) {
+      this.remainMs -= delta;
+      this.refreshTimer();
+      if (this.remainMs <= 0) { this.endFromTime(); return; }
+    }
+    // 轨迹静止一段时间就自然断刀。没有这条的话按住不放能把整局切中数攒成一个
+    // 巨型 combo,结束时一次性结算,总分直接翻倍,连击数也失去可比性。
+    if (this.strokeHits > 0 && time - this.lastMoveAt > GAMEPLAY.strokeIdleMs) this.finishStroke();
     this.points = this.points.filter((point) => time - point.time <= GAMEPLAY.slashPointLifeMs);
     this.drawSlash(time);
 
@@ -79,7 +130,7 @@ export class GameScene extends Phaser.Scene {
       const target = child as Target;
       if (!target.active || target.y <= GAMEPLAY.missY || target.body.velocity.y <= 0) continue;
       const isBomb = target.getData('isBomb') === true;
-      target.disableBody(true, true);
+      this.retire(target);
       if (!isBomb) this.missFruit();
     }
     for (const child of this.halves.getChildren()) {
@@ -90,7 +141,7 @@ export class GameScene extends Phaser.Scene {
 
   private resetState() {
     this.score = 0;
-    this.lives = GAMEPLAY.lives;
+    this.lives = this.diff.lives;
     this.strokeHits = 0;
     this.sliced = 0;
     this.bestCombo = 0;
@@ -99,44 +150,111 @@ export class GameScene extends Phaser.Scene {
     this.points = [];
     this.previousPoint = null;
     this.lifeIcons = [];
+    this.pausedAt = 0;
+    this.strokePointer = null;
+    this.lastMoveAt = 0;
+    this.remainMs = this.modeSpec.seconds === null ? null : this.modeSpec.seconds * 1000;
   }
 
   private createHud() {
     // 全屏使用 ENVELOP，长屏设备会裁掉逻辑画布左右两侧。
     // 分数固定在中央安全区，避免裁切后落入左上角返回按钮范围。
     this.scoreText = this.add.text(GAME_WIDTH / 2, 22, '0', {
-      fontFamily: 'system-ui, sans-serif', fontSize: '60px', fontStyle: 'bold', color: '#fff0c8',
+      fontFamily: 'system-ui, sans-serif', fontSize: '60px', fontStyle: 'bold', color: PALETTE.cream,
       stroke: '#071326', strokeThickness: 7,
     }).setOrigin(0.5, 0).setDepth(110);
-    for (let i = 0; i < GAMEPLAY.lives; i++) {
-      this.lifeIcons.push(
-        this.add.image(GAME_WIDTH - 28 - i * 39, 51, 'fs-life').setDisplaySize(34, 34).setDepth(110),
-      );
+
+    // 只有会扣命的模式才画命数图标,不然玩家会以为漏水果有惩罚
+    if (this.modeSpec.missCostsLife) {
+      for (let i = 0; i < this.diff.lives; i++) {
+        this.lifeIcons.push(
+          this.add.image(GAME_WIDTH - 28 - i * 39, 51, 'fs-life').setDisplaySize(34, 34).setDepth(110),
+        );
+      }
     }
+    if (this.remainMs !== null) {
+      this.timerText = this.add.text(GAME_WIDTH - 24, 34, '', {
+        fontFamily: 'system-ui, sans-serif', fontSize: '34px', fontStyle: 'bold',
+        color: PALETTE.gold, stroke: '#071326', strokeThickness: 6,
+      }).setOrigin(1, 0.5).setDepth(110);
+      this.refreshTimer();
+    }
+    this.createPauseButton();
+  }
+
+  private createPauseButton() {
+    // y=132 而不是贴顶:页面左上角有个 52px 的"返回首页" DOM 按钮压在画布上面,
+    // 放在 y≈51 的话点下去是离开游戏,不是暂停。
+    const x = 40, y = 132;
+    const icon = this.add.graphics({ x, y }).setDepth(110);
+    icon.fillStyle(PALETTE.wood, 0.92).fillCircle(0, 0, 21);
+    icon.lineStyle(2, PALETTE.amber, 0.9).strokeCircle(0, 0, 21);
+    icon.fillStyle(0xfff0c8, 1).fillRect(-7, -9, 5, 18).fillRect(3, -9, 5, 18);
+    this.add.zone(x, y, 56, 56).setOrigin(0.5).setDepth(111)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerup', () => this.pauseGame());
+  }
+
+  private refreshTimer() {
+    if (!this.timerText || this.remainMs === null) return;
+    const left = Math.max(0, this.remainMs) / 1000;
+    this.timerText.setText(left.toFixed(1));
+    this.timerText.setColor(left <= 10 ? PALETTE.ember : PALETTE.gold);
+  }
+
+  private pauseGame() {
+    if (this.ending || this.scene.isPaused()) return;
+    this.finishStroke();
+    this.previousPoint = null;
+    this.strokePointer = null;
+    this.points = [];
+    this.scene.pause();
+    this.scene.launch('FruitPause', {
+      mode: this.mode, difficulty: this.difficulty, score: this.score,
+    });
+  }
+
+  /** 限时模式加减秒数,给出飘字反馈 */
+  private adjustTime(seconds: number, x: number, y: number) {
+    if (this.remainMs === null || seconds === 0) return;
+    this.remainMs = Math.max(0, this.remainMs - seconds * 1000);
+    this.refreshTimer();
+    this.floatText(x, y, `-${seconds} 秒`, PALETTE.ember, 26);
   }
 
   private bindInput() {
+    // 只认第一根按下的手指。两根手指共用一套 previousPoint 的话,
+    // A 指按住不动、B 指轻点就能生成一条横跨两指之间的线段,一刀切光沿途所有水果。
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      if (this.ending) return;
+      if (this.ending || this.strokePointer !== null) return;
+      this.strokePointer = pointer.id;
       this.finishStroke();
       this.previousPoint = new Phaser.Math.Vector2(pointer.x, pointer.y);
       this.points = [{ x: pointer.x, y: pointer.y, time: this.time.now }];
+      this.lastMoveAt = this.time.now;
     });
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-      if (this.ending || !pointer.isDown || !this.previousPoint) return;
+      if (this.ending || pointer.id !== this.strokePointer) return;
+      if (!pointer.isDown || !this.previousPoint) return;
       const distance = Phaser.Math.Distance.Between(this.previousPoint.x, this.previousPoint.y, pointer.x, pointer.y);
       if (distance < GAMEPLAY.minSlashDistance) return;
       const from = this.previousPoint.clone();
       const to = new Phaser.Math.Vector2(pointer.x, pointer.y);
       this.previousPoint.copy(to);
       this.points.push({ x: to.x, y: to.y, time: this.time.now });
+      this.lastMoveAt = this.time.now;
       sfx.whoosh(distance * 60);
       this.processSlash(from, to);
     });
-    const finish = () => { this.finishStroke(); this.previousPoint = null; };
+    const finish = (pointer?: Phaser.Input.Pointer) => {
+      if (pointer && pointer.id !== this.strokePointer) return;
+      this.finishStroke();
+      this.previousPoint = null;
+      this.strokePointer = null;
+    };
     this.input.on('pointerup', finish);
     this.input.on('pointerupoutside', finish);
-    this.input.on('gameout', finish);
+    this.input.on('gameout', () => finish());
   }
 
   private processSlash(from: Phaser.Math.Vector2, to: Phaser.Math.Vector2) {
@@ -167,10 +285,12 @@ export class GameScene extends Phaser.Scene {
     const { x, y, angle } = fruit;
     const vx = fruit.body.velocity.x;
     const vy = fruit.body.velocity.y;
-    fruit.disableBody(true, true);
+    this.retire(fruit);
     this.strokeHits += 1;
     this.sliced += 1;
-    this.score += 1;
+    // 难度倍率在计分那一刻结算,HUD 上看到的分数就是最终分数
+    const gained = this.award(GAMEPLAY.fruitScore);
+    this.score += gained;
     this.refreshScore();
     sfx.slice(this.rng.realInRange(0.9, 1.1));
 
@@ -185,12 +305,27 @@ export class GameScene extends Phaser.Scene {
       half.setDepth(35);
     }
     this.juice(x, y, FRUIT_COLORS[kind], slashAngle);
-    this.floatText(x, y, '+1', '#fff0c8', 22);
+    this.floatText(x, y, `+${gained}`, PALETTE.cream, 22);
+  }
+
+  /** 统一过一遍难度得分倍率。基础分是 10 而不是 1,倍率才不会被取整抹平 */
+  private award(base: number) {
+    return Math.max(1, Math.round(base * this.diff.scoreScale));
+  }
+
+  /**
+   * 目标是 create 出来的(不是带回收的对象池),只 disable 不销毁会在长局里越堆越多,
+   * update 和 processSlash 每次都要遍历全部。延迟一帧再 destroy,避开物理碰撞遍历。
+   */
+  private retire(target: Target) {
+    if (!target.active) return;
+    target.disableBody(true, true);
+    this.time.delayedCall(0, () => target.destroy());
   }
 
   private finishStroke() {
     if (this.strokeHits >= 3) {
-      const bonus = this.strokeHits;
+      const bonus = this.award(this.strokeHits * GAMEPLAY.comboScore);
       this.score += bonus;
       this.bestCombo = Math.max(this.bestCombo, this.strokeHits);
       this.refreshScore();
@@ -203,20 +338,39 @@ export class GameScene extends Phaser.Scene {
   private hitBomb(bomb: Target) {
     if (this.ending) return;
     bomb.setData('cut', true);
+    const { x, y } = bomb;
+    sfx.explosion();
+    this.cameras.main.shake(250, 0.02);
+    const flash = this.add.circle(x, y, 18, 0xffffff, 0.9).setDepth(120);
+    const ring = this.add.circle(x, y, 28, 0xff6a32, 0).setStrokeStyle(10, 0xff6a32, 0.9).setDepth(119);
+    this.tweens.add({ targets: [flash, ring], scale: 6, alpha: 0, duration: 260, onComplete: () => { flash.destroy(); ring.destroy(); } });
+
+    // 限时模式里炸弹只扣秒数,这一局还得继续打
+    if (!this.modeSpec.bombEndsRun) {
+      this.retire(bomb);
+      this.adjustTime(this.modeSpec.bombCostsSeconds, x, y - 40);
+      return;
+    }
     this.ending = true;
     this.finishStroke();
     this.spawnTimer?.remove(false);
     this.physics.world.pause();
-    sfx.explosion();
-    this.cameras.main.shake(250, 0.02);
-    const flash = this.add.circle(bomb.x, bomb.y, 18, 0xffffff, 0.9).setDepth(120);
-    const ring = this.add.circle(bomb.x, bomb.y, 28, 0xff6a32, 0).setStrokeStyle(10, 0xff6a32, 0.9).setDepth(119);
-    this.tweens.add({ targets: [flash, ring], scale: 6, alpha: 0, duration: 260, onComplete: () => { flash.destroy(); ring.destroy(); } });
     this.time.delayedCall(620, () => this.scene.start('FruitGameOver', this.gameOverData('bomb')));
   }
 
   private missFruit() {
     if (this.ending) return;
+    const warning = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xff4b3e, 0.14).setDepth(105);
+    this.tweens.add({ targets: warning, alpha: 0, duration: 260, onComplete: () => warning.destroy() });
+
+    if (!this.modeSpec.missCostsLife) {
+      // 禅意模式连秒数都不扣,漏了就漏了,只给一下轻提示
+      if (this.modeSpec.missCostsSeconds > 0) {
+        sfx.miss();
+        this.adjustTime(this.modeSpec.missCostsSeconds, GAME_WIDTH / 2, GAME_HEIGHT - 200);
+      }
+      return;
+    }
     this.lives -= 1;
     sfx.miss();
     const icon = this.lifeIcons[this.lives];
@@ -224,8 +378,6 @@ export class GameScene extends Phaser.Scene {
       icon.setTexture('fs-life-empty').setDisplaySize(34, 34);
       this.tweens.add({ targets: icon, scale: 1.45, duration: 90, yoyo: true });
     }
-    const warning = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xff4b3e, 0.14).setDepth(105);
-    this.tweens.add({ targets: warning, alpha: 0, duration: 260, onComplete: () => warning.destroy() });
     if (this.lives <= 0) this.endFromMiss();
   }
 
@@ -236,13 +388,32 @@ export class GameScene extends Phaser.Scene {
     this.time.delayedCall(450, () => this.scene.start('FruitGameOver', this.gameOverData('miss')));
   }
 
-  private gameOverData(reason: 'miss' | 'bomb'): GameOverData {
-    return { score: this.score, sliced: this.sliced, bestCombo: this.bestCombo, reason };
+  /** 限时/禅意撑到时间结束 —— 这是这两个模式的"通关" */
+  private endFromTime() {
+    if (this.ending) return;
+    this.ending = true;
+    this.finishStroke();
+    this.spawnTimer?.remove(false);
+    this.physics.world.pause();
+    this.timerText?.setText('0.0').setColor(PALETTE.gold);
+    const banner = this.add.text(GAME_WIDTH / 2, 400, '时间到', {
+      fontFamily: 'system-ui, sans-serif', fontSize: '56px', fontStyle: 'bold',
+      color: PALETTE.gold, stroke: '#3a2118', strokeThickness: 8,
+    }).setOrigin(0.5).setDepth(120).setScale(0.7);
+    this.tweens.add({ targets: banner, scale: 1, duration: 220, ease: 'Back.easeOut' });
+    this.time.delayedCall(900, () => this.scene.start('FruitGameOver', this.gameOverData('time')));
+  }
+
+  private gameOverData(reason: 'miss' | 'bomb' | 'time'): GameOverData {
+    return {
+      score: this.score, sliced: this.sliced, bestCombo: this.bestCombo, reason,
+      mode: this.mode, difficulty: this.difficulty, completed: reason === 'time',
+    };
   }
 
   private scheduleWave(delay?: number) {
     const elapsed = this.time.now - this.startedAt;
-    const difficulty = difficultyAt(elapsed);
+    const difficulty = difficultyAt(elapsed, this.diff);
     const wait = delay ?? this.rng.between(difficulty.minDelay, difficulty.maxDelay);
     this.spawnTimer = this.time.delayedCall(wait, () => {
       if (this.ending) return;
@@ -258,7 +429,9 @@ export class GameScene extends Phaser.Scene {
     for (let i = 0; i < count; i++) {
       this.time.delayedCall(i * this.rng.between(70, 130), () => this.spawnFruit(center, i, count));
     }
-    const canBomb = this.time.now - this.startedAt >= GAMEPLAY.firstBombAtMs && !this.bombInPreviousWave && room > count;
+    const canBomb = this.modeSpec.bombs
+      && this.time.now - this.startedAt >= GAMEPLAY.firstBombAtMs
+      && !this.bombInPreviousWave && room > count;
     const addBomb = canBomb && this.rng.frac() < difficulty.bombChance;
     if (addBomb) this.time.delayedCall(90, () => this.spawnBomb(center));
     this.bombInPreviousWave = addBomb;

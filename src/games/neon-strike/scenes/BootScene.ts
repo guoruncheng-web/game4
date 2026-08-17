@@ -14,8 +14,8 @@ const IMAGES: Array<[string, string]> = [
 ];
 
 const BAR = { x: 90, y: 560, w: GAME_WIDTH - 180, h: 14 };
-/** 图片和音效各占一半进度,和两边的文件数正好对得上(6 + 6) */
-const IMAGE_WEIGHT = 0.5;
+/** 音效改成 WebAudio 合成之后没有文件要下载,进度基本全在图片上 */
+const IMAGE_WEIGHT = 0.92;
 
 export class BootScene extends Phaser.Scene {
   private bar!: Phaser.GameObjects.Graphics;
@@ -57,26 +57,23 @@ export class BootScene extends Phaser.Scene {
   }
 
   private async loadAudio() {
-    this.status.setText('载入音效…');
-    const { failed } = await preloadSfx((loaded, total) => {
+    this.status.setText('初始化音频…');
+    // 音效是 WebAudio 合成的,没有文件要下载,这一步只是建 AudioContext 和噪声缓冲
+    await preloadSfx((loaded, total) => {
       this.audioProgress = loaded / total;
       this.render();
     });
     // 等待期间玩家可能已经离开页面,场景被销毁
     if (!this.isAlive()) return;
 
-    // 只有图片失败才拦人:画不出来的游戏没法玩。
-    // 音效失败不拦——sfx.play() 在没有预载 blob 时会回落到网络路径,大不了这一下没声。
+    // 贴图失败要拦人:画不出来的游戏没法玩
     if (this.failed.length > 0) {
       this.showRetry();
       return;
     }
-    if (failed.length > 0) {
-      this.hint.setText(`${failed.length} 个音效没能预载,游戏可玩,部分音效可能延迟`).setColor('#c9a86a');
-    }
     this.status.setText('准备就绪');
     this.render();
-    this.time.delayedCall(failed.length > 0 ? 900 : 140, () => this.scene.start('NeonMenu'));
+    this.time.delayedCall(140, () => this.scene.start('NeonMenu'));
   }
 
   /** 加载期间场景状态是 LOADING/CREATING,不能用 isActive() 判活,只能排除 SHUTDOWN 之后 */

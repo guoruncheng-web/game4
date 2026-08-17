@@ -4,11 +4,43 @@ const cursors = new Map<string, number>();
 let lastWhoosh = 0;
 
 function muted() {
-  return typeof window === 'undefined' || localStorage.getItem('game-box-muted') === 'true';
+  if (typeof window === 'undefined') return true;
+  try { return localStorage.getItem('game-box-muted') === 'true'; } catch { return false; }
+}
+
+/** 主音量 0~1,和全站静音开关放在一起,首页的喇叭按钮仍然只切 muted */
+export function getVolume() {
+  if (typeof window === 'undefined') return 1;
+  try {
+    const raw = localStorage.getItem('game-box-volume');
+    if (raw === null) return 1;
+    const value = Number(raw);
+    return Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 1;
+  } catch {
+    return 1;
+  }
+}
+
+export function setVolume(value: number) {
+  const clamped = Math.min(1, Math.max(0, value));
+  try { localStorage.setItem('game-box-volume', String(clamped)); } catch { /* 忽略 */ }
+  return clamped;
+}
+
+export function isMuted() {
+  return typeof window !== 'undefined' && muted();
+}
+
+export function setMuted(value: boolean) {
+  try { localStorage.setItem('game-box-muted', String(value)); } catch { /* 忽略 */ }
+  return value;
 }
 
 function play(name: string, volume: number, playbackRate = 1, voices = 3) {
   if (muted()) return;
+  const master = getVolume();
+  if (master <= 0) return;
+  volume = Math.min(1, volume * master);
   let pool = pools.get(name);
   if (!pool) {
     pool = Array.from({ length: voices }, () => {
@@ -40,9 +72,6 @@ export const sfx = {
   },
   combo(count: number) {
     play('combo', 0.085, Math.min(1.08, 0.9 + count * 0.018), 2);
-  },
-  critical() {
-    play('critical', 0.16, 0.92);
   },
   miss() {
     play('miss', 0.065, 0.88);

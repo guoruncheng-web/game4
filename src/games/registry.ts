@@ -29,8 +29,8 @@ export const GAMES: GameMeta[] = [
   {
     slug: 'fruit-slasher',
     title: '水果切切乐',
-    tagline: '挥动刀光切开水果，小心混入其中的炸弹',
-    controls: '按住鼠标或单指滑动切水果 · 避开炸弹',
+    tagline: '经典 / 限时 / 禅意三种模式 · 三档难度',
+    controls: '按住鼠标或单指滑动切水果 · 避开炸弹 · P / ESC 暂停',
     accent: 'text-orange-400',
   },
   {
