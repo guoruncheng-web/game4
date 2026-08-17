@@ -42,6 +42,16 @@ export class GameScene extends Phaser.Scene {
   private player!: BodyImage;
   private space!: Phaser.GameObjects.TileSprite;
   private speedLines!: Phaser.GameObjects.Particles.ParticleEmitter;
+  // 特效对象一律预建复用。每次命中都 new 一个 Text / ParticleEmitter / Graphics 的话,
+  // Text 会连带新建 canvas 并上传一张 GPU 贴图,发射器和 Graphics 也各自分配缓冲,
+  // 一秒十几次就会攒出可感知的卡顿(尤其手机)。
+  private sparks!: Phaser.GameObjects.Particles.ParticleEmitter;
+  private debris!: Phaser.GameObjects.Particles.ParticleEmitter;
+  private debrisBoss!: Phaser.GameObjects.Particles.ParticleEmitter;
+  private floatPool: Phaser.GameObjects.Text[] = [];
+  private floatCursor = 0;
+  private fxPool: Phaser.GameObjects.Graphics[] = [];
+  private fxCursor = 0;
   private enemies!: Phaser.Physics.Arcade.Group;
   private shots!: Phaser.Physics.Arcade.Group;
   private enemyShots!: Phaser.Physics.Arcade.Group;
@@ -93,6 +103,7 @@ export class GameScene extends Phaser.Scene {
   create() {
     this.space = drawSpace(this);
     this.createFlightLayer();
+    this.createFxPools();
     this.reset();
     this.player = this.physics.add.image(GAME_WIDTH / 2, 810, 'ns-player') as BodyImage;
     this.player.setDisplaySize(PLAYER.w, PLAYER.h).setBlendMode(Phaser.BlendModes.NORMAL).setCollideWorldBounds(true).setDepth(10);
@@ -321,6 +332,47 @@ export class GameScene extends Phaser.Scene {
     const lives = this.lives > 0 ? '▲ '.repeat(this.lives).trim() : '—';
     const power = '▮'.repeat(this.weapon) + '▯'.repeat(TUNING.maxWeapon - this.weapon);
     this.statusText.setText(`${waveLabel}\n${lives}\nPWR ${power}`);
+  }
+
+  /** 预建所有会被高频触发的特效对象 */
+  private createFxPools() {
+    this.sparks = this.add.particles(0, 0, 'ns-spark', {
+      speed: { min: 70, max: 260 }, lifespan: 420,
+      scale: { start: 1.5, end: 0 }, tint: [0x35f2ff, 0xff4f91, 0xffd35a], emitting: false,
+    }).setDepth(27);
+    this.debris = this.add.particles(0, 0, 'ns-spark', {
+      speed: { min: 90, max: 280 }, lifespan: { min: 260, max: 520 }, gravityY: 130,
+      rotate: { min: 0, max: 360 },
+      scaleX: { start: 1.5, end: 0.2 }, scaleY: { start: 0.5, end: 0.1 },
+      tint: [0xffffff, 0xffb13b, 0xff5138, 0x4deaff],
+      blendMode: Phaser.BlendModes.ADD, emitting: false,
+    }).setDepth(26);
+    this.debrisBoss = this.add.particles(0, 0, 'ns-spark', {
+      speed: { min: 150, max: 480 }, lifespan: { min: 450, max: 900 }, gravityY: 80,
+      rotate: { min: 0, max: 360 },
+      scaleX: { start: 2.4, end: 0.2 }, scaleY: { start: 0.8, end: 0.1 },
+      tint: [0xffffff, 0xffb13b, 0xff5138, 0x4deaff],
+      blendMode: Phaser.BlendModes.ADD, emitting: false,
+    }).setDepth(26);
+
+    this.floatPool = Array.from({ length: 10 }, () => this.add.text(0, 0, '', {
+      fontFamily: 'system-ui', fontSize: '23px', color: '#fff3a8', fontStyle: 'bold',
+      stroke: '#32134d', strokeThickness: 5,
+    }).setOrigin(0.5).setDepth(40).setVisible(false));
+    this.floatCursor = 0;
+
+    this.fxPool = Array.from({ length: 24 }, () => this.add.graphics()
+      .setBlendMode(Phaser.BlendModes.ADD).setVisible(false));
+    this.fxCursor = 0;
+  }
+
+  /** 从池里取一个干净的 Graphics;取满一轮就复用最旧的,顶多截断一个正在淡出的特效 */
+  private takeFx(x: number, y: number, depth: number) {
+    const g = this.fxPool[this.fxCursor++ % this.fxPool.length];
+    this.tweens.killTweensOf(g);
+    g.clear();
+    g.setPosition(x, y).setDepth(depth).setScale(1).setAlpha(1).setAngle(0).setVisible(true);
+    return g;
   }
 
   private createFlightLayer() {
@@ -710,12 +762,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   private burst(x: number, y: number, amount: number) {
-    const emitter = this.add.particles(x, y, 'ns-spark', { speed: { min: 70, max: 260 }, lifespan: 420, quantity: amount, scale: { start: 1.5, end: 0 }, tint: [0x35f2ff, 0xff4f91, 0xffd35a], emitting: false });
-    emitter.explode(amount); this.time.delayedCall(500, () => emitter.destroy());
+    this.sparks.emitParticleAt(x, y, amount);
   }
 
   private showLaserImpact(x: number, y: number, boss: boolean) {
-    const flash = this.add.graphics({ x, y }).setDepth(25).setBlendMode(Phaser.BlendModes.ADD);
+    const flash = this.takeFx(x, y, 25);
     if (boss) {
       // Boss 连续受击只绘制细电弧，不使用纯白实心闪光，避免叠成白色方块。
       flash.lineStyle(3, 0x35d9ff, 0.9).beginPath().arc(0, 0, 16, -2.7, 0.35).strokePath();
@@ -734,34 +785,24 @@ export class GameScene extends Phaser.Scene {
       flash.lineStyle(i % 2 ? 2 : 3, color, boss ? 0.78 : 0.95);
       flash.lineBetween(Math.cos(angle) * inner, Math.sin(angle) * inner, Math.cos(angle) * outer, Math.sin(angle) * outer);
     }
-    this.tweens.add({ targets: flash, scale: boss ? 1.2 : 1.45, alpha: 0, duration: boss ? 110 : 150, ease: 'Quad.easeOut', onComplete: () => flash.destroy() });
+    this.tweens.add({ targets: flash, scale: boss ? 1.2 : 1.45, alpha: 0, duration: boss ? 110 : 150, ease: 'Quad.easeOut', onComplete: () => flash.setVisible(false) });
   }
 
   private showExplosion(x: number, y: number, boss: boolean) {
     const radius = boss ? 112 : 42;
-    const core = this.add.graphics({ x, y }).setDepth(24).setBlendMode(Phaser.BlendModes.ADD);
+    const core = this.takeFx(x, y, 24);
     core.fillStyle(0xffffff, 1).fillCircle(0, 0, radius * 0.2);
     core.fillStyle(0xffa02c, 0.92).fillCircle(0, 0, radius * 0.42);
     core.lineStyle(boss ? 9 : 5, 0xff4d35, 0.9).strokeCircle(0, 0, radius * 0.56);
-    const shockwave = this.add.graphics({ x, y }).setDepth(23).setBlendMode(Phaser.BlendModes.ADD);
+    const shockwave = this.takeFx(x, y, 23);
     shockwave.lineStyle(boss ? 7 : 4, boss ? 0x5beaff : 0xffc35a, 0.9).strokeCircle(0, 0, radius * 0.45);
-    this.tweens.add({ targets: core, scale: boss ? 1.35 : 1.15, alpha: 0, duration: boss ? 540 : 270, ease: 'Expo.easeOut', onComplete: () => core.destroy() });
-    this.tweens.add({ targets: shockwave, scale: boss ? 2.25 : 1.8, alpha: 0, duration: boss ? 680 : 340, ease: 'Cubic.easeOut', onComplete: () => shockwave.destroy() });
-    const fragments = this.add.particles(x, y, 'ns-spark', {
-      speed: { min: boss ? 150 : 90, max: boss ? 480 : 280 },
-      lifespan: { min: boss ? 450 : 260, max: boss ? 900 : 520 },
-      gravityY: boss ? 80 : 130,
-      rotate: { min: 0, max: 360 },
-      scaleX: { start: boss ? 2.4 : 1.5, end: 0.2 }, scaleY: { start: boss ? 0.8 : 0.5, end: 0.1 },
-      tint: [0xffffff, 0xffb13b, 0xff5138, 0x4deaff],
-      blendMode: Phaser.BlendModes.ADD, emitting: false,
-    }).setDepth(26);
-    fragments.explode(boss ? 38 : 16);
-    this.time.delayedCall(boss ? 950 : 560, () => fragments.destroy());
+    this.tweens.add({ targets: core, scale: boss ? 1.35 : 1.15, alpha: 0, duration: boss ? 540 : 270, ease: 'Expo.easeOut', onComplete: () => core.setVisible(false) });
+    this.tweens.add({ targets: shockwave, scale: boss ? 2.25 : 1.8, alpha: 0, duration: boss ? 680 : 340, ease: 'Cubic.easeOut', onComplete: () => shockwave.setVisible(false) });
+    (boss ? this.debrisBoss : this.debris).emitParticleAt(x, y, boss ? 38 : 16);
   }
 
   private showShieldImpact(x: number, y: number) {
-    const shield = this.add.graphics({ x, y }).setDepth(25).setBlendMode(Phaser.BlendModes.ADD).setRotation(-0.45);
+    const shield = this.takeFx(x, y, 25).setRotation(-0.45);
     shield.lineStyle(6, 0xb8ffff, 0.95).beginPath().arc(0, 0, 58, -1.15, 1.25).strokePath();
     shield.lineStyle(2, 0x39e8ff, 0.75).beginPath().arc(0, 0, 67, -1.05, 1.1).strokePath();
     for (let i = 0; i < 5; i++) {
@@ -769,11 +810,11 @@ export class GameScene extends Phaser.Scene {
       shield.lineStyle(2, 0xffffff, 0.85);
       shield.lineBetween(Math.cos(a) * 48, Math.sin(a) * 48, Math.cos(a + 0.18) * 72, Math.sin(a + 0.18) * 72);
     }
-    this.tweens.add({ targets: shield, scale: 1.25, alpha: 0, angle: shield.angle + 10, duration: 300, ease: 'Cubic.easeOut', onComplete: () => shield.destroy() });
+    this.tweens.add({ targets: shield, scale: 1.25, alpha: 0, angle: shield.angle + 10, duration: 300, ease: 'Cubic.easeOut', onComplete: () => shield.setVisible(false) });
   }
 
   private showBossPortal(x: number, y: number) {
-    const portal = this.add.graphics({ x, y }).setDepth(6).setBlendMode(Phaser.BlendModes.ADD).setScale(0.18).setAlpha(0);
+    const portal = this.takeFx(x, y, 6).setScale(0.18).setAlpha(0);
     portal.lineStyle(10, 0xff4b52, 0.9).strokeCircle(0, 0, 105);
     portal.lineStyle(4, 0xffb04a, 0.95).strokeCircle(0, 0, 82);
     portal.lineStyle(2, 0xffffff, 0.8).beginPath().arc(0, 0, 118, -0.7, 1.8).strokePath();
@@ -787,13 +828,15 @@ export class GameScene extends Phaser.Scene {
     }
     this.tweens.add({
       targets: portal, scale: 1, alpha: 1, angle: 80, duration: 520, ease: 'Back.easeOut',
-      yoyo: true, hold: 230, onComplete: () => portal.destroy(),
+      yoyo: true, hold: 230, onComplete: () => portal.setVisible(false),
     });
   }
 
   private floatText(x: number, y: number, value: string) {
-    const label = this.add.text(x, y, value, { fontFamily: 'system-ui', fontSize: '23px', color: '#fff3a8', fontStyle: 'bold', stroke: '#32134d', strokeThickness: 5 }).setOrigin(0.5).setDepth(40);
-    this.tweens.add({ targets: label, y: y - 45, alpha: 0, duration: 700, onComplete: () => label.destroy() });
+    const label = this.floatPool[this.floatCursor++ % this.floatPool.length];
+    this.tweens.killTweensOf(label);
+    label.setText(value).setPosition(x, y).setAlpha(1).setVisible(true);
+    this.tweens.add({ targets: label, y: y - 45, alpha: 0, duration: 700, onComplete: () => label.setVisible(false) });
   }
 
   private finish(victory: boolean) {

@@ -57,6 +57,10 @@ export class GameScene extends Phaser.Scene {
   private modeSpec: ModeSpec = MODES.classic;
   private difficulty: DifficultyId = 'standard';
   private diff: DifficultySpec = DIFFICULTIES.standard;
+  private juiceEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
+  private confetti!: Phaser.GameObjects.Particles.ParticleEmitter;
+  private floatPool: Phaser.GameObjects.Text[] = [];
+  private floatCursor = 0;
   /** 正在挥刀的那根手指;null = 没有 */
   private strokePointer: number | null = null;
   private lastMoveAt = 0;
@@ -80,6 +84,7 @@ export class GameScene extends Phaser.Scene {
     this.targets = this.physics.add.group();
     this.halves = this.physics.add.group();
     this.slash = this.add.graphics().setDepth(80);
+    this.createFxPools();
     this.createHud();
     this.bindInput();
     this.startedAt = this.time.now;
@@ -151,6 +156,7 @@ export class GameScene extends Phaser.Scene {
     this.previousPoint = null;
     this.lifeIcons = [];
     this.pausedAt = 0;
+    this.floatCursor = 0;
     this.strokePointer = null;
     this.lastMoveAt = 0;
     this.remainMs = this.modeSpec.seconds === null ? null : this.modeSpec.seconds * 1000;
@@ -242,6 +248,11 @@ export class GameScene extends Phaser.Scene {
       const to = new Phaser.Math.Vector2(pointer.x, pointer.y);
       this.previousPoint.copy(to);
       this.points.push({ x: to.x, y: to.y, time: this.time.now });
+      // 高刷新率鼠标一帧能报十几次 pointermove,不封顶的话 drawSlash 每帧要重建
+      // 上百段线的 Graphics 几何体并重新上传,足以拖出掉帧。刀光只需要最近这一小段。
+      if (this.points.length > GAMEPLAY.maxSlashPoints) {
+        this.points.splice(0, this.points.length - GAMEPLAY.maxSlashPoints);
+      }
       this.lastMoveAt = this.time.now;
       sfx.whoosh(distance * 60);
       this.processSlash(from, to);
@@ -487,19 +498,41 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private juice(x: number, y: number, color: number, angle: number) {
-    const emitter = this.add.particles(x, y, 'fs-drop', {
-      angle: { min: Phaser.Math.RadToDeg(angle + Math.PI / 2) - 35, max: Phaser.Math.RadToDeg(angle + Math.PI / 2) + 215 },
+  /**
+   * 果汁和飘字都是"每切一个水果就来一次"的高频特效,不能每次新建对象:
+   * 新建 Text 会连带新建 canvas 并上传一张 GPU 贴图,新建 ParticleEmitter 也要分配缓冲,
+   * 一秒好几次就会攒出可感知的掉帧。这里全部走预建复用。
+   */
+  private createFxPools() {
+    this.juiceEmitter = this.add.particles(0, 0, 'fs-drop', {
       speed: { min: 80, max: 250 }, gravityY: 420, lifespan: { min: 260, max: 500 },
-      scale: { start: 0.75, end: 0 }, tint: color, quantity: 11, emitting: false,
+      scale: { start: 0.75, end: 0 }, emitting: false,
     }).setDepth(28);
-    emitter.explode(11);
-    this.time.delayedCall(600, () => emitter.destroy());
+    this.confetti = this.add.particles(0, 0, 'fs-drop', {
+      angle: { min: 205, max: 335 }, speed: { min: 130, max: 310 }, gravityY: 430,
+      lifespan: { min: 420, max: 720 }, scaleX: { start: 0.85, end: 0.2 }, scaleY: { start: 0.35, end: 0.1 },
+      tint: [0xffd45a, 0xff6b4a, 0x66eaff, 0xffffff], emitting: false,
+    }).setDepth(96);
+    this.floatPool = Array.from({ length: 12 }, () => this.add.text(0, 0, '', {
+      fontFamily: 'system-ui, sans-serif', fontSize: '22px', fontStyle: 'bold',
+      color: PALETTE.cream, stroke: '#071326', strokeThickness: 4,
+    }).setOrigin(0.5).setDepth(95).setVisible(false));
+    this.floatCursor = 0;
+  }
+
+  private juice(x: number, y: number, color: number, angle: number) {
+    const base = Phaser.Math.RadToDeg(angle + Math.PI / 2);
+    this.juiceEmitter.setEmitterAngle({ min: base - 35, max: base + 215 });
+    this.juiceEmitter.setParticleTint(color);
+    this.juiceEmitter.emitParticleAt(x, y, 11);
   }
 
   private floatText(x: number, y: number, value: string, color: string, size: number) {
-    const label = this.add.text(x, y, value, { fontFamily: 'system-ui, sans-serif', fontSize: `${size}px`, fontStyle: 'bold', color, stroke: '#071326', strokeThickness: 4 }).setOrigin(0.5).setDepth(95);
-    this.tweens.add({ targets: label, y: y - 32, alpha: 0, duration: 380, onComplete: () => label.destroy() });
+    const label = this.floatPool[this.floatCursor++ % this.floatPool.length];
+    this.tweens.killTweensOf(label);
+    label.setText(value).setPosition(x, y).setColor(color).setFontSize(size)
+      .setAlpha(1).setVisible(true);
+    this.tweens.add({ targets: label, y: y - 32, alpha: 0, duration: 380, onComplete: () => label.setVisible(false) });
   }
 
   private comboText(count: number, bonus: number) {
@@ -521,13 +554,7 @@ export class GameScene extends Phaser.Scene {
       duration: 520, ease: 'Cubic.easeOut',
       onComplete: () => burst.destroy(),
     });
-    const confetti = this.add.particles(x, y, 'fs-drop', {
-      angle: { min: 205, max: 335 }, speed: { min: 130, max: 310 }, gravityY: 430,
-      lifespan: { min: 420, max: 720 }, scaleX: { start: 0.85, end: 0.2 }, scaleY: { start: 0.35, end: 0.1 },
-      tint: [0xffd45a, 0xff6b4a, 0x66eaff, 0xffffff], quantity: 18, emitting: false,
-    }).setDepth(96);
-    confetti.explode(18);
-    this.time.delayedCall(760, () => confetti.destroy());
+    this.confetti.emitParticleAt(x, y, 18);
     const label = this.add.text(x, y, `${count} FRUIT COMBO\n+${bonus}`, {
       align: 'center', fontFamily: 'system-ui, sans-serif', fontSize: '34px', fontStyle: 'bold', color: '#ffd45a',
       stroke: '#3a2118', strokeThickness: 7,

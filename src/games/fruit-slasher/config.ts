@@ -18,6 +18,8 @@ export const GAMEPLAY = {
   missY: 1015,
   minSlashDistance: 6,
   slashPointLifeMs: 130,
+  /** 刀光轨迹最多保留几个点,防止高刷新率鼠标把每帧的绘制量顶上去 */
+  maxSlashPoints: 24,
   firstBombAtMs: 10_000,
   maxTargets: 9,
 };
