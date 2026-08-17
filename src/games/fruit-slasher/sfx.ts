@@ -1,53 +1,59 @@
-let ctx: AudioContext | null = null;
+const ROOT = '/fruit-slasher/assets/audio';
+const pools = new Map<string, HTMLAudioElement[]>();
+const cursors = new Map<string, number>();
 let lastWhoosh = 0;
 
 function muted() {
-  return typeof localStorage !== 'undefined' && localStorage.getItem('game-box-muted') === 'true';
+  return typeof window === 'undefined' || localStorage.getItem('game-box-muted') === 'true';
 }
 
-function audio() {
-  if (typeof window === 'undefined' || muted()) return null;
-  const Ctor = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!Ctor) return null;
-  ctx ??= new Ctor();
-  if (ctx.state === 'suspended') void ctx.resume();
-  return ctx;
-}
-
-function tone(freq: number, to: number, duration: number, volume: number, type: OscillatorType = 'triangle') {
-  const ac = audio();
-  if (!ac) return;
-  const oscillator = ac.createOscillator();
-  const gain = ac.createGain();
-  oscillator.type = type;
-  oscillator.frequency.setValueAtTime(freq, ac.currentTime);
-  oscillator.frequency.exponentialRampToValueAtTime(Math.max(20, to), ac.currentTime + duration);
-  gain.gain.setValueAtTime(volume, ac.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + duration);
-  oscillator.connect(gain).connect(ac.destination);
-  oscillator.start();
-  oscillator.stop(ac.currentTime + duration);
+function play(name: string, volume: number, playbackRate = 1, voices = 3) {
+  if (muted()) return;
+  let pool = pools.get(name);
+  if (!pool) {
+    pool = Array.from({ length: voices }, () => {
+      const clip = new Audio(`${ROOT}/${name}.wav`);
+      clip.preload = 'auto';
+      return clip;
+    });
+    pools.set(name, pool);
+  }
+  const cursor = cursors.get(name) ?? 0;
+  const clip = pool[cursor % pool.length];
+  cursors.set(name, cursor + 1);
+  clip.pause();
+  clip.currentTime = 0;
+  clip.volume = volume;
+  clip.playbackRate = playbackRate;
+  void clip.play().catch(() => undefined);
 }
 
 export const sfx = {
   whoosh(speed: number) {
     const now = performance.now();
-    if (now - lastWhoosh < 60) return;
+    if (now - lastWhoosh < 130 || speed < 220) return;
     lastWhoosh = now;
-    tone(240 + Math.min(speed, 900) * 0.35, 110, 0.08, 0.025, 'sawtooth');
+    play('whoosh', 0.07, Math.min(1.05, 0.78 + speed / 4200), 2);
   },
-  slice(pitch = 1) { tone(620 * pitch, 230 * pitch, 0.11, 0.055, 'triangle'); },
+  slice(pitch = 1) {
+    play('slice', 0.14, pitch * 0.92, 3);
+  },
   combo(count: number) {
-    const start = 500 + Math.min(count, 8) * 35;
-    tone(start, start * 1.5, 0.18, 0.07, 'sine');
-    setTimeout(() => tone(start * 1.4, start * 1.9, 0.16, 0.055, 'sine'), 90);
+    play('combo', 0.085, Math.min(1.08, 0.9 + count * 0.018), 2);
   },
-  critical() { tone(960, 1480, 0.22, 0.065, 'sine'); },
-  miss() { tone(240, 75, 0.27, 0.07, 'triangle'); },
-  explosion() { tone(150, 34, 0.58, 0.12, 'sawtooth'); },
-  ui() { tone(520, 780, 0.13, 0.05, 'triangle'); },
+  critical() {
+    play('critical', 0.16, 0.92);
+  },
+  miss() {
+    play('miss', 0.065, 0.88);
+  },
+  explosion() {
+    play('bomb', 0.2, 0.88);
+  },
+  ui() {
+    play('ui', 0.16, 0.92);
+  },
   newBest() {
-    tone(523, 659, 0.18, 0.05);
-    setTimeout(() => tone(659, 784, 0.2, 0.05), 150);
+    play('new-best', 0.2, 0.94);
   },
 };

@@ -102,10 +102,12 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createHud() {
-    this.scoreText = this.add.text(82, 22, '0', {
+    // 全屏使用 ENVELOP，长屏设备会裁掉逻辑画布左右两侧。
+    // 分数固定在中央安全区，避免裁切后落入左上角返回按钮范围。
+    this.scoreText = this.add.text(GAME_WIDTH / 2, 22, '0', {
       fontFamily: 'system-ui, sans-serif', fontSize: '60px', fontStyle: 'bold', color: '#fff0c8',
       stroke: '#071326', strokeThickness: 7,
-    }).setDepth(110);
+    }).setOrigin(0.5, 0).setDepth(110);
     for (let i = 0; i < GAMEPLAY.lives; i++) {
       this.lifeIcons.push(
         this.add.image(GAME_WIDTH - 28 - i * 39, 51, 'fs-life').setDisplaySize(34, 34).setDepth(110),
@@ -328,7 +330,32 @@ export class GameScene extends Phaser.Scene {
   }
 
   private comboText(count: number, bonus: number) {
-    const label = this.add.text(GAME_WIDTH / 2, 350, `${count} FRUIT COMBO\n+${bonus}`, {
+    const x = GAME_WIDTH / 2, y = 350;
+    const burst = this.add.graphics({ x, y }).setBlendMode(Phaser.BlendModes.ADD).setDepth(94).setScale(0.35);
+    burst.lineStyle(9, 0xffd45a, 0.85).strokeCircle(0, 0, 76);
+    burst.lineStyle(3, 0xffffff, 0.95).strokeCircle(0, 0, 58);
+    burst.lineStyle(5, 0x66eaff, 0.9).lineBetween(-104, 62, 104, -62);
+    burst.lineStyle(2, 0xffffff, 1).lineBetween(-94, 51, 116, -74);
+    for (let i = 0; i < 10; i++) {
+      const angle = (Math.PI * 2 * i) / 10;
+      const inner = 86, outer = i % 2 ? 104 : 120;
+      burst.lineStyle(i % 2 ? 2 : 4, i % 2 ? 0xff7048 : 0xffef9c, 0.9);
+      burst.lineBetween(Math.cos(angle) * inner, Math.sin(angle) * inner, Math.cos(angle) * outer, Math.sin(angle) * outer);
+    }
+    this.tweens.add({
+      targets: burst,
+      alpha: { from: 1, to: 0 }, scale: { from: 0.35, to: 1.25 }, angle: 18,
+      duration: 520, ease: 'Cubic.easeOut',
+      onComplete: () => burst.destroy(),
+    });
+    const confetti = this.add.particles(x, y, 'fs-drop', {
+      angle: { min: 205, max: 335 }, speed: { min: 130, max: 310 }, gravityY: 430,
+      lifespan: { min: 420, max: 720 }, scaleX: { start: 0.85, end: 0.2 }, scaleY: { start: 0.35, end: 0.1 },
+      tint: [0xffd45a, 0xff6b4a, 0x66eaff, 0xffffff], quantity: 18, emitting: false,
+    }).setDepth(96);
+    confetti.explode(18);
+    this.time.delayedCall(760, () => confetti.destroy());
+    const label = this.add.text(x, y, `${count} FRUIT COMBO\n+${bonus}`, {
       align: 'center', fontFamily: 'system-ui, sans-serif', fontSize: '34px', fontStyle: 'bold', color: '#ffd45a',
       stroke: '#3a2118', strokeThickness: 7,
     }).setOrigin(0.5).setDepth(100).setScale(0.6);

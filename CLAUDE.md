@@ -138,3 +138,4 @@ Codex 使用 `.codex/agents/*.toml`;Claude Code 兼容副本保留在 `.claude/a
 ## 资源生成
 - 会部署一个云主机,这个主机上装了comfyui 可以用它来生成游戏需要的素材
 - comfyui 不需要提交到github上面
+- 页面中所有图标和图片尽量使用内置的image去生成,不用用svg

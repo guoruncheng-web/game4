@@ -43,3 +43,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# comfyui 本地素材生成环境,不进仓库
+/comfyui/
+/ComfyUI/

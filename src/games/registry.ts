@@ -33,6 +33,13 @@ export const GAMES: GameMeta[] = [
     controls: '按住鼠标或单指滑动切水果 · 避开炸弹',
     accent: 'text-orange-400',
   },
+  {
+    slug: 'neon-strike',
+    title: '霓虹突击',
+    tagline: '12 波战役 · 3 场 Boss · 通关解锁无尽模式',
+    controls: '拖动或方向键移动 · 自动射击 · P / ESC 暂停',
+    accent: 'text-cyan-400',
+  },
 ];
 
 export function getGame(slug: string): GameMeta | undefined {

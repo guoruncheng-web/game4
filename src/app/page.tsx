@@ -34,14 +34,17 @@ export default function Home() {
   const [muted, setMuted] = useState(false);
   const [bestScore, setBestScore] = useState(0);
   const [fruitBestScore, setFruitBestScore] = useState(0);
+  const [neonBestScore, setNeonBestScore] = useState(0);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const storedScore = Number(localStorage.getItem('star-runner-best') || 0);
       const storedFruitScore = Number(localStorage.getItem('fruit-slasher-best') || 0);
+      const storedNeonScore = Number(localStorage.getItem('neon-strike-best') || 0);
       const storedMuted = localStorage.getItem('game-box-muted') === 'true';
       setBestScore(Number.isFinite(storedScore) ? storedScore : 0);
       setFruitBestScore(Number.isFinite(storedFruitScore) ? storedFruitScore : 0);
+      setNeonBestScore(Number.isFinite(storedNeonScore) ? storedNeonScore : 0);
       setMuted(storedMuted);
     }, 0);
     return () => window.clearTimeout(timer);
@@ -141,6 +144,18 @@ export default function Home() {
           </div>
 
           <div className="space-y-3">
+            <Link
+              href="/neon-strike"
+              className="flex items-center gap-4 rounded-3xl border border-white bg-[#0c1235] p-2.5 shadow-[0_8px_24px_rgba(70,66,190,0.24)] transition active:scale-[0.99]"
+            >
+              <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_50%_30%,#713cff,#090820_70%)] text-5xl shadow-inner">🚀</div>
+              <div className="min-w-0 flex-1">
+                <p className="text-lg font-black text-cyan-300">霓虹突击</p>
+                <p className="mt-0.5 text-sm font-bold text-indigo-100">自动射击，突破敌军波次</p>
+                <p className="mt-2 text-xs font-bold text-pink-400">最高分 {neonBestScore}</p>
+              </div>
+              <span className="grid size-11 place-items-center rounded-2xl bg-cyan-300/10 text-cyan-300"><Play size={21} className="fill-current" /></span>
+            </Link>
             <Link
               href="/fruit-slasher"
               className="flex items-center gap-4 rounded-3xl border border-white bg-white/90 p-2.5 shadow-[0_8px_24px_rgba(79,141,130,0.14)] backdrop-blur transition active:scale-[0.99]"
