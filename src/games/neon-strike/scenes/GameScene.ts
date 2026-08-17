@@ -50,8 +50,10 @@ export class GameScene extends Phaser.Scene {
   private debrisBoss!: Phaser.GameObjects.Particles.ParticleEmitter;
   private floatPool: Phaser.GameObjects.Text[] = [];
   private floatCursor = 0;
-  private fxPool: Phaser.GameObjects.Graphics[] = [];
+  private fxPool: Phaser.GameObjects.Image[] = [];
   private fxCursor = 0;
+  private screenFlash!: Phaser.GameObjects.Rectangle;
+  private hitStopTimer?: number;
   private enemies!: Phaser.Physics.Arcade.Group;
   private shots!: Phaser.Physics.Arcade.Group;
   private enemyShots!: Phaser.Physics.Arcade.Group;
@@ -153,6 +155,8 @@ export class GameScene extends Phaser.Scene {
       this.events.off(Phaser.Scenes.Events.RESUME);
       // 游戏级 emitter 活得比场景久,不摘掉会每重开一局多叠一个监听
       this.game.events.off(Phaser.Core.Events.RESUME, onGameResume);
+      if (this.hitStopTimer !== undefined) window.clearTimeout(this.hitStopTimer);
+      this.hitStopTimer = undefined;
       this.waveTimer?.remove(false);
     });
   }
@@ -361,18 +365,26 @@ export class GameScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(40).setVisible(false));
     this.floatCursor = 0;
 
-    this.fxPool = Array.from({ length: 24 }, () => this.add.graphics()
+    this.fxPool = Array.from({ length: 20 }, () => this.add.image(0, 0, 'ns-fx-impact')
       .setBlendMode(Phaser.BlendModes.ADD).setVisible(false));
     this.fxCursor = 0;
+
+    // 整屏白闪,只在 Boss 爆炸时用一下
+    this.screenFlash = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xffffff)
+      .setDepth(60).setAlpha(0).setBlendMode(Phaser.BlendModes.ADD);
   }
 
-  /** 从池里取一个干净的 Graphics;取满一轮就复用最旧的,顶多截断一个正在淡出的特效 */
-  private takeFx(x: number, y: number, depth: number) {
-    const g = this.fxPool[this.fxCursor++ % this.fxPool.length];
-    this.tweens.killTweensOf(g);
-    g.clear();
-    g.setPosition(x, y).setDepth(depth).setScale(1).setAlpha(1).setAngle(0).setVisible(true);
-    return g;
+  /**
+   * 从池里取一张特效贴图。取满一轮就复用最旧的,顶多截断一个正在淡出的特效。
+   * 贴图都是黑底手绘的辉光图,ADD 混合下黑色即透明,不需要额外抠图。
+   */
+  private takeFx(x: number, y: number, depth: number, key: string, size: number) {
+    const image = this.fxPool[this.fxCursor++ % this.fxPool.length];
+    this.tweens.killTweensOf(image);
+    image.setTexture(key)
+      .setPosition(x, y).setDepth(depth).setDisplaySize(size, size)
+      .setAlpha(1).setAngle(0).setVisible(true);
+    return image;
   }
 
   private createFlightLayer() {
@@ -636,6 +648,7 @@ export class GameScene extends Phaser.Scene {
     sfx.hit();
     this.showExplosion(x, y, boss);
     this.burst(x, y, boss ? 24 : 10);
+    this.hitStop(boss ? 90 : 35);
     if (this.combo > 1) this.floatText(x, y, `×${this.combo}`);
     if (boss) {
       this.bossBar.setVisible(false); this.bossBarBack.setVisible(false);
@@ -766,70 +779,91 @@ export class GameScene extends Phaser.Scene {
   }
 
   private showLaserImpact(x: number, y: number, boss: boolean) {
-    const flash = this.takeFx(x, y, 25);
-    if (boss) {
-      // Boss 连续受击只绘制细电弧，不使用纯白实心闪光，避免叠成白色方块。
-      flash.lineStyle(3, 0x35d9ff, 0.9).beginPath().arc(0, 0, 16, -2.7, 0.35).strokePath();
-      flash.lineStyle(2, 0xff624a, 0.75).beginPath().arc(0, 0, 23, 0.2, 2.5).strokePath();
-    } else {
-      flash.fillStyle(0xffffff, 1).fillCircle(0, 0, 7);
-      flash.lineStyle(3, 0x4be9ff, 1).strokeCircle(0, 0, 11);
-    }
-    const rayCount = boss ? 4 : 7;
-    const radius = boss ? 25 : 20;
-    for (let i = 0; i < rayCount; i++) {
-      const angle = Phaser.Math.FloatBetween(-Math.PI, Math.PI);
-      const inner = radius * Phaser.Math.FloatBetween(0.25, 0.45);
-      const outer = radius * Phaser.Math.FloatBetween(0.8, 1.25);
-      const color = boss ? (i % 2 ? 0x35d9ff : 0xff624a) : (i % 2 ? 0x66eaff : 0xffffff);
-      flash.lineStyle(i % 2 ? 2 : 3, color, boss ? 0.78 : 0.95);
-      flash.lineBetween(Math.cos(angle) * inner, Math.sin(angle) * inner, Math.cos(angle) * outer, Math.sin(angle) * outer);
-    }
-    this.tweens.add({ targets: flash, scale: boss ? 1.2 : 1.45, alpha: 0, duration: boss ? 110 : 150, ease: 'Quad.easeOut', onComplete: () => flash.setVisible(false) });
+    const size = boss ? 96 : 62;
+    const flash = this.takeFx(x, y, 25, 'ns-fx-impact', size)
+      .setAngle(Phaser.Math.Between(0, 359))
+      .setAlpha(boss ? 0.7 : 0.95);
+    const base = flash.scale;
+    flash.setScale(base * 0.7);
+    this.tweens.add({
+      targets: flash, scale: base * 1.25, alpha: 0,
+      duration: boss ? 130 : 170, ease: 'Quad.easeOut',
+      onComplete: () => flash.setVisible(false),
+    });
   }
 
   private showExplosion(x: number, y: number, boss: boolean) {
-    const radius = boss ? 112 : 42;
-    const core = this.takeFx(x, y, 24);
-    core.fillStyle(0xffffff, 1).fillCircle(0, 0, radius * 0.2);
-    core.fillStyle(0xffa02c, 0.92).fillCircle(0, 0, radius * 0.42);
-    core.lineStyle(boss ? 9 : 5, 0xff4d35, 0.9).strokeCircle(0, 0, radius * 0.56);
-    const shockwave = this.takeFx(x, y, 23);
-    shockwave.lineStyle(boss ? 7 : 4, boss ? 0x5beaff : 0xffc35a, 0.9).strokeCircle(0, 0, radius * 0.45);
-    this.tweens.add({ targets: core, scale: boss ? 1.35 : 1.15, alpha: 0, duration: boss ? 540 : 270, ease: 'Expo.easeOut', onComplete: () => core.setVisible(false) });
-    this.tweens.add({ targets: shockwave, scale: boss ? 2.25 : 1.8, alpha: 0, duration: boss ? 680 : 340, ease: 'Cubic.easeOut', onComplete: () => shockwave.setVisible(false) });
+    // takeFx 用 setDisplaySize 定好目标尺寸,这里只能在它给出的 scale 上按比例缩放,
+    // 直接 setScale(0.55) 会把 displaySize 算好的比例整个丢掉。
+    const core = this.takeFx(x, y, 24, boss ? 'ns-fx-boom-boss' : 'ns-fx-boom', boss ? 300 : 128)
+      .setAngle(Phaser.Math.Between(0, 359));
+    const coreBase = core.scale;
+    core.setScale(coreBase * 0.5);
+    this.tweens.add({
+      targets: core, scale: coreBase * 1.15, alpha: 0,
+      duration: boss ? 620 : 330, ease: 'Expo.easeOut',
+      onComplete: () => core.setVisible(false),
+    });
+    // 外圈再叠一层更慢更大的冲击波,拉出层次
+    const wave = this.takeFx(x, y, 23, 'ns-fx-boom', boss ? 280 : 120).setAlpha(0.45);
+    const waveBase = wave.scale;
+    wave.setScale(waveBase * 0.35);
+    this.tweens.add({
+      targets: wave, scale: waveBase * (boss ? 2.2 : 1.7), alpha: 0,
+      duration: boss ? 780 : 420, ease: 'Cubic.easeOut',
+      onComplete: () => wave.setVisible(false),
+    });
     (boss ? this.debrisBoss : this.debris).emitParticleAt(x, y, boss ? 38 : 16);
+    if (boss) this.flashScreen(0.5, 240);
   }
 
   private showShieldImpact(x: number, y: number) {
-    const shield = this.takeFx(x, y, 25).setRotation(-0.45);
-    shield.lineStyle(6, 0xb8ffff, 0.95).beginPath().arc(0, 0, 58, -1.15, 1.25).strokePath();
-    shield.lineStyle(2, 0x39e8ff, 0.75).beginPath().arc(0, 0, 67, -1.05, 1.1).strokePath();
-    for (let i = 0; i < 5; i++) {
-      const a = Phaser.Math.FloatBetween(-1, 1.05);
-      shield.lineStyle(2, 0xffffff, 0.85);
-      shield.lineBetween(Math.cos(a) * 48, Math.sin(a) * 48, Math.cos(a + 0.18) * 72, Math.sin(a + 0.18) * 72);
-    }
-    this.tweens.add({ targets: shield, scale: 1.25, alpha: 0, angle: shield.angle + 10, duration: 300, ease: 'Cubic.easeOut', onComplete: () => shield.setVisible(false) });
+    const shield = this.takeFx(x, y, 25, 'ns-fx-shield', 168).setAlpha(0.9);
+    const base = shield.scale;
+    shield.setScale(base * 0.85);
+    this.tweens.add({
+      targets: shield, scale: base * 1.15, alpha: 0,
+      duration: 320, ease: 'Cubic.easeOut',
+      onComplete: () => shield.setVisible(false),
+    });
   }
 
   private showBossPortal(x: number, y: number) {
-    const portal = this.takeFx(x, y, 6).setScale(0.18).setAlpha(0);
-    portal.lineStyle(10, 0xff4b52, 0.9).strokeCircle(0, 0, 105);
-    portal.lineStyle(4, 0xffb04a, 0.95).strokeCircle(0, 0, 82);
-    portal.lineStyle(2, 0xffffff, 0.8).beginPath().arc(0, 0, 118, -0.7, 1.8).strokePath();
-    // 小尺寸粒子贴图在部分设备缩放后会变成闪烁方块，跃迁门改用矢量能量短线。
-    for (let i = 0; i < 14; i++) {
-      const angle = (Math.PI * 2 * i) / 14 + Phaser.Math.FloatBetween(-0.08, 0.08);
-      const inner = i % 2 ? 91 : 108;
-      const outer = inner + Phaser.Math.Between(12, 30);
-      portal.lineStyle(i % 3 === 0 ? 3 : 2, i % 2 ? 0xffb04a : 0xff4b52, 0.8);
-      portal.lineBetween(Math.cos(angle) * inner, Math.sin(angle) * inner, Math.cos(angle) * outer, Math.sin(angle) * outer);
-    }
+    const portal = this.takeFx(x, y, 6, 'ns-fx-portal', 340).setAlpha(0);
+    const base = portal.scale;
+    portal.setScale(base * 0.2);
     this.tweens.add({
-      targets: portal, scale: 1, alpha: 1, angle: 80, duration: 520, ease: 'Back.easeOut',
+      targets: portal, scale: base, alpha: 1, angle: 80, duration: 520, ease: 'Back.easeOut',
       yoyo: true, hold: 230, onComplete: () => portal.setVisible(false),
     });
+  }
+
+  /**
+   * 顿帧:命中瞬间把时间放慢再弹回。
+   * 这是打击感的主要来源之一 —— 比任何贴图都更能让"打中了"这件事被感觉到,
+   * 而且几乎不花性能。时长必须很短,超过 ~90ms 就会变成卡顿而不是打击感。
+   */
+  private hitStop(duration: number) {
+    if (this.ended) return;
+    // 用 world.pause() 而不是调 timeScale:Arcade 的 timeScale 是步进间隔的倍数,
+    // 调大之后 _elapsed 会继续累积,恢复时可能一次性补跑多步,把场上东西弹飞。
+    // pause 是在累积之前就 return,干净得多。
+    this.physics.world.pause();
+    if (this.hitStopTimer !== undefined) window.clearTimeout(this.hitStopTimer);
+    // 用真实时间恢复:tween 不受影响,爆炸照常放,只有物体停住
+    this.hitStopTimer = window.setTimeout(() => {
+      this.hitStopTimer = undefined;
+      // 结算时 finish() 自己会把世界停住,别在那之后又给它放开
+      if (this.ended || !this.sys || this.sys.settings.status >= Phaser.Scenes.SHUTDOWN) return;
+      this.physics.world.resume();
+    }, duration);
+  }
+
+  /** 整屏白闪,只给 Boss 爆炸这种大事件用 */
+  private flashScreen(peak: number, duration: number) {
+    this.tweens.killTweensOf(this.screenFlash);
+    this.screenFlash.setAlpha(peak);
+    this.tweens.add({ targets: this.screenFlash, alpha: 0, duration, ease: 'Quad.easeOut' });
   }
 
   private floatText(x: number, y: number, value: string) {

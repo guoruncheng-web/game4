@@ -11,6 +11,12 @@ const IMAGES: Array<[string, string]> = [
   ['ns-boss', '/neon-strike/assets/boss-carrier-v3.png'],
   ['ns-panel', '/neon-strike/assets/ui-popup-panel-v1.png'],
   ['ns-hud-frame', '/neon-strike/assets/hud-frame-v1.png'],
+  // 特效贴图都画在纯黑底上,用 ADD 混合叠加时黑色自然变透明
+  ['ns-fx-impact', '/neon-strike/assets/vfx/laser-impact.png'],
+  ['ns-fx-boom', '/neon-strike/assets/vfx/enemy-explosion.png'],
+  ['ns-fx-boom-boss', '/neon-strike/assets/vfx/boss-explosion.png'],
+  ['ns-fx-shield', '/neon-strike/assets/vfx/shield-impact.png'],
+  ['ns-fx-portal', '/neon-strike/assets/vfx/boss-portal.png'],
 ];
 
 const BAR = { x: 90, y: 560, w: GAME_WIDTH - 180, h: 14 };
