@@ -285,6 +285,16 @@ def build_pylon_station():
         box(f"舷窗{i}", win, loc=(math.cos(a) * 2.3, math.sin(a) * 2.3, 3.4),
             scale=(0.5, 0.5, 0.8), rot=(0, 0, a))
     tube("对接口", dark, loc=(0, 0, height / 2 + 1.2), scale=(2.2, 2.2, 2.0), verts=12)
+    # 竖直霓虹灯带:第一版只有舷窗,整体太"现实空间站"、不够霓虹。
+    # 灯带在高速掠过时会拉成亮线,和桁架塔用的是同一个手法
+    neon = make_material("站体霓虹带", (0.2, 0.7, 1.0), metal=0.0, rough=0.2,
+                         emit=(0.25, 0.8, 1.0), emit_strength=5.0)
+    for i in range(4):
+        a = i / 4 * math.tau + math.pi / 4
+        # 半径 2.3:tube 的 scale 给的是直径,主舱段 4.4 对应半径 2.2,灯带要贴着壳走
+        box(f"霓虹带{i}", neon, loc=(math.cos(a) * 2.3, math.sin(a) * 2.3, 0),
+            scale=(0.3, 0.3, height * 0.72), rot=(0, 0, a))
+    tube("对接口灯环", neon, loc=(0, 0, height / 2 + 2.3), scale=(2.4, 2.4, 0.35), verts=12)
 
     # 太阳能板:靠桁架臂伸出去,让轮廓横向拉开
     for sign in (1, -1):
@@ -293,44 +303,67 @@ def build_pylon_station():
         for k in range(3):
             box(f"板筋{sign}{k}", dark, loc=(sign * 8.4, 0, -1.0 + (k - 1) * 1.6),
                 scale=(7.3, 0.2, 0.1))
+        # 板框:纯平面在侧光下会整片消失,给它一圈厚边才始终有轮廓
+        box(f"板框上{sign}", dark, loc=(sign * 8.4, 0, 1.5), scale=(7.4, 0.34, 0.3))
+        box(f"板框下{sign}", dark, loc=(sign * 8.4, 0, -3.5), scale=(7.4, 0.34, 0.3))
+        box(f"板框外{sign}", dark, loc=(sign * 12.0, 0, -1.0), scale=(0.3, 0.34, 5.2))
 
 
 def build_pylon_wreck():
-    """战舰残骸:断成两截的舰体 + 裸露肋骨 + 未熄的余烬。约 6 宽、22 长。
+    """战舰残骸:断成两截、龙骨裸露、断口未熄。长轴沿 +Y,约 7 宽 × 22 长。
 
-    长轴沿 +Y —— 和战机同一套朝向约定,导出后在 Three.js 里就是躺着顺航道漂,
-    掠过时像一具从战场漂过来的尸体。它是叙事道具:告诉玩家这条航道上先来过一批人。
+    第一版做成了两块灰板子 —— 剪影读不出"被撕开",龙骨还被舰体挡住。
+    这一版把中段整个掏空:前后两截之间只剩一根细龙骨,外面套着几道肋骨环,
+    于是轮廓在中间"细下去"再"粗回来",一眼就是断的。断口给锯齿状的错位碎块,
+    余烬沿着断面铺开而不是塞在里面 —— 掠过时先看到的是那点橙红。
     """
     reset_scene()
     hull = make_material("残骸装甲", (0.13, 0.12, 0.13), metal=0.85, rough=0.55)
-    burn = make_material("烧灼断口", (0.06, 0.04, 0.04), metal=0.7, rough=0.75)
-    rib = make_material("裸露肋骨", (0.2, 0.2, 0.23), metal=0.95, rough=0.3)
+    burn = make_material("烧灼断口", (0.05, 0.035, 0.035), metal=0.7, rough=0.8)
+    rib = make_material("裸露肋骨", (0.26, 0.26, 0.3), metal=0.95, rough=0.28)
     ember = make_material("未熄余烬", (0.9, 0.3, 0.1), metal=0.0, rough=0.4,
-                          emit=(1.0, 0.32, 0.08), emit_strength=4.0)
+                          emit=(1.0, 0.34, 0.08), emit_strength=6.0)
 
-    # 前段:相对完整的舰艏。锥体默认沿 +Z,转 -90° 让尖端指向 +Y
-    taper("舰艏", hull, loc=(0, 6.5, 0), scale=(4.4, 4.0, 9.0),
-          rot=(math.radians(-90), 0, 0), tip=0.45)
-    box("舰艏甲板", hull, loc=(0, 7.5, 0.9), scale=(2.6, 5.0, 1.2))
-    box("断口A", burn, loc=(0, 1.8, 0), scale=(4.2, 0.6, 3.8), rot=(math.radians(7), 0, 0))
+    # 前段:相对完整的舰艏,带上层建筑,轮廓最粗
+    taper("舰艏", hull, loc=(0, 7.6, 0), scale=(4.2, 3.6, 7.6),
+          rot=(math.radians(-90), 0, 0), tip=0.4)
+    box("舰艏甲板", hull, loc=(0, 8.4, 1.1), scale=(2.4, 4.2, 1.0))
+    box("舰桥残块", hull, loc=(0, 6.4, 1.9), scale=(1.6, 1.8, 1.2), rot=(math.radians(-8), 0, 0))
+    # 断面:一圈锯齿状碎块,大小和角度都不齐,才像撕的不像切的
+    for i in range(7):
+        a = i / 7 * math.tau
+        box(f"前断齿{i}", burn, loc=(math.cos(a) * 1.6, 3.9 + (i % 3) * 0.35, math.sin(a) * 1.4),
+            scale=(0.9 + (i % 2) * 0.5, 0.8, 0.5 + (i % 3) * 0.3),
+            rot=(0, 0, a + 0.4))
+    box("前断口余烬", ember, loc=(0, 3.7, 0), scale=(2.0, 0.3, 1.8))
 
-    # 中间裸露的龙骨:几根管子把两截连着,断口的故事就靠它讲
-    for i, x in enumerate((-1.2, 0.0, 1.2)):
-        tube(f"龙骨{i}", rib, loc=(x, 0.2, 0), scale=(0.35, 0.35, 3.4),
+    # 中段:只剩龙骨 + 几道肋骨环。轮廓在这里细下去,是"断了"的核心信号
+    tube("龙骨", rib, loc=(0, 0.2, 0), scale=(0.75, 0.75, 6.2), rot=(math.radians(90), 0, 0))
+    for i, y in enumerate((-1.9, -0.5, 0.9, 2.3)):
+        ring(f"肋骨{i}", rib, loc=(0, y, 0), scale=(2.6 - abs(y) * 0.15, 2.6 - abs(y) * 0.15, 2.4),
              rot=(math.radians(90), 0, 0))
-    box("余烬芯", ember, loc=(0, 0.2, 0), scale=(1.1, 2.0, 1.1))
+    box("龙骨电弧", ember, loc=(0, 0.6, 0), scale=(0.35, 3.0, 0.35))
+    # 挂在龙骨上的碎片,让中段不至于太干净
+    box("残片A", hull, loc=(1.6, 1.2, -0.6), scale=(1.4, 1.6, 0.3), rot=(0.4, 0.2, 0.6))
+    box("残片B", hull, loc=(-1.4, -1.0, 0.7), scale=(1.2, 1.8, 0.3), rot=(-0.3, 0.5, -0.4))
 
-    # 后段:翻转错位的动力段,刻意不与前段同轴,读起来才像被撕开的
-    taper("动力段", hull, loc=(0.6, -5.6, -0.4), scale=(4.0, 3.6, 8.0), tip=0.7,
-          rot=(math.radians(-86), math.radians(6), math.radians(9)))
-    box("断口B", burn, loc=(0.4, -1.9, -0.2), scale=(3.8, 0.6, 3.4), rot=(math.radians(-6), 0, 0))
-    for i, x in enumerate((-1.3, 1.3)):
-        tube(f"引擎{i}", rib, loc=(0.6 + x, -9.6, -0.4), scale=(1.5, 1.5, 1.6),
+    # 后段:动力段,和前段刻意不同轴 —— 同轴就成了"两截零件",不是"撕开的一条船"
+    taper("动力段", hull, loc=(0.8, -6.4, -0.5), scale=(3.8, 3.2, 7.4), tip=0.75,
+          rot=(math.radians(-84), math.radians(7), math.radians(11)))
+    for i in range(5):
+        a = i / 5 * math.tau
+        box(f"后断齿{i}", burn, loc=(0.7 + math.cos(a) * 1.4, -3.0, -0.4 + math.sin(a) * 1.2),
+            scale=(1.0, 0.7, 0.6), rot=(0, 0, a))
+    box("后断口余烬", ember, loc=(0.7, -3.1, -0.4), scale=(1.7, 0.28, 1.5))
+
+    # 尾部引擎:两具还在,一具只剩壳,不对称本身就是"受损"的语言
+    for i, x in enumerate((-1.5, 1.5)):
+        tube(f"引擎{i}", rib, loc=(0.8 + x, -9.8, -0.5), scale=(1.7, 1.7, 1.8),
              rot=(math.radians(90), 0, 0))
-        tube(f"引擎口{i}", burn, loc=(0.6 + x, -10.5, -0.4), scale=(1.3, 1.3, 0.3),
+        tube(f"引擎口{i}", burn, loc=(0.8 + x, -10.8, -0.5), scale=(1.5, 1.5, 0.3),
              rot=(math.radians(90), 0, 0))
-    # 残翼:断了一半,轮廓上留个缺口
-    box("残翼", hull, loc=(3.2, -3.0, -0.2), scale=(3.4, 3.0, 0.3), rot=(0, math.radians(14), 0))
+    box("破损舷侧板", hull, loc=(3.4, -5.6, -0.3), scale=(0.3, 4.0, 2.6), rot=(0, math.radians(12), 0))
+    box("残翼", hull, loc=(-3.0, 5.0, 0.2), scale=(3.0, 3.4, 0.3), rot=(0, math.radians(-16), 0))
 
 
 # ---------------------------------------------------------------- 入口

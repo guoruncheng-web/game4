@@ -243,6 +243,10 @@ export class Stage {
       // 残骸这类横躺的物件再给一点随意的翻滚,免得整排都水平得像摆出来的
       clone.rotation.z = (Math.random() - 0.5) * 0.5;
       group.scale.setScalar(0.75 + Math.random() * 0.7);
+      // 结构物尺寸差得很远(桁架塔 4 宽、空间站展开 24 宽),横向避让距离必须按
+      // 各自的实际半宽算 —— 用一个固定值的话,空间站缩放到上限时会横穿航道中心
+      const box = new THREE.Box3().setFromObject(group);
+      group.userData.clearX = Math.max(16, (box.max.x - box.min.x) / 2 + 9);
       this.placePylon(group, i);
       this.scene.add(group);
       this.pylons.push(group);
@@ -251,8 +255,10 @@ export class Stage {
 
   /** 坑位的摆放规则:左右交替、离航道足够远、纵深上均匀铺开 */
   private placePylon(group: THREE.Object3D, index: number, recycle = false) {
+    const clear = (group.userData.clearX as number | undefined) ?? 16;
+    const side = recycle ? (Math.random() < 0.5 ? -1 : 1) : (index % 2 === 0 ? -1 : 1);
     group.position.set(
-      (recycle ? (Math.random() < 0.5 ? -1 : 1) : (index % 2 === 0 ? -1 : 1)) * (16 + Math.random() * 7),
+      side * (clear + Math.random() * 7),
       (Math.random() - 0.5) * 12,
       recycle ? group.position.z - 460 : -40 - index * 42 - Math.random() * 20,
     );
