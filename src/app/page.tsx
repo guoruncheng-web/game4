@@ -15,6 +15,8 @@ import {
   VolumeX,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import AuthPanel from '@/components/AuthPanel';
+import { useAuth } from '@/components/AuthProvider';
 import type { ReactNode } from 'react';
 
 const upcomingGames = [
@@ -31,7 +33,13 @@ const upcomingGames = [
 ];
 
 export default function Home() {
-  const [muted, setMuted] = useState(false);
+  const { user, openPanel } = useAuth();
+  /**
+   * 首页喇叭是全站的总开关,所以它看的是"实际有没有声音",而不只是 muted 那一个键。
+   * 游戏里的音量滑条能拖到 0,拖到 0 之后 muted 仍然是 false ——
+   * 只看 muted 的话,首页会显示"有声音"却怎么点都不响,用户没有任何办法救回来。
+   */
+  const [silent, setSilent] = useState(false);
   const [bestScore, setBestScore] = useState(0);
   const [fruitBestScore, setFruitBestScore] = useState(0);
   const [neonBestScore, setNeonBestScore] = useState(0);
@@ -45,19 +53,28 @@ export default function Home() {
       // 2D 初代版本走自己的 key,两版存档互不覆盖
       const storedNeon2dScore = Number(localStorage.getItem('neon-strike-2d-best') || 0);
       const storedMuted = localStorage.getItem('game-box-muted') === 'true';
+      const rawVolume = localStorage.getItem('game-box-volume');
+      const storedVolume = rawVolume === null ? 1 : Number(rawVolume);
+      const storedSilent = storedMuted || !(Number.isFinite(storedVolume) && storedVolume > 0);
       setBestScore(Number.isFinite(storedScore) ? storedScore : 0);
       setFruitBestScore(Number.isFinite(storedFruitScore) ? storedFruitScore : 0);
       setNeonBestScore(Number.isFinite(storedNeonScore) ? storedNeonScore : 0);
       setNeon2dBestScore(Number.isFinite(storedNeon2dScore) ? storedNeon2dScore : 0);
-      setMuted(storedMuted);
+      setSilent(storedSilent);
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
 
   function toggleSound() {
-    setMuted((current) => {
+    setSilent((current) => {
       const next = !current;
       localStorage.setItem('game-box-muted', String(next));
+      // 开声音时顺手把被拖到 0 的音量拉回来,否则这一下点了等于没点
+      if (!next) {
+        const raw = localStorage.getItem('game-box-volume');
+        const volume = raw === null ? 1 : Number(raw);
+        if (!Number.isFinite(volume) || volume <= 0) localStorage.setItem('game-box-volume', '1');
+      }
       return next;
     });
   }
@@ -75,22 +92,27 @@ export default function Home() {
             </span>
           </Link>
 
-          <button
-            type="button"
-            onClick={toggleSound}
-            aria-label={muted ? '打开音效' : '关闭音效'}
-            aria-pressed={muted}
-            className="grid size-11 place-items-center rounded-full border border-white/90 bg-white/75 text-emerald-600 shadow-sm backdrop-blur transition active:scale-95"
-          >
-            {muted ? <VolumeX size={22} /> : <Volume2 size={22} />}
-          </button>
+          <div className="flex items-center gap-2">
+            <AuthPanel />
+            <button
+              type="button"
+              onClick={toggleSound}
+              aria-label={silent ? '打开音效' : '关闭音效'}
+              aria-pressed={silent}
+              className="grid size-11 place-items-center rounded-full border border-white/90 bg-white/75 text-emerald-600 shadow-sm backdrop-blur transition active:scale-95"
+            >
+              {silent ? <VolumeX size={22} /> : <Volume2 size={22} />}
+            </button>
+          </div>
         </header>
 
         <section className="px-5 pb-5 pt-1">
           <p className="text-[1.75rem] font-black tracking-[-0.04em] text-[#173366]">
             今晚玩点什么？
           </p>
-          <p className="mt-1 text-sm font-semibold text-emerald-600">即开即玩 · 无需下载</p>
+          <p className="mt-1 text-sm font-semibold text-emerald-600">
+            {user ? '即开即玩 · 无需下载' : '登录后即玩 · 无需下载 · 一键开号'}
+          </p>
         </section>
 
         <section className="px-4" aria-labelledby="featured-game">
@@ -129,13 +151,13 @@ export default function Home() {
                 </strong>
               </div>
 
-              <Link
+              <GameLink
                 href="/star-runner"
                 className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-[#43d875] to-[#2cbe60] px-5 text-lg font-black text-white shadow-[0_8px_0_#22994b,0_12px_24px_rgba(50,201,107,0.28)] transition active:translate-y-1 active:shadow-[0_4px_0_#22994b]"
               >
                 <Play size={22} className="fill-current" />
                 立即开始
-              </Link>
+              </GameLink>
             </div>
           </article>
         </section>
@@ -148,7 +170,7 @@ export default function Home() {
           </div>
 
           <div className="space-y-3">
-            <Link
+            <GameLink
               href="/neon-strike"
               className="flex items-center gap-4 rounded-3xl border border-white bg-[#0c1235] p-2.5 shadow-[0_8px_24px_rgba(70,66,190,0.24)] transition active:scale-[0.99]"
             >
@@ -159,8 +181,8 @@ export default function Home() {
                 <p className="mt-2 text-xs font-bold text-pink-400">最高分 {neonBestScore}</p>
               </div>
               <span className="grid size-11 place-items-center rounded-2xl bg-cyan-300/10 text-cyan-300"><Play size={21} className="fill-current" /></span>
-            </Link>
-            <Link
+            </GameLink>
+            <GameLink
               href="/neon-strike-2d"
               className="flex items-center gap-4 rounded-3xl border border-white bg-[#140a2e] p-2.5 shadow-[0_8px_24px_rgba(133,66,190,0.24)] transition active:scale-[0.99]"
             >
@@ -179,8 +201,8 @@ export default function Home() {
                 <p className="mt-2 text-xs font-bold text-pink-400">最高分 {neon2dBestScore}</p>
               </div>
               <span className="grid size-11 place-items-center rounded-2xl bg-fuchsia-300/10 text-fuchsia-300"><Play size={21} className="fill-current" /></span>
-            </Link>
-            <Link
+            </GameLink>
+            <GameLink
               href="/fruit-slasher"
               className="flex items-center gap-4 rounded-3xl border border-white bg-white/90 p-2.5 shadow-[0_8px_24px_rgba(79,141,130,0.14)] backdrop-blur transition active:scale-[0.99]"
             >
@@ -201,7 +223,19 @@ export default function Home() {
               <span className="grid size-11 place-items-center rounded-2xl bg-orange-50 text-orange-500">
                 <Play size={21} className="fill-current" />
               </span>
-            </Link>
+            </GameLink>
+            <GameLink
+              href="/eight-ball"
+              className="flex items-center gap-4 rounded-3xl border border-white bg-[#123322] p-2.5 shadow-[0_8px_24px_rgba(31,122,82,0.24)] transition active:scale-[0.99]"
+            >
+              <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_50%_35%,#2a9463,#0d1a14_72%)] text-5xl shadow-inner">🎱</div>
+              <div className="min-w-0 flex-1">
+                <p className="text-lg font-black text-emerald-300">Eight Ball</p>
+                <p className="mt-0.5 text-sm font-bold text-emerald-100/90">竖屏 8 球，跟 AI 对局</p>
+                <p className="mt-2 text-xs font-bold text-amber-300">英文界面 · 三档对手</p>
+              </div>
+              <span className="grid size-11 place-items-center rounded-2xl bg-emerald-300/10 text-emerald-300"><Play size={21} className="fill-current" /></span>
+            </GameLink>
             {upcomingGames.map((game) => (
               <article
                 key={game.image}
@@ -227,13 +261,43 @@ export default function Home() {
             <Gamepad2 size={24} strokeWidth={2.5} />
             <span className="text-xs">游戏</span>
           </Link>
-          <button type="button" className="flex min-h-20 flex-1 cursor-default flex-col items-center justify-center gap-1 font-bold text-slate-400" aria-label="我的功能尚未开放">
+          <button
+            type="button"
+            onClick={() => openPanel(user ? 'account' : 'register')}
+            className="flex min-h-20 flex-1 flex-col items-center justify-center gap-1 font-bold text-slate-400 transition active:scale-95"
+            aria-label={user ? '账号设置' : '登录'}
+          >
             <UserRound size={24} />
             <span className="text-xs">我的</span>
           </button>
         </nav>
       </div>
     </main>
+  );
+}
+
+/**
+ * 游戏入口。
+ *
+ * 真正拦人的是 `src/middleware.ts`(直接敲 URL 也进不去);这里只是把体验补顺 ——
+ * 未登录时点卡片就地弹登录面板,而不是先跳进游戏页再被 middleware 弹回首页。
+ * /me 还没回来的那一小会儿按登录处理:middleware 在后面兜着,不会漏进去。
+ */
+function GameLink({ href, className, children }: { href: string; className: string; children: ReactNode }) {
+  const { user, loading, openPanel } = useAuth();
+  if (user) {
+    return <Link href={href} className={className}>{children}</Link>;
+  }
+  return (
+    <button
+      type="button"
+      disabled={loading}
+      onClick={() => openPanel('register')}
+      aria-label="需要先登录才能玩"
+      className={`${className} w-full text-left`}
+    >
+      {children}
+    </button>
   );
 }
 
