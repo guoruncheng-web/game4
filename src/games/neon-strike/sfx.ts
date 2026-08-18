@@ -1,24 +1,31 @@
 /**
- * 霓虹突击音效 —— 纯 WebAudio 合成,不依赖任何音频文件。
+ * 霓虹突击音效 —— 素材由 rFXGen(raysan5,sfxr 系参数合成器)离线生成。
  *
- * 上一版用 Stable Audio 生成的 wav 有三个问题:不够科幻、高频刺耳、低频没打击感。
- * 这三条在采样式生成里只能靠改 prompt 抽卡,在合成里则分别对应三组明确的参数:
+ * 生成脚本:tools/audio/neon-strike/build_sfx.mjs
+ * 参数预设:tools/audio/neon-strike/presets/*.rfx(可以直接用 rFXGen GUI 打开手调)
+ * 产物:public/neon-strike/assets/audio/*.wav(44100Hz / 16bit / 单声道)
  *
- * - 科幻感  → 锯齿/方波振荡器 + 快速下扫音高 + 轻微失谐产生的拍频
- * - 不刺耳  → 每层各自的低通 + 一道全局安全低通;噪声一律走带通,不用宽频白噪
- * - 打击感  → 每个冲击类音效都垫一层正弦低频下扫(sub),配 1~3ms 的极短 attack
+ * 之前这里是一整套 WebAudio 振荡器合成,音色靠代码里的常量堆出来;
+ * 现在音色全部前移到 .rfx 参数里,拖滑块就能试听,运行时只负责播 buffer。
+ * 每条音效在生成阶段就混好了层(冲击音都垫了低频 sub)、做过峰值归一化,
+ * 所以这里不再需要分层调度,一次 play 只起一个 BufferSource。
  *
- * 想调手感直接改下面的常量,改完刷新即可,不需要重新生成资源。
+ * 播放链路:BufferSource → 单音增益 → 主增益(音量/静音)→ 安全低通 → 输出。
  */
 
+const ROOT = '/neon-strike/assets/audio';
+
+const NAMES = ['shoot', 'enemy-hit', 'pickup', 'player-hurt', 'boss-warning', 'ui'] as const;
+type SfxName = (typeof NAMES)[number];
+
 const MASTER = 0.55;
-/** 全局安全低通:兜住所有音效里没压干净的高频毛刺 */
+/** 全局安全低通:兜住素材里没压干净的高频毛刺 */
 const SAFETY_HZ = 10500;
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
-let noiseBuffer: AudioBuffer | null = null;
-let shaper: Float32Array<ArrayBuffer> | null = null;
+const buffers = new Map<SfxName, AudioBuffer>();
+const loading = new Map<SfxName, Promise<void>>();
 let lastShoot = 0;
 
 function muted() {
@@ -61,7 +68,7 @@ function audio(): AudioContext | null {
     const Ctor = window.AudioContext
       ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctor) return null;
-    ctx = new Ctor();
+    try { ctx = new Ctor(); } catch { return null; }
     master = ctx.createGain();
     master.gain.value = MASTER * getVolume();
     const safety = ctx.createBiquadFilter();
@@ -70,187 +77,110 @@ function audio(): AudioContext | null {
     safety.Q.value = 0.7;
     master.connect(safety).connect(ctx.destination);
   }
-  // 首次交互前浏览器会把 context 挂起,每次播放都顺手唤醒一次
-  if (ctx.state === 'suspended') void ctx.resume();
+  // 首次交互前浏览器会把 context 挂起,每次播放都顺手唤醒一次;
+  // 还没有用户手势时 resume() 会被拒绝,必须自己吞掉,别抛成未处理的 rejection
+  if (ctx.state === 'suspended') void ctx.resume().catch(() => undefined);
   return ctx;
 }
 
-/** 0.6 秒白噪声,所有爆裂/摩擦层共用一份 */
-function getNoise(ac: AudioContext) {
-  if (!noiseBuffer) {
-    const length = Math.floor(ac.sampleRate * 0.6);
-    noiseBuffer = ac.createBuffer(1, length, ac.sampleRate);
-    const data = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
-  }
-  return noiseBuffer;
+/** 下载 + 解码一条音效;同一条并发只会真下一次,失败返回 false 交给调用方统计 */
+function load(name: SfxName): Promise<void> {
+  const inflight = loading.get(name);
+  if (inflight) return inflight;
+  if (buffers.has(name)) return Promise.resolve();
+  const ac = audio();
+  if (!ac) return Promise.reject(new Error('no AudioContext'));
+  const task = fetch(`${ROOT}/${name}.wav`)
+    .then((res) => {
+      if (!res.ok) throw new Error(`${name}.wav ${res.status}`);
+      return res.arrayBuffer();
+    })
+    .then((raw) => ac.decodeAudioData(raw))
+    .then((buffer) => { buffers.set(name, buffer); })
+    .finally(() => { loading.delete(name); });
+  loading.set(name, task);
+  return task;
 }
 
-/** 软削波曲线,给受伤音效做"破音"用 */
-function getShaper() {
-  if (!shaper) {
-    shaper = new Float32Array(1024);
-    for (let i = 0; i < 1024; i++) {
-      const x = (i / 1023) * 2 - 1;
-      shaper[i] = Math.tanh(x * 3.2);
+/**
+ * Boot 阶段调用:把全部音效提前下载解码好,避免开局后第一次发声卡一下。
+ * 单条失败不影响其它条,失败的名字回给调用方(整包 100KB 出头,一般不会走到)。
+ */
+export async function preloadSfx(onProgress?: (loaded: number, total: number) => void) {
+  const total = NAMES.length;
+  const failed: string[] = [];
+  let done = 0;
+  await Promise.all(NAMES.map(async (name) => {
+    try {
+      await load(name);
+    } catch {
+      failed.push(name);
+    } finally {
+      done += 1;
+      onProgress?.(done, total);
     }
-  }
-  return shaper;
+  }));
+  return { failed };
 }
 
-type Layer = {
-  /** 波形;省略即为噪声层 */
-  type?: OscillatorType;
-  /** 起始频率 */
-  f0: number;
-  /** 终止频率,省略即不扫频 */
-  f1?: number;
-  /** 峰值音量(相对本音效的 peak) */
-  gain: number;
-  attack?: number;
-  decay: number;
-  /** 相对音效起点的延迟 */
-  at?: number;
-  /** 失谐(音分),两个振荡器差几音分会产生拍频,听感更"机械" */
-  detune?: number;
-  filter?: { type: BiquadFilterType; hz: number; to?: number; q?: number };
-  /** 过软削波 */
-  drive?: boolean;
-};
-
-function play(peak: number, layers: Layer[]) {
+/**
+ * 播一条音效。
+ * @param rate 播放速率,兼作变调 —— 连发时轻微抖一下,避免听成一条直线
+ * @param gain 相对音量,素材之间的响度平衡已经在生成阶段做过,这里只做临时压制
+ */
+function play(name: SfxName, rate = 1, gain = 1) {
   if (muted()) return;
   const volume = getVolume();
   if (volume <= 0) return;
   const ac = audio();
   if (!ac || !master) return;
-  const now = ac.currentTime;
 
-  for (const layer of layers) {
-    const t0 = now + (layer.at ?? 0);
-    const attack = layer.attack ?? 0.002;
-    const stop = t0 + attack + layer.decay;
-
-    const gain = ac.createGain();
-    gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.exponentialRampToValueAtTime(Math.max(peak * layer.gain, 0.0002), t0 + attack);
-    gain.gain.exponentialRampToValueAtTime(0.0001, stop);
-
-    let tail: AudioNode = gain;
-    if (layer.filter) {
-      const biquad = ac.createBiquadFilter();
-      biquad.type = layer.filter.type;
-      biquad.frequency.setValueAtTime(layer.filter.hz, t0);
-      if (layer.filter.to !== undefined) {
-        biquad.frequency.exponentialRampToValueAtTime(layer.filter.to, stop);
-      }
-      biquad.Q.value = layer.filter.q ?? 1;
-      tail = tail.connect(biquad);
-    }
-    if (layer.drive) {
-      const wave = ac.createWaveShaper();
-      wave.curve = getShaper();
-      tail = tail.connect(wave);
-    }
-    tail.connect(master);
-
-    if (layer.type) {
-      const osc = ac.createOscillator();
-      osc.type = layer.type;
-      osc.detune.value = layer.detune ?? 0;
-      osc.frequency.setValueAtTime(layer.f0, t0);
-      if (layer.f1 !== undefined) osc.frequency.exponentialRampToValueAtTime(layer.f1, stop);
-      osc.connect(gain);
-      osc.start(t0);
-      osc.stop(stop + 0.02);
-    } else {
-      const src = ac.createBufferSource();
-      src.buffer = getNoise(ac);
-      src.playbackRate.value = 1;
-      src.connect(gain);
-      src.start(t0, Math.random() * 0.4);
-      src.stop(stop + 0.02);
-    }
+  const buffer = buffers.get(name);
+  if (!buffer) {
+    // 没预加载到(或还没解码完)就补一发,这一声放弃,下一声就有了
+    void load(name).catch(() => undefined);
+    return;
   }
+
+  const src = ac.createBufferSource();
+  src.buffer = buffer;
+  src.playbackRate.value = rate;
+  if (gain === 1) {
+    src.connect(master);
+  } else {
+    const node = ac.createGain();
+    node.gain.value = gain;
+    src.connect(node).connect(master);
+  }
+  src.start();
 }
 
-/** 每次射击轻微变调,避免连发时听成一条直线 */
-function cents() {
-  return (Math.random() * 2 - 1) * 45;
-}
-
-/**
- * 保留原来的接口:BootScene 会在加载页调用它。
- * 合成音效没有文件要下载,这里只负责建好 AudioContext 和噪声缓冲,永远不会失败。
- */
-export async function preloadSfx(onProgress?: (loaded: number, total: number) => void) {
-  const ac = audio();
-  onProgress?.(1, 2);
-  if (ac) getNoise(ac);
-  onProgress?.(2, 2);
-  return { failed: [] as string[] };
+/** ±6% 的随机变速,连发时听起来不像复读 */
+function wobble(amount = 0.06) {
+  return 1 + (Math.random() * 2 - 1) * amount;
 }
 
 export const sfx = {
-  /** 等离子脉冲:短、亮但不扎,底下垫一层 sub 给推力 */
+  /** 等离子脉冲:120ms 内只响一次,免得连发糊成噪声 */
   shoot() {
     const now = performance.now();
     if (now - lastShoot < 120) return;
     lastShoot = now;
-    play(0.1, [
-      { type: 'sine', f0: 190, f1: 62, gain: 0.55, attack: 0.001, decay: 0.085 },
-      { type: 'sawtooth', f0: 940, f1: 180, gain: 1, attack: 0.001, decay: 0.1, detune: cents(),
-        filter: { type: 'lowpass', hz: 5200, to: 1600, q: 1.1 } },
-      { f0: 0, gain: 0.3, attack: 0.001, decay: 0.012,
-        filter: { type: 'bandpass', hz: 2600, q: 1.3 } },
-    ]);
+    play('shoot', wobble(0.08));
   },
 
-  /** 敌机爆碎:低频肉 + 带通噪声碎裂 + 一点金属尾 */
-  hit: () => play(0.22, [
-    { type: 'sine', f0: 155, f1: 42, gain: 0.9, attack: 0.001, decay: 0.2 },
-    { f0: 0, gain: 0.7, attack: 0.002, decay: 0.22,
-      filter: { type: 'bandpass', hz: 2400, to: 380, q: 1.1 } },
-    { type: 'square', f0: 330, f1: 72, gain: 0.4, attack: 0.001, decay: 0.11,
-      filter: { type: 'lowpass', hz: 3400, q: 0.9 } },
-  ]),
+  /** 敌机爆碎 */
+  hit: () => play('enemy-hit', wobble()),
 
-  /** 拾取:三级上行,亮度靠高频而不是音量,顶部压在 7k 以内 */
-  pickup: () => play(0.18, [
-    { type: 'sine', f0: 130, gain: 0.5, attack: 0.004, decay: 0.16 },
-    { type: 'triangle', f0: 523, gain: 0.9, attack: 0.002, decay: 0.075, at: 0,
-      filter: { type: 'lowpass', hz: 7000, q: 0.8 } },
-    { type: 'triangle', f0: 784, gain: 0.9, attack: 0.002, decay: 0.075, at: 0.075,
-      filter: { type: 'lowpass', hz: 7000, q: 0.8 } },
-    { type: 'sawtooth', f0: 1046, gain: 0.55, attack: 0.002, decay: 0.16, at: 0.15, detune: 6,
-      filter: { type: 'lowpass', hz: 6200, q: 0.9 } },
-  ]),
+  /** 拾取道具 */
+  pickup: () => play('pickup', wobble(0.03)),
 
-  /** 中弹:闷响 + 软削波破音,高频全部压掉,听感是"挨了一记"而不是"被扎了一下" */
-  hurt: () => play(0.3, [
-    { type: 'sine', f0: 210, f1: 44, gain: 1, attack: 0.001, decay: 0.32 },
-    { type: 'sawtooth', f0: 150, f1: 58, gain: 0.5, attack: 0.002, decay: 0.28, drive: true,
-      filter: { type: 'lowpass', hz: 900, q: 1.2 } },
-    { f0: 0, gain: 0.42, attack: 0.001, decay: 0.16,
-      filter: { type: 'bandpass', hz: 700, q: 0.8 } },
-  ]),
+  /** 玩家中弹 */
+  hurt: () => play('player-hurt', wobble(0.04)),
 
-  /** Boss 警报:三下失谐锯齿脉冲,压在 1.4k 以下,靠拍频出压迫感而不是靠亮度 */
-  boss: () => play(0.26, [
-    ...[0, 0.36, 0.72].flatMap((at, i) => [
-      { type: 'sine' as OscillatorType, f0: 58 - i * 4, gain: 0.8, attack: 0.006, decay: 0.26, at },
-      { type: 'sawtooth' as OscillatorType, f0: 112 - i * 6, gain: 0.62, attack: 0.02, decay: 0.26,
-        at, detune: 7, filter: { type: 'lowpass' as BiquadFilterType, hz: 1400, q: 1.1 } },
-      { type: 'sawtooth' as OscillatorType, f0: 112 - i * 6, gain: 0.62, attack: 0.02, decay: 0.26,
-        at, detune: -7, filter: { type: 'lowpass' as BiquadFilterType, hz: 1400, q: 1.1 } },
-    ]),
-  ]),
+  /** Boss 来袭警报 */
+  boss: () => play('boss-warning'),
 
-  /** 界面确认:干净的方波点击,极短 */
-  ui: () => play(0.16, [
-    { type: 'square', f0: 1180, f1: 880, gain: 1, attack: 0.001, decay: 0.055,
-      filter: { type: 'lowpass', hz: 5200, q: 0.9 } },
-    { f0: 0, gain: 0.25, attack: 0.001, decay: 0.008,
-      filter: { type: 'bandpass', hz: 3200, q: 1.4 } },
-  ]),
+  /** 界面确认 */
+  ui: () => play('ui', wobble(0.04)),
 };

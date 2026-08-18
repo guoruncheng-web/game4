@@ -4,6 +4,7 @@ import { Fx } from './three/fx';
 import { Stage } from './three/stage';
 import { Hud } from './ui/hud';
 import { gameOverScreen, loadingScreen, menuScreen, pauseScreen } from './ui/screens';
+import { preloadSfx } from './sfx';
 import { ensureStyles, removeStyles } from './ui/style';
 import { World } from './world';
 
@@ -139,6 +140,9 @@ export function startGame(parent: HTMLElement): GameHandle {
   const loading = loadingScreen();
   show(loading.root);
   stage.setFlowSpeed(60);
+  // 音效是 6 个 rFXGen 生成的小 wav(合计 200KB),和模型并行下载;
+  // 单条失败也不挡开局,只是那一声不响 —— 所以不参与 loading 进度、不进 catch 分支
+  void preloadSfx();
   loadAssets(loading.progress)
     .then((loaded) => {
       if (destroyed) return;
