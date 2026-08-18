@@ -47,6 +47,13 @@ export const GAMES: GameMeta[] = [
     controls: '拖动或方向键走位 · 自动射击 · P / ESC 暂停',
     accent: 'text-fuchsia-400',
   },
+  {
+    slug: 'eight-ball',
+    title: 'Eight Ball',
+    tagline: '竖屏 8 球对战 AI · 三档对手 · 全英文界面(面向海外)',
+    controls: '拖动台面瞄准 · 拖底部力度条松手出杆 · ← → 微调 · 空格出杆',
+    accent: 'text-emerald-400',
+  },
 ];
 
 export function getGame(slug: string): GameMeta | undefined {
