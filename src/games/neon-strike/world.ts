@@ -643,8 +643,11 @@ export class World {
     // 五列 × 两排铺开。编队按走位范围换算,任何屏幕比例下都落在可打击的区域里
     const col = index % 5;
     const row = Math.floor(index / 5) % 2;
-    const x = (col / 4 - 0.5) * 2 * halfX * 1.05 + (Math.random() - 0.5) * 0.8;
-    const y = centerY + (row === 0 ? 0.35 : -0.45) * halfY + (Math.random() - 0.5) * 0.9;
+    // 编队铺满可走范围的 88%,再加上随机抖动也不会越界。
+    // 之前是 105% + 抖动,最外侧那两列生成在玩家永远走不到的地方 ——
+    // 打不到、撞不到,只能等它自己飞过去扣一条命
+    const x = (col / 4 - 0.5) * 2 * halfX * 0.88 + (Math.random() - 0.5) * 0.5;
+    const y = centerY + (row === 0 ? 0.32 : -0.4) * halfY + (Math.random() - 0.5) * 0.7;
 
     slot.active = true;
     slot.kind = kind;
@@ -804,6 +807,18 @@ export class World {
     pos.x += enemy.vx * dt;
     pos.y += enemy.vy * dt;
     pos.z += enemy.vz * dt;
+    // 横摆(weaver 的 vx 能到 ±4.6)会把敌机一路带出可走范围。
+    // 越界就贴边并反向 —— 玩家够不到的敌机,既不是威胁也不是目标,只是噪音
+    const { halfX, halfY, centerY } = this.stage.playArea;
+    if (Math.abs(pos.x) > halfX) {
+      pos.x = THREE.MathUtils.clamp(pos.x, -halfX, halfX);
+      enemy.vx *= -1;
+    }
+    const lowY = centerY - halfY, highY = centerY + halfY;
+    if (pos.y < lowY || pos.y > highY) {
+      pos.y = THREE.MathUtils.clamp(pos.y, lowY, highY);
+      enemy.vy *= -1;
+    }
     enemy.root.rotation.z = -enemy.vx * 0.09;
     enemy.root.rotation.y = Math.PI - enemy.vx * 0.04;
     this.tickFlash(enemy);
@@ -975,9 +990,14 @@ export class World {
     // 池位按种类固定,想要的那种用光了就不掉 —— 与其掉一个长得不对的,不如不掉
     const power = this.powers.find((p) => !p.active && p.kind === kind);
     if (!power) return;
+    // 掉落点必须落在玩家够得到的范围里。掉落位置来自敌机的死亡坐标,
+    // 而敌机死在边缘、Boss 又往两侧各甩一个,不钳的话就会出现"贴着边飞也吃不到"
+    const { halfX, halfY, centerY } = this.stage.playArea;
+    const dropX = THREE.MathUtils.clamp(x, -halfX * 0.92, halfX * 0.92);
+    const dropY = THREE.MathUtils.clamp(y, centerY - halfY * 0.92, centerY + halfY * 0.92);
     power.active = true;
     power.vz = 16;
-    power.mesh.position.set(x, y, z);
+    power.mesh.position.set(dropX, dropY, z);
     power.mesh.rotation.set(0, 0, 0);
     power.mesh.visible = true;
   }
@@ -991,6 +1011,14 @@ export class World {
       // 区分种类的,一旦绕 Y 转起来就会周期性地侧成一条线,那几帧玩家读不出是什么
       power.mesh.rotation.z += dt * 1.25;
       power.mesh.rotation.y = Math.sin(this.now / 420 + power.mesh.position.x) * 0.32;
+      // 进入最后一段距离后向玩家横向吸附。奖励是正反馈,不该变成一道精确操作题;
+      // 吸附只在近处生效,远处仍然要靠走位去接,"提前判断落点"这件事还在
+      const near = this.player.position.z - power.mesh.position.z;
+      if (near < 22) {
+        const pull = Math.min(1, dt * 3.2);
+        power.mesh.position.x += (this.player.position.x - power.mesh.position.x) * pull;
+        power.mesh.position.y += (this.player.position.y - power.mesh.position.y) * pull;
+      }
       if (power.mesh.position.z > limitZ) { power.active = false; power.mesh.visible = false; }
     }
   }
@@ -1046,18 +1074,26 @@ export class World {
     slot.spin = spec.spin * (Math.random() < 0.5 ? -1 : 1);
     // 每个个体一根随机转轴:同一个模型转起来就不像是同一件东西
     slot.axis.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
-    slot.root.position.set(
-      (Math.random() * 2 - 1) * halfX * 0.85,
-      centerY + (Math.random() * 2 - 1) * halfY * 0.75,
-      SPACE.spawnZ - Math.random() * 20,
-    );
-    slot.root.rotation.set(Math.random() * 6.28, Math.random() * 6.28, Math.random() * 6.28);
-    // 碰撞盒必须跟着实例缩放走。固定值的话最大 15% 的误差,表现成"看着躲开了却撞上"
-    const scale = 0.85 + Math.random() * 0.3;
+    // 尺寸按航道宽度封顶。货舱本身半宽 1.7,而手机竖屏的航道半宽只有 4.2 上下,
+    // 不封顶的话它会占掉大半条航道 —— 玩家不是"躲得难",是根本没有可去的位置
+    const room = halfX * OBSTACLE.maxLaneShare;
+    const scale = Math.min(0.85 + Math.random() * 0.3, room / spec.half.x);
     slot.root.scale.setScalar(scale);
+    // 碰撞盒跟着实例缩放走。固定值的话表现成"看着躲开了却撞上"
     slot.half.x = spec.half.x * scale;
     slot.half.y = spec.half.y * scale;
     slot.half.z = spec.half.z * scale;
+
+    // 落点要保证另一侧留得下一整架战机:先随机,再按需要往中间收 ——
+    // 贴边生成看着凶,实际上只是把玩家往另一边赶,反而没有选择
+    const need = slot.half.x + HITBOX.player.x + 0.45;
+    const span = Math.max(0, halfX - slot.half.x - 0.2);
+    slot.root.position.set(
+      THREE.MathUtils.clamp((Math.random() * 2 - 1) * span, -(halfX - need), halfX - need),
+      centerY + (Math.random() * 2 - 1) * halfY * 0.7,
+      SPACE.spawnZ - Math.random() * 20,
+    );
+    slot.root.rotation.set(Math.random() * 6.28, Math.random() * 6.28, Math.random() * 6.28);
     slot.root.visible = true;
   }
 

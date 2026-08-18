@@ -37,6 +37,10 @@ export class Stage {
 
   /** 世界推进速度,用来驱动星空、地格、立柱的流动 */
   private flowSpeed = 26;
+  /** 实际生效的机位。窄屏时会比 SPACE 里的基准更远,见 recomputePlayArea */
+  // 标注类型:SPACE 是 as const,不标的话这两个字段会被推成字面量类型 10.6 / 3.1
+  private cameraBack: number = SPACE.cameraBack;
+  private cameraUp: number = SPACE.cameraUp;
   private shakeUntil = 0;
   private shakeAmount = 0;
   private cameraX = 0;
@@ -326,8 +330,8 @@ export class Stage {
     }
     this.camera.position.set(
       this.cameraX + shakeX,
-      SPACE.cameraUp + playerY * 0.16 + shakeY,
-      SPACE.cameraBack,
+      this.cameraUp + playerY * 0.16 + shakeY,
+      this.cameraBack,
     );
     this.camera.lookAt(
       this.cameraX * 0.5 + playerX * 0.1,
@@ -359,11 +363,25 @@ export class Stage {
    * 换任何画面比例、任何镜头参数都不用再手调常量。
    */
   private recomputePlayArea() {
+    // 窄屏(手机竖屏)下水平视野只有桌面的五分之一,航道会窄到躲不开一个货舱障碍物。
+    // 这时把镜头往后拉:俯角和视野角都不变,只是距离变远 —— 纵深观感保持,航道变宽,
+    // 战机在屏幕上变小,这正是手机弹幕射击该有的比例。
+    let back: number = SPACE.cameraBack;
+    if (this.measureHalfX(back) < SPACE.minHalfX) {
+      let lo: number = SPACE.cameraBack;
+      let hi: number = SPACE.cameraBackMax;
+      for (let i = 0; i < 20; i++) {
+        const mid = (lo + hi) / 2;
+        if (this.measureHalfX(mid) < SPACE.minHalfX) lo = mid; else hi = mid;
+      }
+      back = hi;
+    }
+    this.cameraBack = back;
+    // 抬升等比跟随,俯角才不会随视口比例变来变去
+    this.cameraUp = SPACE.cameraUp * (back / SPACE.cameraBack);
+
     const probe = new THREE.Vector3();
-    const camera = this.camera.clone();
-    camera.position.set(0, SPACE.cameraUp, SPACE.cameraBack);
-    camera.lookAt(0, -SPACE.playerDropY, -SPACE.cameraLookAhead);
-    camera.updateMatrixWorld(true);
+    const camera = this.probeCamera(back);
 
     const ndc = (x: number, y: number) => {
       probe.set(x, y, SPACE.playerZ).project(camera);
@@ -387,6 +405,28 @@ export class Stage {
     const lower = Math.max(1.2, bottom - SPACE.marginY);
     this.playArea.centerY = (upper - lower) / 2;
     this.playArea.halfY = (upper + lower) / 2;
+  }
+
+  /** 处于基准姿态、指定后退量的一台相机,只用于几何反解,不碰真机位 */
+  private probeCamera(back: number) {
+    const camera = this.camera.clone();
+    camera.position.set(0, SPACE.cameraUp * (back / SPACE.cameraBack), back);
+    camera.lookAt(0, -SPACE.playerDropY, -SPACE.cameraLookAhead);
+    camera.updateMatrixWorld(true);
+    return camera;
+  }
+
+  /** 给定后退量时的可走半宽。二分求后退量时反复调它 */
+  private measureHalfX(back: number) {
+    const camera = this.probeCamera(back);
+    const probe = new THREE.Vector3();
+    let lo = 0, hi = 60;
+    for (let i = 0; i < 22; i++) {
+      const mid = (lo + hi) / 2;
+      probe.set(mid, 0, SPACE.playerZ).project(camera);
+      if (Math.abs(probe.x) <= 0.88) lo = mid; else hi = mid;
+    }
+    return lo - SPACE.marginX;
   }
 
   dispose() {
