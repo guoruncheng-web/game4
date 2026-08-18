@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import AuthProvider from "@/components/AuthProvider";
 import PwaProvider from "@/components/PwaProvider";
 import "./globals.css";
 
@@ -48,8 +49,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {children}
-        <PwaProvider />
+        {/* 登录状态全站一份:头部按钮和首页卡片都要看它,各自 fetch 会互相打架 */}
+        <AuthProvider>
+          {children}
+          <PwaProvider />
+        </AuthProvider>
       </body>
     </html>
   );
