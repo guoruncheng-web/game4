@@ -131,6 +131,41 @@ export default function Page() {
   产物一律 PNG:iOS 不吃 manifest 里的 svg,安卓的 maskable 裁切也只认位图)。
 - 改了 `sw.js` 的缓存策略,记得同时把里面的 `VERSION` 加一档,否则旧缓存不会被清。
 
+## 账号与会话
+
+产品形态是**一键开号**:后端直接生成 `player-xxxxxx` + 12 位随机密码,弹窗只显示这一次。
+没有邮箱,所以**没有找回流程** —— 前端弹窗必须一直把这句话说死,并且要用户勾选确认才让关。
+
+| 位置 | 作用 |
+| --- | --- |
+| `src/lib/auth.ts` | 密码 scrypt 哈希、会话 token 签发/校验、cookie 选项 |
+| `src/lib/captcha.ts` | 手写 PNG 编码器 + 点阵字模生成验证码,答案不落库 |
+| `src/lib/session.ts` | `getCurrentUser()`,顺带比对 token_version |
+| `src/lib/rate-limit.ts` | 内存限流 + 登录失败计数 |
+| `src/app/api/auth/*` | register / login / logout / me / password / captcha |
+| `scripts/db/schema.sql` | `users` 表,`node --env-file=.env.local scripts/db/init.mjs` 建表(幂等) |
+
+守住这几条:
+
+- **会话是无状态签名 cookie,靠 `users.token_version` 撤销。** payload 是 `id.版本号.过期时间`;
+  登出和改密码都会把库里的版本号 +1,旧 token 立刻失效。改动 token 格式 = 所有人被登出。
+- **改密码不验旧密码**,凭据就是那条已登录的会话 cookie。开号发的是随机串,用户基本没记住,
+  逼他们抄旧密码等于挡住正常改密。代价是会话被盗即账号被顶掉 —— 所以 session cookie 的
+  httpOnly / sameSite 和改密接口的限流都不能拿掉。
+- **密码进 scrypt 之前必须先卡长度**(`MAX_PASSWORD_LENGTH`)。scrypt 是同步且刻意慢的,
+  一个超长密码就是一次免费的 DoS。
+- **验证码是一次性的**:cookie 里签的是 `nonce.过期时间.签名`,校验通过就把 nonce 记进内存黑名单。
+  签名对不上不消费 nonce —— 否则用户输错一次就得换图。
+- **登录连错 3 次(按 IP 和用户名各记一份,取大者)之后必须带验证码**,响应里会带 `requireCaptcha`,
+  前端据此把验证码框补出来。登录成功要把失败计数和限流桶一起清掉。
+- **限流和 nonce 黑名单都是每实例一份的内存结构**,Serverless 下不是安全边界,只是门槛。
+  真要扛撞库得换共享存储(Upstash Redis 之类)。
+- 验证码画图**不许引 node-canvas / @napi-rs/canvas** —— 带原生二进制,而这个仓库的 node_modules
+  是 Mac 和 Linux 两台机器共用的,原生包必然在其中一边缺文件。PNG 用 Node 自带 zlib 手写就够了。
+- 接口冒烟测试:起 dev server 后
+  `node --experimental-strip-types --env-file=.env.local scripts/db/seed-e2e.mts` 铺测试账号,
+  `node scripts/db/e2e-auth.mjs http://127.0.0.1:3000` 跑,跑完 `seed-e2e.mts --clean` 清掉。
+
 ## 资源约定
 
 现有游戏的贴图用 `Graphics.generateTexture()` 生成、音效用 WebAudio 振荡器合成,
@@ -184,3 +219,6 @@ Codex 使用 `.codex/agents/*.toml`;Claude Code 兼容副本保留在 `.claude/a
 - 可以使用 Effekseer 来生成游戏特效，我在本机(mac)上安装好了
 - 对于threejs开发的游戏可以使用 three-nebula 生成素材
 - 对于threejs开发的游戏可以使用 Phaser3-Particle-Editor 生成素材
+
+
+# nodel_modules 目录安装依赖只能我在mac上面自己安装,不用你在linux帮我安装
