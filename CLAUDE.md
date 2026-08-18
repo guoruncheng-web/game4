@@ -175,6 +175,12 @@ Codex 使用 `.codex/agents/*.toml`;Claude Code 兼容副本保留在 `.claude/a
   产出的 glb 进仓库;结构物(`prop-*.glb`)缺失时 Stage 会自动回落到程序化柱体,
   障碍物(`obstacle-*.glb`)缺失时这一局就没有障碍物 —— 都不会报错、不会开不了局
 - 可以使用 rFXGen 来生成游戏音效，我在本机(mac)上安装好了
+  (`~/Applications/rFXGen/rfxgen_v5.0_macos/rfxgen.app/Contents/MacOS/rfxgen`,支持 `--input x.rfx --output x.wav --format 44100,16,1` 无 GUI 渲染;
+  Linux VM 里可以 `ssh mac@192.168.64.1` 直接调它)
+- 霓虹突击的音效由 `tools/audio/neon-strike/build_sfx.mjs` 生成:
+  脚本写出 `presets/*.rfx`(rFXGen 原生参数文件)→ 调 rFXGen 渲染每一层 → 混层 + 峰值归一 → `public/neon-strike/assets/audio/*.wav`。
+  `node tools/audio/neon-strike/build_sfx.mjs --ssh mac@192.168.64.1`(或 `--rfxgen <二进制路径>` 在 Mac 本地跑)。
+  想手调音色就用 rFXGen GUI 打开对应的 `.rfx` 存回原文件,再跑一遍脚本;改了音频文件记得把 `public/sw.js` 的 `VERSION` 加一档
 - 可以使用 Effekseer 来生成游戏特效，我在本机(mac)上安装好了
 - 对于threejs开发的游戏可以使用 three-nebula 生成素材
 - 对于threejs开发的游戏可以使用 Phaser3-Particle-Editor 生成素材
