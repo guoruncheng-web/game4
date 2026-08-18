@@ -52,6 +52,9 @@ export default function PwaProvider() {
     if (process.env.NODE_ENV !== 'production') return;
 
     let disposed = false;
+    let timer = 0;
+    let onVisible: (() => void) | null = null;
+
     void navigator.serviceWorker.register('/sw.js').then((registration) => {
       if (disposed) return;
       // 已经有新版本装好在等着接管(上次访问时下载的)
@@ -64,9 +67,25 @@ export default function PwaProvider() {
           if (next.state === 'installed' && navigator.serviceWorker.controller) setWaiting(next);
         });
       });
+
+      /*
+       * 主动去问有没有新版本。
+       *
+       * 浏览器只在**导航**的时候顺手检查 sw.js 变没变 —— 而装到桌面的 PWA
+       * 常年开着同一个窗口、一次导航都不发生,不推它的话部署十次它也发现不了。
+       * 所以两个时机各查一次:每小时一次,以及每次窗口重新回到前台。
+       */
+      const check = () => { void registration.update().catch(() => undefined); };
+      timer = window.setInterval(check, 60 * 60_000);
+      onVisible = () => { if (document.visibilityState === 'visible') check(); };
+      document.addEventListener('visibilitychange', onVisible);
     }).catch(() => { /* 注册失败不影响游戏本身,静默 */ });
 
-    return () => { disposed = true; };
+    return () => {
+      disposed = true;
+      if (timer) window.clearInterval(timer);
+      if (onVisible) document.removeEventListener('visibilitychange', onVisible);
+    };
   }, []);
 
   // ------------------------------------------------------------ 安装时机
@@ -120,7 +139,16 @@ export default function PwaProvider() {
   const refresh = useCallback(() => {
     if (!waiting) return;
     // 新 SW 接管的那一刻再刷新,直接 reload 会拿到旧版本继续服务
-    navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload(), { once: true });
+    let done = false;
+    const reload = () => {
+      if (done) return;
+      done = true;
+      window.location.reload();
+    };
+    navigator.serviceWorker.addEventListener('controllerchange', reload, { once: true });
+    // 兜底:controllerchange 万一没来(SW 卡住、或它其实早就接管过了),
+    // 也不能让用户点了按钮之后干等着 —— 2 秒后照样刷新
+    window.setTimeout(reload, 2000);
     waiting.postMessage('skip-waiting');
     setWaiting(null);
   }, [waiting]);

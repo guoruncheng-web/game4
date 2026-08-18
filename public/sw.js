@@ -36,8 +36,17 @@ self.addEventListener('install', (event) => {
     const cache = await caches.open(SHELL_CACHE);
     // 单个资源 404 不该让整次安装失败,逐个来
     await Promise.all(PRECACHE.map((url) => cache.add(url).catch(() => {})));
-    await self.skipWaiting();
   })());
+  /*
+   * 这里**故意不调 skipWaiting()**。装好之后就老实停在 waiting,等页面上的用户
+   * 点了"立即刷新"再由下面那条 message 放行。
+   *
+   * 在 install 里 skipWaiting 会有两个后果:
+   * 1. registration.waiting 永远是空的,PwaProvider 的更新横幅等于摆设;
+   *    而且它靠 controllerchange 触发 reload —— 事件早就发生完了,点刷新不会有反应。
+   * 2. 新 SW 会抢在旧页面还开着的时候接管。旧页面接着去要旧的 _next/static chunk,
+   *    新 VERSION 的 cache 是空的、服务器上那个 chunk 又随新部署删了,页面当场碎掉。
+   */
 });
 
 self.addEventListener('activate', (event) => {
