@@ -172,7 +172,8 @@ Codex 使用 `.codex/agents/*.toml`;Claude Code 兼容副本保留在 `.claude/a
 - 霓虹突击的 3D 模型由 `tools/blender/neon-strike/build_models.py` 无头生成(敌机 / Boss / 三种场景结构物),
   改了脚本要在装了 Blender 的机器上重跑:
   `blender -b --python tools/blender/neon-strike/build_models.py -- public/neon-strike/models`
-  产出的 glb 进仓库;结构物(`prop-*.glb`)缺失时 Stage 会自动回落到程序化柱体,不会报错
+  产出的 glb 进仓库;结构物(`prop-*.glb`)缺失时 Stage 会自动回落到程序化柱体,
+  障碍物(`obstacle-*.glb`)缺失时这一局就没有障碍物 —— 都不会报错、不会开不了局
 - 可以使用 rFXGen 来生成游戏音效，我在本机(mac)上安装好了
 - 可以使用 Effekseer 来生成游戏特效，我在本机(mac)上安装好了
 - 对于threejs开发的游戏可以使用 three-nebula 生成素材

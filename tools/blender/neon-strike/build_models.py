@@ -366,6 +366,94 @@ def build_pylon_wreck():
     box("残翼", hull, loc=(-3.0, 5.0, 0.2), scale=(3.0, 3.4, 0.3), rot=(0, math.radians(-16), 0))
 
 
+# ---------------------------------------------------------------- 航道障碍物(参与碰撞)
+
+def build_obstacle_asteroid():
+    """碎裂的小行星。直径约 3,可被击碎。
+
+    形状语言刻意和敌机反着来:敌机是硬表面、对称、带自发光能量件,
+    小行星是不规则、无光、纯反射 —— 玩家余光扫过就知道"这个不会还手,但会撞死我"。
+    """
+    reset_scene()
+    rock = make_material("岩体", (0.16, 0.14, 0.15), metal=0.25, rough=0.92)
+    vein = make_material("矿脉", (0.35, 0.5, 0.6), metal=0.9, rough=0.35)
+    heat = make_material("再入余温", (0.8, 0.28, 0.12), metal=0.0, rough=0.5,
+                         emit=(1.0, 0.35, 0.1), emit_strength=2.4)
+
+    # 主体是被压扁拉歪的球,再挂几块凸起 —— 低模下不规则感全靠这几块打破对称
+    ball("主岩体", rock, loc=(0, 0, 0), scale=(3.0, 2.6, 2.8), subdiv=2)
+    ball("凸起A", rock, loc=(0.9, 0.5, 0.7), scale=(1.5, 1.4, 1.2), subdiv=1)
+    ball("凸起B", rock, loc=(-1.0, -0.4, -0.5), scale=(1.3, 1.6, 1.4), subdiv=1)
+    ball("凸起C", rock, loc=(0.2, -1.1, 0.6), scale=(1.1, 1.0, 1.3), subdiv=1)
+    # 矿脉与余温:纯灰岩块在深色背景里会整个沉下去,得有两处能反光/发光的落点
+    box("矿脉A", vein, loc=(0.4, 1.2, 0.2), scale=(1.4, 0.3, 0.5), rot=(0.3, 0.2, 0.7))
+    box("矿脉B", vein, loc=(-0.8, 0.3, 1.1), scale=(0.3, 1.2, 0.4), rot=(0.6, 0, 0.2))
+    box("余温缝", heat, loc=(0.9, -0.6, -0.9), scale=(0.9, 0.22, 0.22), rot=(0, 0.4, 0.3))
+
+
+def build_obstacle_mine():
+    """太空水雷。直径约 2(含刺 4),可被击落,碰到就炸。
+
+    带刺 + 红光是"雷"的通用语汇,不需要教学。刺做成多向对称,任何角度轮廓都一样 ——
+    玩家不必判断朝向,只需要判断"别碰"。
+
+    发光件走赤道环和刺根的灯点,不做发光内核:内核只要有一丝比外壳大就会从球面上
+    戳出斑块,而球体又是最不适合藏东西的形状(第一版就是这么糊掉的)。
+    """
+    reset_scene()
+    shell = make_material("雷体外壳", (0.09, 0.09, 0.11), metal=0.9, rough=0.4)
+    spike = make_material("触发刺", (0.3, 0.3, 0.34), metal=0.95, rough=0.22)
+    warn = make_material("警戒灯", (1.0, 0.15, 0.15), metal=0.0, rough=0.2,
+                         emit=(1.0, 0.12, 0.1), emit_strength=9.0)
+
+    ball("雷体", shell, loc=(0, 0, 0), scale=(1.45, 1.45, 1.45), subdiv=2)
+    # 赤道环是整颗雷最亮的一圈,远处只剩这一环时仍然认得出
+    # 注意:ball / ring 的 scale 给的是直径,雷体半径只有 0.72,贴壳的件都要按这个算
+    # Z 方向压扁,把环从"甜甜圈"压成贴在壳上的一道箍;torus 的管径是按 major 的固定比例来的,
+    # 不压的话在这个尺寸下会胖得像个救生圈
+    ring("警戒环", warn, loc=(0, 0, 0), scale=(1.58, 1.58, 0.42), rot=(math.radians(90), 0, 0))
+    ring("加固环", spike, loc=(0, 0, 0), scale=(1.5, 1.5, 0.4), rot=(0, math.radians(90), 0))
+
+    # 六向主刺:细长才有"刺"的读感,第一版又粗又短,读成了球上的疙瘩
+    for i, (rx, ry) in enumerate(((0, 0), (math.pi, 0), (math.pi / 2, 0),
+                                  (-math.pi / 2, 0), (0, math.pi / 2), (0, -math.pi / 2))):
+        wedge(f"主刺{i}", spike, loc=(0, 0, 0), scale=(0.3, 0.3, 3.4), rot=(rx, ry, 0))
+    # 刺根灯点:六个小红点跟着刺走,顺带把刺和球体在视觉上焊在一起
+    for i, (x, y, z) in enumerate(((0, 0, 0.68), (0, 0, -0.68), (0, 0.68, 0),
+                                   (0, -0.68, 0), (0.68, 0, 0), (-0.68, 0, 0))):
+        ball(f"刺根灯{i}", warn, loc=(x, y, z), scale=(0.34, 0.34, 0.34), subdiv=1)
+    # 四根斜刺补满轮廓,让任意角度看过去都是"带刺的"
+    for i in range(4):
+        a = i / 4 * math.tau + math.pi / 4
+        wedge(f"斜刺{i}", spike, loc=(0, 0, 0), scale=(0.24, 0.24, 2.9),
+              rot=(math.radians(55), 0, a))
+
+
+def build_obstacle_block():
+    """废弃货舱段。约 3.4 × 2.2 × 2.4,打不碎,只能绕。
+
+    方正、厚重、带集装箱肋 —— 唯一一个"看起来就打不动"的形状。
+    可摧毁的两种都是圆的(岩块、雷),不可摧毁的这个是方的:
+    形状本身就是规则说明,玩家不需要试错两次才学会。
+    """
+    reset_scene()
+    steel = make_material("货舱装甲", (0.2, 0.21, 0.24), metal=0.92, rough=0.34)
+    dark = make_material("货舱暗件", (0.05, 0.05, 0.07), metal=0.9, rough=0.5)
+    stripe = make_material("危险条纹", (1.0, 0.66, 0.1), metal=0.0, rough=0.3,
+                           emit=(1.0, 0.62, 0.12), emit_strength=3.2)
+
+    box("舱体", steel, loc=(0, 0, 0), scale=(3.4, 2.4, 2.2))
+    # 集装箱肋:三道竖肋 + 两端法兰,让方块在旋转时有明确的转动感
+    for i, x in enumerate((-1.0, 0.0, 1.0)):
+        box(f"竖肋{i}", dark, loc=(x, 0, 0), scale=(0.28, 2.5, 2.3))
+    box("前法兰", dark, loc=(0, 1.3, 0), scale=(3.5, 0.3, 2.3))
+    box("后法兰", dark, loc=(0, -1.3, 0), scale=(3.5, 0.3, 2.3))
+    # 危险条纹:唯一的发光件,给的是"这东西是障碍不是敌人"的色彩信号(琥珀 ≠ 敌机的红/紫)
+    for i, z in enumerate((0.75, -0.75)):
+        box(f"条纹{i}", stripe, loc=(0, 1.32, z), scale=(3.0, 0.34, 0.3))
+    box("侧灯", stripe, loc=(1.72, 0, 0), scale=(0.3, 1.6, 0.34))
+
+
 # ---------------------------------------------------------------- 入口
 
 BUILDERS = {
@@ -376,6 +464,10 @@ BUILDERS = {
     "prop-truss": build_pylon_truss,
     "prop-station": build_pylon_station,
     "prop-wreck": build_pylon_wreck,
+    # 航道障碍物。这三个参与碰撞,尺寸直接按世界单位建,进引擎后不再归一化
+    "obstacle-asteroid": build_obstacle_asteroid,
+    "obstacle-mine": build_obstacle_mine,
+    "obstacle-block": build_obstacle_block,
 }
 
 

@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 import {
-  AIM, BOSS_SPEC, CAMPAIGN_WAVES, DIFFICULTIES, ENEMY_SPEC, HITBOX, POWER_COLOR, SPACE, TUNING,
-  type DifficultyId, type DifficultySpec, type EnemyKind, type GameMode, type PowerKind,
+  AIM, BOSS_SPEC, CAMPAIGN_WAVES, DIFFICULTIES, ENEMY_SPEC, HITBOX, OBSTACLE, OBSTACLE_SPEC,
+  POWER_COLOR, SPACE, TUNING,
+  type DifficultyId, type DifficultySpec, type EnemyKind, type GameMode, type ObstacleKind,
+  type PowerKind,
 } from './config';
 import { sfx } from './sfx';
 import { pushScore, saveSettings } from './storage';
@@ -63,6 +65,18 @@ type Shot = {
   vz: number;
 };
 
+type Obstacle = {
+  root: THREE.Object3D;
+  active: boolean;
+  kind: ObstacleKind;
+  /** null = 不可摧毁 */
+  hp: number | null;
+  vz: number;
+  spin: number;
+  axis: THREE.Vector3;
+  half: { x: number; y: number; z: number };
+};
+
 type Power = {
   mesh: THREE.Mesh;
   active: boolean;
@@ -76,6 +90,8 @@ const ENEMY_POOL = 22;
 const SHOT_POOL = 60;
 const ENEMY_SHOT_POOL = 90;
 const POWER_POOL = 10;
+/** 每种障碍物各一池。同屏最多 6 个,留一倍余量 */
+const OBSTACLE_POOL = 12;
 
 /** 玩家子弹的形状:细长的等离子束,长轴沿 Z */
 function makeShotMesh(color: number, radius: number, length: number) {
@@ -105,6 +121,9 @@ export class World {
   private shots: Shot[] = [];
   private enemyShots: Shot[] = [];
   private powers: Power[] = [];
+  private obstacles: Obstacle[] = [];
+  /** 本局是否已经提示过障碍物。只教一次 */
+  private warnedObstacle = false;
   private timers: Timer[] = [];
 
   private diff: DifficultySpec;
@@ -255,6 +274,28 @@ export class World {
       this.powers.push({ mesh, active: false, kind: 'shield', vz: 0 });
       this.disposables.push(material);
     }
+
+    this.buildObstaclePool();
+  }
+
+  /**
+   * 障碍物池。三种模型轮流建,缺哪种就跳过哪种 —— 模型没产出时游戏照常跑,
+   * 只是这一局没有障碍物,不会因为少一个 glb 就开不了局。
+   */
+  private buildObstaclePool() {
+    const kinds = (Object.keys(OBSTACLE_SPEC) as ObstacleKind[])
+      .filter((kind) => !!this.assets.obstacles[kind]);
+    if (!kinds.length) return;
+    for (let i = 0; i < OBSTACLE_POOL; i++) {
+      const kind = kinds[i % kinds.length];
+      const root = cloneShip(this.assets.obstacles[kind]!);
+      root.visible = false;
+      this.group.add(root);
+      this.obstacles.push({
+        root, active: false, kind, hp: OBSTACLE_SPEC[kind].hp, vz: 0, spin: 0,
+        axis: new THREE.Vector3(0, 1, 0), half: { ...OBSTACLE_SPEC[kind].half },
+      });
+    }
   }
 
   // ------------------------------------------------------------ 输入
@@ -357,6 +398,7 @@ export class World {
       this.driveShots(dt);
       this.driveEnemies(dt);
       this.drivePowers(dt);
+      this.driveObstacles(dt);
       // 先结算锁定再开火:同一帧里刚被打掉的目标不该再吃到一发
       this.acquireLock();
       if (this.now - this.lastShot >= TUNING.fireDelay) this.fire();
@@ -549,6 +591,7 @@ export class World {
       const kinds = this.rollKinds(count);
       for (let i = 0; i < count; i++) this.after(500 + i * 260, () => this.spawnEnemy(i, kinds[i]));
     }
+    this.scheduleObstacles(boss);
   }
 
   /** 按波次解锁兵种,再按权重抽这一波的编成 */
@@ -812,6 +855,24 @@ export class World {
       }
     }
 
+    // 玩家子弹被障碍物挡下 —— 这是障碍物最主要的战术含义:
+    // 咬住了目标不等于打得中,身位没绕过去,子弹就喂给石头了。
+    //
+    // 敌弹刻意不挡:能挡的话最优解就是贴在岩块后面等,走位压力立刻变成蹲坑收益,
+    // 而躲在掩体后不动恰恰是这类纵深射击最不该奖励的打法。
+    for (const shot of this.shots) {
+      if (!shot.active) continue;
+      const sweep = Math.abs(shot.vz) * dt * 0.5;
+      for (const obstacle of this.obstacles) {
+        if (!obstacle.active) continue;
+        if (!this.overlaps(obstacle.root.position, obstacle.half, shot.mesh.position, HITBOX.shot, sweep)) continue;
+        const x = shot.mesh.position.x, y = shot.mesh.position.y, z = shot.mesh.position.z;
+        this.retireShot(shot);
+        this.hitObstacle(obstacle, x, y, z);
+        break;
+      }
+    }
+
     const p = this.player.position;
     for (const shot of this.enemyShots) {
       if (!shot.active) continue;
@@ -823,6 +884,15 @@ export class World {
       const sweep = Math.abs(enemy.vz) * dt * 0.5;
       if (!this.overlaps(enemy.root.position, enemy.half, p, HITBOX.player.x, sweep)) continue;
       this.hitPlayer(null, enemy);
+    }
+    for (const obstacle of this.obstacles) {
+      if (!obstacle.active) continue;
+      const sweep = Math.abs(obstacle.vz) * dt * 0.5;
+      if (!this.overlaps(obstacle.root.position, obstacle.half, p, HITBOX.player.x, sweep)) continue;
+      // 撞上去两边都要结算:玩家吃伤害(护盾会先顶),障碍物原地炸掉。
+      // 不炸掉的话它会卡在玩家身上,在无敌帧结束的瞬间再判定一次,直接连掉两条命
+      this.breakObstacle(obstacle, false);
+      this.hitPlayer(null, null);
     }
     for (const power of this.powers) {
       if (!power.active) continue;
@@ -896,6 +966,121 @@ export class World {
       power.mesh.rotation.y += dt * 2.6;
       power.mesh.rotation.x += dt * 1.7;
       if (power.mesh.position.z > limitZ) { power.active = false; power.mesh.visible = false; }
+    }
+  }
+
+  // ------------------------------------------------------------ 障碍物
+
+  /**
+   * 排一波障碍物。和敌机错开时间下发,免得同一瞬间又要打又要躲。
+   *
+   * 障碍物不计入 remaining:波次结束的条件是"敌机清完",不是"路上没东西了"。
+   * 否则玩家会被迫去打那些本来可以绕开的岩块,走位压力反而变成了打靶任务。
+   */
+  private scheduleObstacles(boss: boolean) {
+    if (!this.obstacles.length || this.wave < OBSTACLE.fromWave) return;
+    const count = boss
+      ? OBSTACLE.boss
+      : Math.min(OBSTACLE.base + Math.floor(this.wave / OBSTACLE.step), OBSTACLE.max);
+    for (let i = 0; i < count; i++) {
+      this.after(900 + i * 700 + Math.random() * 400, () => this.spawnObstacle());
+    }
+    if (!this.warnedObstacle) {
+      this.warnedObstacle = true;
+      this.after(820, () => this.events.onBanner('⚠ 航道有残骸', false));
+    }
+  }
+
+  private rollObstacleKind(): ObstacleKind {
+    const kinds = Object.keys(OBSTACLE_SPEC) as ObstacleKind[];
+    const pool = kinds.filter((kind) => this.obstacles.some((o) => o.kind === kind));
+    let total = 0;
+    for (const kind of pool) total += OBSTACLE_SPEC[kind].weight;
+    let roll = Math.random() * total;
+    for (const kind of pool) {
+      roll -= OBSTACLE_SPEC[kind].weight;
+      if (roll <= 0) return kind;
+    }
+    return pool[0];
+  }
+
+  private spawnObstacle() {
+    if (this.ended || !this.obstacles.length) return;
+    const kind = this.rollObstacleKind();
+    // 池按种类固定分配,想要的那种用光了就退而用任意空位(用它自己的种类)
+    const slot = this.obstacles.find((o) => !o.active && o.kind === kind)
+      ?? this.obstacles.find((o) => !o.active);
+    if (!slot) return;
+    const spec = OBSTACLE_SPEC[slot.kind];
+    const { halfX, halfY, centerY } = this.stage.playArea;
+
+    slot.active = true;
+    slot.hp = spec.hp;
+    slot.vz = (11 + this.wave * 0.85) * spec.speed * this.diff.enemySpeed;
+    slot.spin = spec.spin * (Math.random() < 0.5 ? -1 : 1);
+    // 每个个体一根随机转轴:同一个模型转起来就不像是同一件东西
+    slot.axis.set(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize();
+    slot.root.position.set(
+      (Math.random() * 2 - 1) * halfX * 0.85,
+      centerY + (Math.random() * 2 - 1) * halfY * 0.75,
+      SPACE.spawnZ - Math.random() * 20,
+    );
+    slot.root.rotation.set(Math.random() * 6.28, Math.random() * 6.28, Math.random() * 6.28);
+    // 碰撞盒必须跟着实例缩放走。固定值的话最大 15% 的误差,表现成"看着躲开了却撞上"
+    const scale = 0.85 + Math.random() * 0.3;
+    slot.root.scale.setScalar(scale);
+    slot.half.x = spec.half.x * scale;
+    slot.half.y = spec.half.y * scale;
+    slot.half.z = spec.half.z * scale;
+    slot.root.visible = true;
+  }
+
+  private driveObstacles(dt: number) {
+    for (const obstacle of this.obstacles) {
+      if (!obstacle.active) continue;
+      obstacle.root.position.z += obstacle.vz * dt;
+      obstacle.root.rotateOnAxis(obstacle.axis, obstacle.spin * dt);
+      // 飞过身后就算躲开了,不扣命 —— 障碍物不是敌人,放它过去本来就是正解
+      if (obstacle.root.position.z > SPACE.leakZ) this.retireObstacle(obstacle);
+    }
+  }
+
+  private retireObstacle(obstacle: Obstacle) {
+    obstacle.active = false;
+    obstacle.root.visible = false;
+  }
+
+  /** 子弹打在障碍物上。打不动的只出火花,打得动的扣血、破了给分 */
+  private hitObstacle(obstacle: Obstacle, x: number, y: number, z: number) {
+    if (obstacle.hp === null) {
+      this.fx.laserImpact(x, y, z, false);
+      sfx.hit();
+      return;
+    }
+    obstacle.hp -= 1;
+    if (obstacle.hp > 0) {
+      this.fx.laserImpact(x, y, z, false);
+      sfx.hit();
+      return;
+    }
+    this.breakObstacle(obstacle, true);
+  }
+
+  /** @param scored 被玩家打掉才给分;撞上去炸掉不给 */
+  private breakObstacle(obstacle: Obstacle, scored: boolean) {
+    const spec = OBSTACLE_SPEC[obstacle.kind];
+    const { x, y, z } = obstacle.root.position;
+    this.retireObstacle(obstacle);
+    // 水雷炸得比岩块响:它本来就是炸弹,而且这是"差点撞上"的负反馈
+    const big = obstacle.kind === 'mine';
+    this.fx.explosion(x, y, z, big);
+    this.stage.shake(big ? 180 : 110, big ? 0.5 : 0.28);
+    sfx.hit();
+    this.hitStop(big ? 60 : 30);
+    if (scored && spec.score) {
+      // 障碍物不吃连击:连击是打敌机的节奏奖励,让它被岩块续上就等于鼓励打石头
+      this.score += spec.score;
+      this.events.onFloat(`+${spec.score}`, 'good');
     }
   }
 

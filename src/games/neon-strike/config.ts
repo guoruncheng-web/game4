@@ -151,6 +151,44 @@ export const BOSS_SPEC = [
   { name: 'STAR EATER',   hp: 56, glow: 0xffa53a, pattern: 2 },
 ];
 
+export type ObstacleKind = 'asteroid' | 'mine' | 'block';
+
+/**
+ * 航道障碍物。它们和敌机是两套东西:不会开火、不会追你、也不给连击,
+ * 只是横在路上 —— 提供的是"走位压力"而不是"火力压力"。
+ *
+ * 三种的区别刻意做成形状即规则,玩家不用试错两次才学会:
+ * 圆的能打掉(岩块要打几发、雷一发就炸),方的打不动只能绕。
+ */
+export const OBSTACLE_SPEC: Record<ObstacleKind, {
+  /** null = 不可摧毁 */
+  hp: number | null;
+  score: number;
+  /** 相对敌机基础推进速度的倍率 */
+  speed: number;
+  /** 自转角速度(弧度/秒),给 0 就是不转 */
+  spin: number;
+  /** 碰撞盒半长。刻意比模型视觉略小 —— 擦过去算过,撞实了才算撞 */
+  half: { x: number; y: number; z: number };
+  /** 出现权重 */
+  weight: number;
+}> = {
+  asteroid: { hp: 4, score: 60, speed: 0.9, spin: 0.5, half: { x: 1.35, y: 1.2, z: 1.3 }, weight: 4 },
+  mine:     { hp: 1, score: 90, speed: 0.8, spin: 1.4, half: { x: 0.9, y: 0.9, z: 0.9 }, weight: 3 },
+  block:    { hp: null, score: 0, speed: 0.95, spin: 0.25, half: { x: 1.7, y: 1.15, z: 1.1 }, weight: 3 },
+};
+
+export const OBSTACLE = {
+  /** 第几波开始出现。第 1 波留给"学会开火和走位" */
+  fromWave: 2,
+  /** 每波数量 = base + floor(wave / step),再钳到 max */
+  base: 2,
+  step: 3,
+  max: 6,
+  /** Boss 波的数量:少给一点,Boss 弹幕本身已经在吃走位了 */
+  boss: 2,
+} as const;
+
 /** 碰撞体尺寸(半长)。模型是扁宽的硬表面,用轴对齐盒比球贴合得多。 */
 export const HITBOX = {
   player: { x: 0.62, y: 0.34, z: 1.0 },
