@@ -117,6 +117,20 @@ export default function Page() {
 - 触屏输入要遍历 `this.input.manager.pointers`(其中 `pointers[0]` 就是鼠标指针),
   不能只读 `activePointer`,否则移动和跳跃无法同时按。记得 `this.input.addPointer(2)`。
 
+## PWA(安装到桌面 + 离线缓存)
+
+- `src/app/manifest.ts` —— 清单走 Next 的 metadata route,快捷方式从 `registry.ts` 自动生成,新增游戏不用改。
+- `public/sw.js` —— 手写 Service Worker,三条策略:导航 network-first(兜底 `/offline`)、
+  `/_next/static/**` cache-first、游戏素材(上表那些 `public/<slug>/` 下的图/模型/音频)cache-first。
+  **素材是玩过才缓存,不做安装时全量预下载** —— 盒子里素材加起来 60MB+,装个图标就吃掉这些流量不合适。
+- `src/components/PwaProvider.tsx` —— 注册 SW、安装引导横幅、新版本提示。只在首页弹横幅(游戏页是全屏画布)。
+  iOS 不派发 `beforeinstallprompt`,那条分支给的是「分享 → 添加到主屏幕」的图文引导。
+- **开发模式不注册 SW**(dev 的 chunk 每次编译换名字,缓存它们会让 HMR 拿到旧文件)。
+  验证离线效果要 `pnpm build && pnpm start`。
+- 图标产物在 `public/icons/`,改图形后重跑 `pnpm icons`(源是 `tools/pwa/build-icons.mjs` 里的内联 SVG,
+  产物一律 PNG:iOS 不吃 manifest 里的 svg,安卓的 maskable 裁切也只认位图)。
+- 改了 `sw.js` 的缓存策略,记得同时把里面的 `VERSION` 加一档,否则旧缓存不会被清。
+
 ## 资源约定
 
 现有游戏的贴图用 `Graphics.generateTexture()` 生成、音效用 WebAudio 振荡器合成,

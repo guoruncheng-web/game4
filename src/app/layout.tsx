@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import PwaProvider from "@/components/PwaProvider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,6 +16,29 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "GAME BOX · 游戏盒子",
   description: "即开即玩的移动端小游戏合集",
+  // manifest 由 src/app/manifest.ts 生成
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    // iOS 只认这套私有 meta:没有它,从主屏启动仍然会带 Safari 的地址栏
+    capable: true,
+    title: "GAME BOX",
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#32b85d",
+  // 装到桌面后是全屏窗口,刘海区域要自己接管
+  viewportFit: "cover",
+  // 游戏靠触屏操作,双指缩放只会误触
+  userScalable: false,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -23,7 +47,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="zh-CN"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <PwaProvider />
+      </body>
     </html>
   );
 }
