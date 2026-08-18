@@ -219,11 +219,130 @@ def build_boss_carrier():
              rot=(math.radians(90), 0, 0))
 
 
+# ---------------------------------------------------------------- 场景结构物(两侧掠过的巨型物件)
+
+def build_pylon_truss():
+    """轨道桁架塔:四根立柱 + 横环 + 交叉斜撑 + 顶部信号灯。约 3.4 见方、26 高。
+
+    做成镂空桁架而不是实心柱,是因为它在玩家余光里以每秒几十单位的速度掠过 ——
+    实心体只会读成"一块黑",镂空结构在背景星空的衬托下才会闪出高速掠过的频闪感。
+    """
+    reset_scene()
+    steel = make_material("桁架钢材", (0.16, 0.17, 0.21), metal=0.92, rough=0.34)
+    dark = make_material("桁架暗件", (0.04, 0.045, 0.06), metal=0.9, rough=0.5)
+    lamp = make_material("桁架航行灯", (0.3, 0.85, 1.0), metal=0.0, rough=0.2,
+                         emit=(0.35, 0.9, 1.0), emit_strength=6.0)
+
+    half, height = 1.5, 26.0
+    # 四根立柱
+    for i, (x, y) in enumerate(((half, half), (half, -half), (-half, half), (-half, -half))):
+        box(f"立柱{i}", steel, loc=(x, y, 0), scale=(0.34, 0.34, height))
+
+    # 每隔一段一道横环 + 一对交叉斜撑;斜撑只在两个相对面上做,面数省一半,观感不差
+    levels = 7
+    for i in range(levels):
+        z = -height / 2 + (i + 0.5) * (height / levels)
+        box(f"横梁{i}A", dark, loc=(0, half, z), scale=(half * 2, 0.2, 0.2))
+        box(f"横梁{i}B", dark, loc=(0, -half, z), scale=(half * 2, 0.2, 0.2))
+        box(f"横梁{i}C", dark, loc=(half, 0, z), scale=(0.2, half * 2, 0.2))
+        box(f"横梁{i}D", dark, loc=(-half, 0, z), scale=(0.2, half * 2, 0.2))
+        lean = math.atan2(height / levels, half * 2)
+        box(f"斜撑{i}A", dark, loc=(0, half, z + height / levels / 2),
+            scale=(0.14, 0.14, math.hypot(half * 2, height / levels)),
+            rot=(0, math.pi / 2 - lean, 0))
+        box(f"斜撑{i}B", dark, loc=(0, -half, z + height / levels / 2),
+            scale=(0.14, 0.14, math.hypot(half * 2, height / levels)),
+            rot=(0, lean - math.pi / 2, 0))
+
+    # 竖直光带:高速掠过时它会拉成一条亮线,是速度感的主要来源
+    box("光带A", lamp, loc=(half + 0.2, 0, 0), scale=(0.1, 0.16, height * 0.86))
+    box("光带B", lamp, loc=(-half - 0.2, 0, 0), scale=(0.1, 0.16, height * 0.86))
+
+    # 顶部天线阵与端头
+    box("顶盘", steel, loc=(0, 0, height / 2 + 0.3), scale=(4.0, 4.0, 0.4))
+    tube("天线杆", steel, loc=(0, 0, height / 2 + 2.0), scale=(0.22, 0.22, 3.4))
+    ball("顶灯", lamp, loc=(0, 0, height / 2 + 3.8), scale=(0.7, 0.7, 0.7))
+    box("底座", steel, loc=(0, 0, -height / 2 - 0.3), scale=(4.4, 4.4, 0.5))
+
+
+def build_pylon_station():
+    """废弃的空间站段:圆柱主体 + 两道法兰环 + 一对太阳能板。约 9 宽、20 高。"""
+    reset_scene()
+    shell = make_material("站体白装甲", (0.42, 0.44, 0.5), metal=0.72, rough=0.42)
+    dark = make_material("站体暗件", (0.05, 0.05, 0.07), metal=0.9, rough=0.5)
+    panel = make_material("太阳能板", (0.06, 0.08, 0.24), metal=0.55, rough=0.22,
+                          emit=(0.1, 0.16, 0.5), emit_strength=1.6)
+    win = make_material("舷窗灯", (1.0, 0.82, 0.45), metal=0.0, rough=0.2,
+                        emit=(1.0, 0.78, 0.4), emit_strength=5.0)
+
+    height = 18.0
+    tube("主舱段", shell, loc=(0, 0, 0), scale=(4.4, 4.4, height), verts=14)
+    for z in (-height / 2 + 1.2, 0.0, height / 2 - 1.2):
+        tube("法兰环", dark, loc=(0, 0, z), scale=(5.0, 5.0, 0.7), verts=14)
+    # 舷窗:一圈发光小块,比贴图便宜,远处只剩一串亮点,正好
+    for i in range(8):
+        a = i / 8 * math.tau
+        box(f"舷窗{i}", win, loc=(math.cos(a) * 2.3, math.sin(a) * 2.3, 3.4),
+            scale=(0.5, 0.5, 0.8), rot=(0, 0, a))
+    tube("对接口", dark, loc=(0, 0, height / 2 + 1.2), scale=(2.2, 2.2, 2.0), verts=12)
+
+    # 太阳能板:靠桁架臂伸出去,让轮廓横向拉开
+    for sign in (1, -1):
+        box(f"板臂{sign}", dark, loc=(sign * 4.4, 0, -1.0), scale=(4.0, 0.3, 0.3))
+        box(f"电池板{sign}", panel, loc=(sign * 8.4, 0, -1.0), scale=(7.2, 0.16, 5.0))
+        for k in range(3):
+            box(f"板筋{sign}{k}", dark, loc=(sign * 8.4, 0, -1.0 + (k - 1) * 1.6),
+                scale=(7.3, 0.2, 0.1))
+
+
+def build_pylon_wreck():
+    """战舰残骸:断成两截的舰体 + 裸露肋骨 + 未熄的余烬。约 6 宽、22 长。
+
+    长轴沿 +Y —— 和战机同一套朝向约定,导出后在 Three.js 里就是躺着顺航道漂,
+    掠过时像一具从战场漂过来的尸体。它是叙事道具:告诉玩家这条航道上先来过一批人。
+    """
+    reset_scene()
+    hull = make_material("残骸装甲", (0.13, 0.12, 0.13), metal=0.85, rough=0.55)
+    burn = make_material("烧灼断口", (0.06, 0.04, 0.04), metal=0.7, rough=0.75)
+    rib = make_material("裸露肋骨", (0.2, 0.2, 0.23), metal=0.95, rough=0.3)
+    ember = make_material("未熄余烬", (0.9, 0.3, 0.1), metal=0.0, rough=0.4,
+                          emit=(1.0, 0.32, 0.08), emit_strength=4.0)
+
+    # 前段:相对完整的舰艏。锥体默认沿 +Z,转 -90° 让尖端指向 +Y
+    taper("舰艏", hull, loc=(0, 6.5, 0), scale=(4.4, 4.0, 9.0),
+          rot=(math.radians(-90), 0, 0), tip=0.45)
+    box("舰艏甲板", hull, loc=(0, 7.5, 0.9), scale=(2.6, 5.0, 1.2))
+    box("断口A", burn, loc=(0, 1.8, 0), scale=(4.2, 0.6, 3.8), rot=(math.radians(7), 0, 0))
+
+    # 中间裸露的龙骨:几根管子把两截连着,断口的故事就靠它讲
+    for i, x in enumerate((-1.2, 0.0, 1.2)):
+        tube(f"龙骨{i}", rib, loc=(x, 0.2, 0), scale=(0.35, 0.35, 3.4),
+             rot=(math.radians(90), 0, 0))
+    box("余烬芯", ember, loc=(0, 0.2, 0), scale=(1.1, 2.0, 1.1))
+
+    # 后段:翻转错位的动力段,刻意不与前段同轴,读起来才像被撕开的
+    taper("动力段", hull, loc=(0.6, -5.6, -0.4), scale=(4.0, 3.6, 8.0), tip=0.7,
+          rot=(math.radians(-86), math.radians(6), math.radians(9)))
+    box("断口B", burn, loc=(0.4, -1.9, -0.2), scale=(3.8, 0.6, 3.4), rot=(math.radians(-6), 0, 0))
+    for i, x in enumerate((-1.3, 1.3)):
+        tube(f"引擎{i}", rib, loc=(0.6 + x, -9.6, -0.4), scale=(1.5, 1.5, 1.6),
+             rot=(math.radians(90), 0, 0))
+        tube(f"引擎口{i}", burn, loc=(0.6 + x, -10.5, -0.4), scale=(1.3, 1.3, 0.3),
+             rot=(math.radians(90), 0, 0))
+    # 残翼:断了一半,轮廓上留个缺口
+    box("残翼", hull, loc=(3.2, -3.0, -0.2), scale=(3.4, 3.0, 0.3), rot=(0, math.radians(14), 0))
+
+
 # ---------------------------------------------------------------- 入口
 
 BUILDERS = {
     "enemy-drone": build_enemy_drone,
     "boss-carrier": build_boss_carrier,
+    # 场景结构物。它们不参与碰撞,只在两侧掠过,所以尺寸直接按最终世界单位建,
+    # 不像战机那样进引擎后再归一化
+    "prop-truss": build_pylon_truss,
+    "prop-station": build_pylon_station,
+    "prop-wreck": build_pylon_wreck,
 }
 
 

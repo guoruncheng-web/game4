@@ -144,6 +144,8 @@ export function startGame(parent: HTMLElement): GameHandle {
       if (destroyed) return;
       assets = loaded;
       fx = new Fx(stage.root, loaded);
+      // 两侧的占位柱体换成 Blender 产出的桁架塔 / 空间站段 / 残骸
+      stage.setProps(loaded.props);
       toMenu();
     })
     .catch((error) => {
