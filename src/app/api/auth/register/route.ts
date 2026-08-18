@@ -1,0 +1,76 @@
+import { NextResponse } from 'next/server';
+import {
+  CAPTCHA_COOKIE, SESSION_COOKIE, SESSION_MAX_AGE, cookieOptions, createSessionToken,
+  generatePassword, generateUsername, hashPassword, readCookie,
+} from '@/lib/auth';
+import { verifyCaptcha } from '@/lib/captcha';
+import { getSql } from '@/lib/db';
+import { clientIp, rateLimit, sweepRateLimits } from '@/lib/rate-limit';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+/**
+ * 一键开号:后端直接生成用户名和密码,明文**只在这一次响应里**返回给前端弹窗。
+ * 数据库里只留 scrypt 哈希,所以这串密码丢了就真的找不回来了。
+ */
+export async function POST(request: Request) {
+  sweepRateLimits();
+  const ip = clientIp(request);
+  if (!rateLimit(`register:${ip}`, 5, 10 * 60_000)) {
+    return NextResponse.json({ error: '注册太频繁了,过几分钟再试' }, { status: 429 });
+  }
+
+  let body: { captcha?: unknown };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: '请求格式不对' }, { status: 400 });
+  }
+
+  if (!verifyCaptcha(readCookie(request, CAPTCHA_COOKIE), body.captcha)) {
+    return NextResponse.json({ error: '验证码不对或已过期', code: 'captcha' }, { status: 400 });
+  }
+
+  const password = generatePassword();
+  const passwordHash = hashPassword(password);
+  const sql = getSql();
+
+  // 用户名是随机生成的,极小概率撞库,撞了就换一个再来
+  let username = '';
+  let userId: number | null = null;
+  let tokenVersion = 0;
+  for (let attempt = 0; attempt < 5 && userId === null; attempt++) {
+    username = generateUsername();
+    try {
+      const rows = (await sql`
+        insert into users (username, password_hash, last_login_at)
+        values (${username}, ${passwordHash}, now())
+        returning id, token_version
+      `) as Array<{ id: string; token_version: number }>;
+      // bigserial 回来是字符串
+      userId = rows[0] ? Number(rows[0].id) : null;
+      tokenVersion = rows[0]?.token_version ?? 0;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      if (!message.includes('duplicate key')) {
+        console.error('[auth] 注册写库失败', error);
+        return NextResponse.json({ error: '服务器开小差了,稍后再试' }, { status: 500 });
+      }
+    }
+  }
+
+  if (userId === null) {
+    return NextResponse.json({ error: '生成账号失败,请重试' }, { status: 500 });
+  }
+
+  const response = NextResponse.json({ username, password });
+  response.cookies.set(
+    SESSION_COOKIE,
+    createSessionToken(userId, tokenVersion),
+    cookieOptions(SESSION_MAX_AGE),
+  );
+  // 验证码用过即焚
+  response.cookies.set(CAPTCHA_COOKIE, '', cookieOptions(0));
+  return response;
+}
