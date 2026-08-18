@@ -454,6 +454,85 @@ def build_obstacle_block():
     box("侧灯", stripe, loc=(1.72, 0, 0), scale=(0.3, 1.6, 0.34))
 
 
+# ---------------------------------------------------------------- 道具(拾取物)
+
+def _pickup_halo(frame, glow):
+    """三种道具共用的外圈:一个方环 + 四个角标。
+
+    共用外形是"这是可以吃的东西"的统一语汇 —— 玩家不必逐个学,
+    看到这圈就知道往上撞;内芯才负责区分是哪一种。
+    """
+    ring("外环", frame, loc=(0, 0, 0), scale=(1.5, 1.5, 0.5), rot=(math.radians(90), 0, 0))
+    for i in range(4):
+        a = i / 4 * math.tau + math.pi / 4
+        box(f"角标{i}", glow, loc=(math.cos(a) * 0.78, 0, math.sin(a) * 0.78),
+            scale=(0.3, 0.12, 0.12), rot=(0, 0, 0) if i % 2 == 0 else (0, 0, math.radians(90)))
+
+
+def build_pickup_shield():
+    """护盾道具:六边盾牌。约 1.5 见方。
+
+    盾形是所有游戏里最不需要解释的图形。内芯做成实心六边板 + 中央菱形,
+    远处退化成一个亮六边形,和另外两种(尖的、十字的)在剪影上一眼分得开。
+    """
+    reset_scene()
+    frame = make_material("道具框架", (0.14, 0.16, 0.2), metal=0.92, rough=0.3)
+    glow = make_material("护盾青绿", (0.25, 0.95, 0.6), metal=0.0, rough=0.2,
+                         emit=(0.28, 0.96, 0.62), emit_strength=7.0)
+    core = make_material("护盾亮芯", (0.7, 1.0, 0.85), metal=0.0, rough=0.15,
+                         emit=(0.75, 1.0, 0.88), emit_strength=10.0)
+
+    _pickup_halo(frame, glow)
+    # 六边盾面:用 6 边的锥台压扁而成,比手搭六块板省一半面数
+    taper("盾面", glow, loc=(0, 0, 0), scale=(1.15, 1.15, 0.18), tip=0.999,
+          rot=(math.radians(90), 0, 0))
+    tube("盾缘", frame, loc=(0, 0, 0), scale=(1.22, 1.22, 0.26), rot=(math.radians(90), 0, 0), verts=6)
+    ball("中央菱芯", core, loc=(0, -0.12, 0), scale=(0.42, 0.42, 0.42), subdiv=1)
+
+
+def build_pickup_weapon():
+    """火力道具:向上的双层箭簇。约 1.5 见方。
+
+    箭簇 = 升级,这是通用语汇。做成双层是为了让剪影有层次,
+    单层三角在远处会和敌机的楔形机头混淆。
+    """
+    reset_scene()
+    frame = make_material("道具框架", (0.14, 0.16, 0.2), metal=0.92, rough=0.3)
+    glow = make_material("火力琥珀", (1.0, 0.7, 0.22), metal=0.0, rough=0.2,
+                         emit=(1.0, 0.68, 0.2), emit_strength=7.0)
+    core = make_material("火力亮芯", (1.0, 0.92, 0.7), metal=0.0, rough=0.15,
+                         emit=(1.0, 0.9, 0.65), emit_strength=10.0)
+
+    _pickup_halo(frame, glow)
+    # 两片人字形箭簇,上面一片小一点,读起来是"再上一级"
+    for i, (z, k) in enumerate(((0.28, 1.0), (-0.24, 0.78))):
+        wedge(f"箭簇{i}", glow, loc=(0, 0, z), scale=(1.05 * k, 0.22, 0.62 * k),
+              rot=(math.radians(-90), 0, 0))
+        box(f"箭杆{i}", core, loc=(0, 0, z - 0.16 * k), scale=(0.16, 0.16, 0.34 * k))
+    box("底座", frame, loc=(0, 0, -0.62), scale=(0.9, 0.2, 0.14))
+
+
+def build_pickup_life():
+    """命数道具:立体十字。约 1.5 见方。
+
+    十字是"补给/回复"最强的既有符号,而且它是三种里唯一有直角缺口的剪影,
+    在辉光糊成一团时仍然认得出 —— 颜色靠不住的时候,形状必须靠得住。
+    """
+    reset_scene()
+    frame = make_material("道具框架", (0.14, 0.16, 0.2), metal=0.92, rough=0.3)
+    glow = make_material("命数品红", (1.0, 0.37, 0.54), metal=0.0, rough=0.2,
+                         emit=(1.0, 0.35, 0.52), emit_strength=7.0)
+    core = make_material("命数亮芯", (1.0, 0.8, 0.88), metal=0.0, rough=0.15,
+                         emit=(1.0, 0.78, 0.86), emit_strength=10.0)
+
+    _pickup_halo(frame, glow)
+    box("竖臂", glow, loc=(0, 0, 0), scale=(0.42, 0.34, 1.5))
+    box("横臂", glow, loc=(0, 0, 0), scale=(1.5, 0.34, 0.42))
+    box("竖臂芯", core, loc=(0, -0.2, 0), scale=(0.2, 0.1, 1.2))
+    box("横臂芯", core, loc=(0, -0.2, 0), scale=(1.2, 0.1, 0.2))
+    ball("交点", core, loc=(0, -0.22, 0), scale=(0.4, 0.24, 0.4), subdiv=1)
+
+
 # ---------------------------------------------------------------- 入口
 
 BUILDERS = {
@@ -468,6 +547,10 @@ BUILDERS = {
     "obstacle-asteroid": build_obstacle_asteroid,
     "obstacle-mine": build_obstacle_mine,
     "obstacle-block": build_obstacle_block,
+    # 道具。颜色在模型里就烤死,引擎侧不再按种类改材质
+    "pickup-shield": build_pickup_shield,
+    "pickup-weapon": build_pickup_weapon,
+    "pickup-life": build_pickup_life,
 }
 
 
