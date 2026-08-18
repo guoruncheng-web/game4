@@ -35,16 +35,20 @@ export default function Home() {
   const [bestScore, setBestScore] = useState(0);
   const [fruitBestScore, setFruitBestScore] = useState(0);
   const [neonBestScore, setNeonBestScore] = useState(0);
+  const [neon2dBestScore, setNeon2dBestScore] = useState(0);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const storedScore = Number(localStorage.getItem('star-runner-best') || 0);
       const storedFruitScore = Number(localStorage.getItem('fruit-slasher-best') || 0);
       const storedNeonScore = Number(localStorage.getItem('neon-strike-best') || 0);
+      // 2D 初代版本走自己的 key,两版存档互不覆盖
+      const storedNeon2dScore = Number(localStorage.getItem('neon-strike-2d-best') || 0);
       const storedMuted = localStorage.getItem('game-box-muted') === 'true';
       setBestScore(Number.isFinite(storedScore) ? storedScore : 0);
       setFruitBestScore(Number.isFinite(storedFruitScore) ? storedFruitScore : 0);
       setNeonBestScore(Number.isFinite(storedNeonScore) ? storedNeonScore : 0);
+      setNeon2dBestScore(Number.isFinite(storedNeon2dScore) ? storedNeon2dScore : 0);
       setMuted(storedMuted);
     }, 0);
     return () => window.clearTimeout(timer);
@@ -155,6 +159,26 @@ export default function Home() {
                 <p className="mt-2 text-xs font-bold text-pink-400">最高分 {neonBestScore}</p>
               </div>
               <span className="grid size-11 place-items-center rounded-2xl bg-cyan-300/10 text-cyan-300"><Play size={21} className="fill-current" /></span>
+            </Link>
+            <Link
+              href="/neon-strike-2d"
+              className="flex items-center gap-4 rounded-3xl border border-white bg-[#140a2e] p-2.5 shadow-[0_8px_24px_rgba(133,66,190,0.24)] transition active:scale-[0.99]"
+            >
+              <div className="relative size-24 shrink-0 overflow-hidden rounded-2xl bg-[#090820]">
+                <Image
+                  src="/neon-strike-2d/assets/space-corridor-v2.png"
+                  alt="霓虹光廊里的竖屏弹幕战场"
+                  fill
+                  sizes="96px"
+                  className="object-cover"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-lg font-black text-fuchsia-300">霓虹突击 2D</p>
+                <p className="mt-0.5 text-sm font-bold text-indigo-100">初代竖屏弹幕版</p>
+                <p className="mt-2 text-xs font-bold text-pink-400">最高分 {neon2dBestScore}</p>
+              </div>
+              <span className="grid size-11 place-items-center rounded-2xl bg-fuchsia-300/10 text-fuchsia-300"><Play size={21} className="fill-current" /></span>
             </Link>
             <Link
               href="/fruit-slasher"

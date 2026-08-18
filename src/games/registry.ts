@@ -36,9 +36,16 @@ export const GAMES: GameMeta[] = [
   {
     slug: 'neon-strike',
     title: '霓虹突击',
-    tagline: '12 波战役 · 3 场 Boss · 通关解锁无尽模式',
-    controls: '拖动或方向键移动 · 自动射击 · P / ESC 暂停',
+    tagline: '3D 纵深追尾射击 · 12 波战役 · 3 场 Boss',
+    controls: '拖动画面或方向键走位 · 自动射击 · P / ESC 暂停',
     accent: 'text-cyan-400',
+  },
+  {
+    slug: 'neon-strike-2d',
+    title: '霓虹突击 2D',
+    tagline: '初代 Phaser 竖屏弹幕版 · 手绘贴图 · 独立存档',
+    controls: '拖动或方向键走位 · 自动射击 · P / ESC 暂停',
+    accent: 'text-fuchsia-400',
   },
 ];
 

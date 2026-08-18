@@ -78,6 +78,21 @@ export default function Page() {
 
 首页会自动出现新卡片,不需要改首页代码。
 
+## 两套引擎并存
+
+盒子里同时有 Phaser 3 和 Three.js 两种游戏,各走各的挂载容器,互不影响:
+
+| slug | 引擎 | 容器 | 契约 |
+| --- | --- | --- | --- |
+| `star-runner`、`fruit-slasher`、`neon-strike-2d` | Phaser 3 | `PhaserCanvas` | `GameModule`,`startGame` 返回 `Phaser.Game` |
+| `neon-strike` | Three.js | `ThreeCanvas` | `ThreeGameModule`,`startGame` 返回 `{ destroy() }` |
+
+`neon-strike` 已重写为 Three.js 版(`three/` 渲染 + `world.ts` 玩法 + `ui/` DOM 覆盖层),
+初代 Phaser 竖屏弹幕版原样保留在 `neon-strike-2d`。两版是**各自独立的游戏**:
+目录、路由、`public/<slug>/` 资源、localStorage key(`neon-strike-*` vs `neon-strike-2d-*`)全部分开,
+不允许互相 import;改其中一版不需要同步另一版。
+唯一的共用是 `public/neon-strike/assets/vfx` 各存了一份拷贝(两版都要用那 5 张特效贴图)。
+
 ## Phaser 与 SSR 的硬性约束
 
 踩过的坑,改动时务必守住:
@@ -139,3 +154,8 @@ Codex 使用 `.codex/agents/*.toml`;Claude Code 兼容副本保留在 `.claude/a
 - 会部署一个云主机,这个主机上装了comfyui 可以用它来生成游戏需要的素材
 - comfyui 不需要提交到github上面
 - 页面中所有图标和图片尽量使用内置的image去生成,不用用svg
+- 我本地安装了belender 可以使用这个生成3d素材
+- 可以使用 rFXGen 来生成游戏音效，我在本机(mac)上安装好了
+- 可以使用 Effekseer 来生成游戏特效，我在本机(mac)上安装好了
+- 对于threejs开发的游戏可以使用 three-nebula 生成素材
+- 对于threejs开发的游戏可以使用 Phaser3-Particle-Editor 生成素材
