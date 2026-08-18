@@ -1,26 +1,82 @@
-export const GAME_WIDTH = 540;
-export const GAME_HEIGHT = 960;
+/**
+ * 霓虹突击(Three.js 版)的全部数值旋钮。
+ *
+ * 坐标约定:前方是 -Z(和 glTF 的 Y-up 转换对齐,机头自然朝前),右是 +X,上是 +Y。
+ * 玩家固定在 z=0 的平面上左右上下走位,敌人从远处的 -Z 迎面压过来,
+ * 越过 leakZ 就算被放跑。所有速度单位都是"世界单位 / 秒"。
+ */
 
 /** 战役模式的总波次;第 4 / 8 / 12 波是 Boss 波,打掉第三个 Boss 即通关 */
 export const CAMPAIGN_WAVES = 12;
 
+/** 战场的空间布局。改这里等于改镜头和纵深手感。 */
+export const SPACE = {
+  /** 玩家所在的平面 */
+  playerZ: 0,
+  /** 敌人生成的纵深。约等于 8~10 秒的接敌时间 */
+  spawnZ: -110,
+  /** 越过这条线(在玩家身后)算漏防 */
+  leakZ: 9,
+  /** Boss 入场后停驻的纵深 */
+  bossZ: -36,
+  /** Boss 左右横移的边界 */
+  bossRangeX: 5.2,
+  /** 镜头相对玩家的后退量与抬升量 */
+  cameraBack: 10.6,
+  cameraUp: 3.1,
+  /** 镜头看向玩家前方多远 */
+  cameraLookAhead: 16,
+  /** 镜头跟随玩家横向漂移的比例,0 = 完全固定 */
+  cameraLag: 0.34,
+  fov: 62,
+  /** 走位平面到画面边缘留出的余量,避免战机贴边被裁 */
+  marginX: 1.0,
+  marginY: 1.0,
+  /** 玩家在画面上的下沉量:让战机偏下,前方留出更多观察空间 */
+  playerDropY: 1.5,
+} as const;
+
 export const TUNING = {
-  playerSpeed: 390,
+  /** 走位速度(单位/秒) */
+  playerSpeed: 11.5,
   fireDelay: 145,
-  bulletSpeed: 720,
-  enemyBulletSpeed: 245,
+  bulletSpeed: 95,
+  enemyBulletSpeed: 30,
   maxLives: 5,
-  /** 拾取型护盾的持续时间;开局护盾不设时限,见 GameScene.grantShield */
+  /** 拾取型护盾的持续时间;开局护盾不设时限,见 World.grantShield */
   shieldDuration: 7000,
   /** 护盾能挡下的次数,时间到或层数耗尽都会消失 */
   shieldCharges: 3,
-  /** 挡下一次之后的硬直:没有它,一轮 130ms 连发能瞬间打光三层 */
+  /** 挡下一次之后的硬直:没有它,一轮连发能瞬间打光三层 */
   shieldHitCooldown: 480,
   /** 漏防惩罚的独立冷却,不和受击无敌帧共用 */
   leakGrace: 1200,
   comboWindow: 1800,
   bossEvery: 4,
   maxWeapon: 3,
+} as const;
+
+/**
+ * 瞄准辅助。
+ *
+ * 纵深射击最反直觉的一点:相机在战机后上方俯视,屏幕上的"对准"不等于世界里的对准,
+ * 而玩家的输入(拖屏/方向键)又是屏幕空间的。不给参照物就等于让人蒙着打。
+ * 这里的解法分两层 —— 准星把弹道显形(见 three/reticle.ts),软锁定则在
+ * 一个明确的窗口内替玩家吃掉剩下的视差误差:目标进窗口才咬,所以"要瞄"这件事还在,
+ * 只是不再惩罚看不出来的那几十厘米。
+ */
+export const AIM = {
+  /** 准星双环所在的纵深(相对战机) */
+  nearZ: 14,
+  farZ: 40,
+  /** 锁定窗口的半宽/半高(世界单位),敌机进了这个盒子才会被咬住 */
+  lockX: 1.7,
+  lockY: 1.15,
+  /** 每单位纵深把窗口放宽的比例:远处透视误差更大,判定也更宽容 */
+  lockGrow: 0.014,
+  /** 太近(已经擦身而过)和太远(还在雾里)都不锁 */
+  minZ: 3,
+  maxZ: 96,
 } as const;
 
 export type GameMode = 'campaign' | 'endless';
@@ -40,7 +96,7 @@ export type DifficultySpec = {
   hpStep: number;
   /** 起手就叠加的固定血量 */
   hpFlat: number;
-  /** 敌机下落速度倍率 */
+  /** 敌机推进速度倍率 */
   enemySpeed: number;
   /** 敌弹速度倍率 */
   enemyBullet: number;
@@ -74,7 +130,38 @@ export const DIFFICULTIES: Record<DifficultyId, DifficultySpec> = {
 
 export const DIFFICULTY_ORDER: DifficultyId[] = ['easy', 'normal', 'hard'];
 
-/** 霓虹配色,场景与 UI 共用 */
+export type EnemyKind = 'grunt' | 'weaver' | 'charger' | 'gunner';
+
+/** 只有一套敌机模型,靠自发光配色 + 行为区分兵种;颜色即预警 */
+export const ENEMY_SPEC: Record<EnemyKind, {
+  /** 覆盖到能量件上的自发光色 */
+  glow: number;
+  hp: number; speed: number; score: number; fire: number; scale: number; weight: number; from: number;
+}> = {
+  grunt:   { glow: 0xff3b2e, hp: 1, speed: 1,    score: 100, fire: 1,   scale: 1,    weight: 4, from: 1 },
+  weaver:  { glow: 0x35d8ff, hp: 1, speed: 0.9,  score: 130, fire: 0.8, scale: 0.95, weight: 3, from: 2 },
+  charger: { glow: 0xff9a2e, hp: 1, speed: 0.55, score: 160, fire: 0,   scale: 1.1,  weight: 2, from: 3 },
+  gunner:  { glow: 0xb46bff, hp: 3, speed: 0.7,  score: 200, fire: 2.4, scale: 1.2,  weight: 2, from: 5 },
+};
+
+/** Boss 三型轮换,战役里就是第 4 / 8 / 12 波的三场 */
+export const BOSS_SPEC = [
+  { name: 'CORE CARRIER', hp: 26, glow: 0xff2f6d, pattern: 0 },
+  { name: 'VOID LANCER',  hp: 40, glow: 0xc46bff, pattern: 1 },
+  { name: 'STAR EATER',   hp: 56, glow: 0xffa53a, pattern: 2 },
+];
+
+/** 碰撞体尺寸(半长)。模型是扁宽的硬表面,用轴对齐盒比球贴合得多。 */
+export const HITBOX = {
+  player: { x: 0.62, y: 0.34, z: 1.0 },
+  // Y 半高刻意比模型厚:俯视视角下高度差是最难判断的一维,判定薄了就变成"看着中了却没中"
+  enemy: { x: 0.72, y: 0.5, z: 0.85 },
+  boss: { x: 6.0, y: 1.5, z: 3.6 },
+  shot: 0.22,
+  power: 0.7,
+} as const;
+
+/** 霓虹配色,3D 场景与 DOM 界面共用 */
 export const COLORS = {
   cyan: 0x54ecff,
   cyanDim: 0x2c93a8,
@@ -88,3 +175,11 @@ export const COLORS = {
   muted: '#7fabc4',
   warn: '#ff6b63',
 } as const;
+
+export type PowerKind = 'shield' | 'weapon' | 'life';
+
+export const POWER_COLOR: Record<PowerKind, number> = {
+  shield: 0x60f5a8,
+  weapon: 0xffb04a,
+  life: 0xff5f8a,
+};

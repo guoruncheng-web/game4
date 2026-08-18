@@ -7,3 +7,11 @@ import type Phaser from 'phaser';
 export type GameModule = {
   startGame: (parent: HTMLElement) => Phaser.Game;
 };
+
+/**
+ * Three.js 游戏走另一套契约:没有 Phaser.Game,只要求返回一个能销毁自己的句柄。
+ * 由 ThreeCanvas 负责在卸载时调用 destroy()。
+ */
+export type ThreeGameModule = {
+  startGame: (parent: HTMLElement) => { destroy(): void };
+};
