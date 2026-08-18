@@ -6,7 +6,7 @@ import { getGame } from '@/games/registry';
 
 const meta = getGame('eight-ball')!;
 
-const PhaserCanvas = dynamic(() => import('@/components/PhaserCanvas'), {
+const ThreeCanvas = dynamic(() => import('@/components/ThreeCanvas'), {
   ssr: false,
   loading: () => <div className="grid h-dvh w-full place-items-center bg-[#0d1a14] text-emerald-200">Racking up…</div>,
 });
@@ -18,7 +18,7 @@ export default function EightBallPage() {
       className="fixed inset-0 flex h-dvh w-screen touch-none items-center justify-center overflow-hidden bg-[#0d1a14]"
     >
       <div className="relative z-10 h-dvh w-screen overflow-hidden">
-        <PhaserCanvas load={() => import('@/games/eight-ball')} orientation="portrait" fullscreen />
+        <ThreeCanvas load={() => import('@/games/eight-ball')} />
       </div>
       <Link
         href="/"

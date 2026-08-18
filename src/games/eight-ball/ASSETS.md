@@ -209,7 +209,7 @@ public/eight-ball/models/{table,cue}.glb
 | `textures/env.webp` | AI(2048×1024,58KB) | ☑ |
 | `models/table.glb` | Blender(40.9KB) | ☑ |
 | `models/cue.glb` | Blender(21.3KB) | ☑ |
-| 球号贴图 ×16 | 程序化 Canvas 2D | ☐ 随 `three/balls.ts` 一起做 |
+| 球号贴图 ×16 | 程序化 Canvas 2D | ☑ `three/balls.ts` |
 | 台呢法线图 | 从同一噪声场算梯度 | ☐ 暂不做,60° 机位下看不出来 |
 
 素材侧到此齐了,总计 **120 KB**(env.webp 58 + table 41 + cue 21),其余全部零字节。
