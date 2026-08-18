@@ -23,6 +23,9 @@
 # local generation and review artifacts
 /tmp/
 /image/
+# Blender 出图后用来自查的临时预览,不进仓库
+/.preview/
+/.preview.py
 
 # misc
 .DS_Store

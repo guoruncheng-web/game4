@@ -78,7 +78,8 @@ type Obstacle = {
 };
 
 type Power = {
-  mesh: THREE.Mesh;
+  /** 模型(有 glb 时)或程序化八面体(没有时);两者都只当作一个可移动的节点用 */
+  mesh: THREE.Object3D;
   active: boolean;
   kind: PowerKind;
   vz: number;
@@ -261,21 +262,46 @@ export class World {
       this.disposables.push(mesh.geometry, mesh.material as THREE.Material);
     }
 
-    const powerGeometry = new THREE.OctahedronGeometry(0.62, 0);
-    this.disposables.push(powerGeometry);
-    for (let i = 0; i < POWER_POOL; i++) {
-      const material = new THREE.MeshStandardMaterial({
-        color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.4,
-        metalness: 0.2, roughness: 0.25,
-      });
-      const mesh = new THREE.Mesh(powerGeometry, material);
-      mesh.visible = false;
-      this.group.add(mesh);
-      this.powers.push({ mesh, active: false, kind: 'shield', vz: 0 });
-      this.disposables.push(material);
-    }
+    this.buildPowerPool();
 
     this.buildObstaclePool();
+  }
+
+  /**
+   * 道具池。三种道具的模型和颜色都不一样,所以池位按种类固定分配:
+   * 拿到 shield 掉落就去找空着的 shield 位。这和敌机那种"一套模型染色复用"不同 ——
+   * 道具靠形状区分种类,染色救不了它。
+   *
+   * 没有 glb 时回落到程序化八面体 + 按种类染色,也就是这一版之前的样子。
+   */
+  private buildPowerPool() {
+    const kinds = Object.keys(POWER_COLOR) as PowerKind[];
+    const fallbackGeometry = new THREE.OctahedronGeometry(0.62, 0);
+    let usedFallback = false;
+
+    for (let i = 0; i < POWER_POOL; i++) {
+      const kind = kinds[i % kinds.length];
+      const proto = this.assets.pickups[kind];
+      let mesh: THREE.Object3D;
+      if (proto) {
+        mesh = cloneShip(proto);
+        mesh.scale.setScalar(0.72);
+      } else {
+        usedFallback = true;
+        const material = new THREE.MeshStandardMaterial({
+          color: POWER_COLOR[kind], emissive: POWER_COLOR[kind], emissiveIntensity: 1.4,
+          metalness: 0.2, roughness: 0.25,
+        });
+        mesh = new THREE.Mesh(fallbackGeometry, material);
+        this.disposables.push(material);
+      }
+      mesh.visible = false;
+      this.group.add(mesh);
+      this.powers.push({ mesh, active: false, kind, vz: 0 });
+    }
+
+    if (usedFallback) this.disposables.push(fallbackGeometry);
+    else fallbackGeometry.dispose();
   }
 
   /**
@@ -946,16 +972,14 @@ export class World {
   }
 
   private dropPower(x: number, y: number, z: number, kind: PowerKind) {
-    const power = this.powers.find((p) => !p.active);
+    // 池位按种类固定,想要的那种用光了就不掉 —— 与其掉一个长得不对的,不如不掉
+    const power = this.powers.find((p) => !p.active && p.kind === kind);
     if (!power) return;
     power.active = true;
-    power.kind = kind;
     power.vz = 16;
     power.mesh.position.set(x, y, z);
+    power.mesh.rotation.set(0, 0, 0);
     power.mesh.visible = true;
-    const material = power.mesh.material as THREE.MeshStandardMaterial;
-    material.color.setHex(POWER_COLOR[kind]);
-    material.emissive.setHex(POWER_COLOR[kind]);
   }
 
   private drivePowers(dt: number) {
@@ -963,8 +987,10 @@ export class World {
     for (const power of this.powers) {
       if (!power.active) continue;
       power.mesh.position.z += power.vz * dt;
-      power.mesh.rotation.y += dt * 2.6;
-      power.mesh.rotation.x += dt * 1.7;
+      // 绕视线轴自转 + 小幅摆头。旧的八面体可以随便翻滚,但现在道具是靠正面图形
+      // 区分种类的,一旦绕 Y 转起来就会周期性地侧成一条线,那几帧玩家读不出是什么
+      power.mesh.rotation.z += dt * 1.25;
+      power.mesh.rotation.y = Math.sin(this.now / 420 + power.mesh.position.x) * 0.32;
       if (power.mesh.position.z > limitZ) { power.active = false; power.mesh.visible = false; }
     }
   }

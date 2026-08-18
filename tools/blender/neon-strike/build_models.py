@@ -95,6 +95,15 @@ def ring(name, material, loc=(0, 0, 0), scale=(1, 1, 1), rot=(0, 0, 0), major=16
     return finish(bpy.context.object, name, material, loc, rot, scale, shade_smooth=True)
 
 
+def hoop(name, material, loc=(0, 0, 0), scale=(1, 1, 1), rot=(0, 0, 0), major=20, thickness=0.035):
+    """细环。ring() 的管径是按 major 的固定比例给的(0.09/0.5),在道具那种小尺寸上
+    会胖成一个甜甜圈,所以单独开一个能指定管径的。"""
+    bpy.ops.mesh.primitive_torus_add(
+        major_segments=major, minor_segments=6, major_radius=0.5, minor_radius=thickness,
+    )
+    return finish(bpy.context.object, name, material, loc, rot, scale, shade_smooth=True)
+
+
 def mirror_x(obj, name):
     """沿 X 轴镜像一份,做左右对称件。"""
     copy = obj.copy()
@@ -457,80 +466,81 @@ def build_obstacle_block():
 # ---------------------------------------------------------------- 道具(拾取物)
 
 def _pickup_halo(frame, glow):
-    """三种道具共用的外圈:一个方环 + 四个角标。
+    """三种道具共用的外圈:一道发光细环 + 四个深色角标。
 
-    共用外形是"这是可以吃的东西"的统一语汇 —— 玩家不必逐个学,
-    看到这圈就知道往上撞;内芯才负责区分是哪一种。
+    共用外形是"这是可以吃的东西"的统一语汇 —— 玩家不必逐个学,看到这圈就知道往上撞;
+    内芯才负责区分是哪一种。
+
+    环必须是发光件、且压得很扁:第一版拿深色框架做环、又没压扁,结果整个道具
+    读成一个黑甜甜圈,内芯全被挡在里面。深色件在这个尺寸上只配当角标。
     """
-    ring("外环", frame, loc=(0, 0, 0), scale=(1.5, 1.5, 0.5), rot=(math.radians(90), 0, 0))
+    hoop("能量环", glow, loc=(0, 0, 0), scale=(1.72, 1.72, 1.0), rot=(math.radians(90), 0, 0))
     for i in range(4):
         a = i / 4 * math.tau + math.pi / 4
-        box(f"角标{i}", glow, loc=(math.cos(a) * 0.78, 0, math.sin(a) * 0.78),
-            scale=(0.3, 0.12, 0.12), rot=(0, 0, 0) if i % 2 == 0 else (0, 0, math.radians(90)))
+        box(f"角标{i}", frame, loc=(math.cos(a) * 0.81, 0, math.sin(a) * 0.81),
+            scale=(0.26, 0.16, 0.16), rot=(0, math.radians(-a * 57.2958) if False else 0, 0))
 
 
 def build_pickup_shield():
-    """护盾道具:六边盾牌。约 1.5 见方。
+    """护盾道具:发光六边盾面 + 能量环。约 1.6 见方。
 
-    盾形是所有游戏里最不需要解释的图形。内芯做成实心六边板 + 中央菱形,
-    远处退化成一个亮六边形,和另外两种(尖的、十字的)在剪影上一眼分得开。
+    盾形是所有游戏里最不需要解释的图形。六边面在远处退化成一个亮六边形,
+    和另外两种(尖的、十字的)在剪影上一眼分得开。
     """
     reset_scene()
     frame = make_material("道具框架", (0.14, 0.16, 0.2), metal=0.92, rough=0.3)
     glow = make_material("护盾青绿", (0.25, 0.95, 0.6), metal=0.0, rough=0.2,
                          emit=(0.28, 0.96, 0.62), emit_strength=7.0)
-    core = make_material("护盾亮芯", (0.7, 1.0, 0.85), metal=0.0, rough=0.15,
-                         emit=(0.75, 1.0, 0.88), emit_strength=10.0)
+    core = make_material("护盾亮芯", (0.75, 1.0, 0.88), metal=0.0, rough=0.15,
+                         emit=(0.8, 1.0, 0.9), emit_strength=11.0)
 
     _pickup_halo(frame, glow)
-    # 六边盾面:用 6 边的锥台压扁而成,比手搭六块板省一半面数
-    taper("盾面", glow, loc=(0, 0, 0), scale=(1.15, 1.15, 0.18), tip=0.999,
-          rot=(math.radians(90), 0, 0))
-    tube("盾缘", frame, loc=(0, 0, 0), scale=(1.22, 1.22, 0.26), rot=(math.radians(90), 0, 0), verts=6)
-    ball("中央菱芯", core, loc=(0, -0.12, 0), scale=(0.42, 0.42, 0.42), subdiv=1)
+    # 六边盾面。tube 的 verts 才是边数;taper 是写死的四棱台,拿它做不出六边形
+    # 只留一片发光六边盾面:上一版在它前面又叠了一圈深色盾缘,直接把盾面全挡住了
+    tube("盾面", glow, loc=(0, 0, 0), scale=(1.34, 1.34, 0.2), rot=(math.radians(90), 0, 0), verts=6)
+    ball("中央亮芯", core, loc=(0, -0.16, 0), scale=(0.5, 0.3, 0.5), subdiv=1)
 
 
 def build_pickup_weapon():
-    """火力道具:向上的双层箭簇。约 1.5 见方。
+    """火力道具:向上的双层箭簇 + 能量环。约 1.6 见方。
 
-    箭簇 = 升级,这是通用语汇。做成双层是为了让剪影有层次,
+    箭簇 = 升级,通用语汇。做成双层是为了让剪影有层次,
     单层三角在远处会和敌机的楔形机头混淆。
     """
     reset_scene()
     frame = make_material("道具框架", (0.14, 0.16, 0.2), metal=0.92, rough=0.3)
     glow = make_material("火力琥珀", (1.0, 0.7, 0.22), metal=0.0, rough=0.2,
                          emit=(1.0, 0.68, 0.2), emit_strength=7.0)
-    core = make_material("火力亮芯", (1.0, 0.92, 0.7), metal=0.0, rough=0.15,
-                         emit=(1.0, 0.9, 0.65), emit_strength=10.0)
+    core = make_material("火力亮芯", (1.0, 0.94, 0.75), metal=0.0, rough=0.15,
+                         emit=(1.0, 0.92, 0.7), emit_strength=11.0)
 
     _pickup_halo(frame, glow)
-    # 两片人字形箭簇,上面一片小一点,读起来是"再上一级"
-    for i, (z, k) in enumerate(((0.28, 1.0), (-0.24, 0.78))):
-        wedge(f"箭簇{i}", glow, loc=(0, 0, z), scale=(1.05 * k, 0.22, 0.62 * k),
-              rot=(math.radians(-90), 0, 0))
-        box(f"箭杆{i}", core, loc=(0, 0, z - 0.16 * k), scale=(0.16, 0.16, 0.34 * k))
-    box("底座", frame, loc=(0, 0, -0.62), scale=(0.9, 0.2, 0.14))
+    # 两片人字:上面一片小一点,读起来是"再上一级"。厚度给足,侧面也认得出
+    # 不加旋转:cone 默认尖端就朝 +Z(向上)。上一版转了 -90°,尖端戳向镜头,
+    # 正面看只剩一个菱形,"箭头"这个语义整个丢了
+    for i, (z, k, mat) in enumerate(((0.34, 1.0, glow), (-0.3, 0.8, core))):
+        wedge(f"箭簇{i}", mat, loc=(0, 0, z), scale=(1.25 * k, 0.3, 0.8 * k))
+    box("底座", frame, loc=(0, 0, -0.66), scale=(0.86, 0.24, 0.14))
 
 
 def build_pickup_life():
-    """命数道具:立体十字。约 1.5 见方。
+    """命数道具:立体十字 + 能量环。约 1.6 见方。
 
-    十字是"补给/回复"最强的既有符号,而且它是三种里唯一有直角缺口的剪影,
-    在辉光糊成一团时仍然认得出 —— 颜色靠不住的时候,形状必须靠得住。
+    十字是"补给/回复"最强的既有符号,而且它是三种里唯一带直角缺口的剪影 ——
+    辉光把颜色糊成一团时,形状必须还认得出。
     """
     reset_scene()
     frame = make_material("道具框架", (0.14, 0.16, 0.2), metal=0.92, rough=0.3)
     glow = make_material("命数品红", (1.0, 0.37, 0.54), metal=0.0, rough=0.2,
                          emit=(1.0, 0.35, 0.52), emit_strength=7.0)
-    core = make_material("命数亮芯", (1.0, 0.8, 0.88), metal=0.0, rough=0.15,
-                         emit=(1.0, 0.78, 0.86), emit_strength=10.0)
+    core = make_material("命数亮芯", (1.0, 0.85, 0.9), metal=0.0, rough=0.15,
+                         emit=(1.0, 0.82, 0.88), emit_strength=11.0)
 
     _pickup_halo(frame, glow)
-    box("竖臂", glow, loc=(0, 0, 0), scale=(0.42, 0.34, 1.5))
-    box("横臂", glow, loc=(0, 0, 0), scale=(1.5, 0.34, 0.42))
-    box("竖臂芯", core, loc=(0, -0.2, 0), scale=(0.2, 0.1, 1.2))
-    box("横臂芯", core, loc=(0, -0.2, 0), scale=(1.2, 0.1, 0.2))
-    ball("交点", core, loc=(0, -0.22, 0), scale=(0.4, 0.24, 0.4), subdiv=1)
+    box("竖臂", glow, loc=(0, 0, 0), scale=(0.44, 0.36, 1.46))
+    box("横臂", glow, loc=(0, 0, 0), scale=(1.46, 0.36, 0.44))
+    box("竖臂芯", core, loc=(0, -0.21, 0), scale=(0.2, 0.08, 1.18))
+    box("横臂芯", core, loc=(0, -0.21, 0), scale=(1.18, 0.08, 0.2))
 
 
 # ---------------------------------------------------------------- 入口

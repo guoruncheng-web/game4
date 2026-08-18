@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import type { ObstacleKind } from '../config';
+import type { ObstacleKind, PowerKind } from '../config';
 
 /**
  * 模型与特效贴图的加载。
@@ -22,6 +22,8 @@ export type Assets = {
   props: THREE.Object3D[];
   /** 航道障碍物原型,按种类索引。缺哪种就不生成哪种 */
   obstacles: Partial<Record<ObstacleKind, THREE.Object3D>>;
+  /** 道具原型。缺失时 World 会回落到程序化的八面体 */
+  pickups: Partial<Record<PowerKind, THREE.Object3D>>;
 };
 
 /** 结构物模型。它们只是背景,加载失败不该让整局开不起来 */
@@ -32,6 +34,13 @@ const OBSTACLE_FILES: Array<[ObstacleKind, string]> = [
   ['asteroid', 'obstacle-asteroid.glb'],
   ['mine', 'obstacle-mine.glb'],
   ['block', 'obstacle-block.glb'],
+];
+
+/** 道具模型。三种的颜色在 Blender 里就烤死了,引擎侧不再按种类改材质 */
+const PICKUP_FILES: Array<[PowerKind, string]> = [
+  ['shield', 'pickup-shield.glb'],
+  ['weapon', 'pickup-weapon.glb'],
+  ['life', 'pickup-life.glb'],
 ];
 
 export type FxTexture = 'impact' | 'boom' | 'boomBoss' | 'shield' | 'portal';
@@ -120,7 +129,7 @@ export async function loadAssets(onProgress?: (done: number, total: number) => v
   const gltf = new GLTFLoader();
   const textureLoader = new THREE.TextureLoader();
   const fxKeys = Object.keys(FX_FILES) as FxTexture[];
-  const total = 3 + fxKeys.length + PROP_FILES.length + OBSTACLE_FILES.length;
+  const total = 3 + fxKeys.length + PROP_FILES.length + OBSTACLE_FILES.length + PICKUP_FILES.length;
   let done = 0;
   const tick = <T,>(promise: Promise<T>) => promise.then((value) => {
     onProgress?.(++done, total);
@@ -134,18 +143,23 @@ export async function loadAssets(onProgress?: (done: number, total: number) => v
     ...fxKeys.map((key) => tick(loadTexture(textureLoader, FX_FILES[key]))),
     ...PROP_FILES.map((file) => tick(loadProp(gltf, file))),
     ...OBSTACLE_FILES.map(([, file]) => tick(loadProp(gltf, file))),
+    ...PICKUP_FILES.map(([, file]) => tick(loadProp(gltf, file))),
   ]);
 
   const textures = rest.slice(0, fxKeys.length) as THREE.Texture[];
   const tail = rest.slice(fxKeys.length) as Array<THREE.Object3D | null>;
   const props = tail.slice(0, PROP_FILES.length).filter((item) => !!item);
   const obstacles: Partial<Record<ObstacleKind, THREE.Object3D>> = {};
-  tail.slice(PROP_FILES.length).forEach((model, i) => {
+  tail.slice(PROP_FILES.length, PROP_FILES.length + OBSTACLE_FILES.length).forEach((model, i) => {
     if (model) obstacles[OBSTACLE_FILES[i][0]] = model;
+  });
+  const pickups: Partial<Record<PowerKind, THREE.Object3D>> = {};
+  tail.slice(PROP_FILES.length + OBSTACLE_FILES.length).forEach((model, i) => {
+    if (model) pickups[PICKUP_FILES[i][0]] = model;
   });
   const fx = {} as Record<FxTexture, THREE.Texture>;
   fxKeys.forEach((key, i) => { fx[key] = textures[i]; });
-  return { player, enemy, boss, fx, props, obstacles };
+  return { player, enemy, boss, fx, props, obstacles, pickups };
 }
 
 /**
