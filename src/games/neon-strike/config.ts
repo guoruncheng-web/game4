@@ -158,11 +158,20 @@ export const ENEMY_SPEC: Record<EnemyKind, {
   gunner:  { glow: 0xb46bff, hp: 3, speed: 0.7,  score: 200, fire: 2.4, scale: 1.2,  weight: 2, from: 5 },
 };
 
-/** Boss 三型轮换,战役里就是第 4 / 8 / 12 波的三场 */
+/**
+ * Boss 三型轮换,战役里就是第 4 / 8 / 12 波的三场。
+ *
+ * 三艘各有自己的模型和形态,不是换色的同一艘:
+ * 环形母舰(锁定你)、矛形歼击舰(戳穿你)、巨口母舰(堵住整条航道)。
+ * `half` 是各自的碰撞盒 —— 轮廓差这么远,共用一套判定必然出现
+ * "打在船上没反应"或者"打在空处却中了"。
+ */
 export const BOSS_SPEC = [
-  { name: 'CORE CARRIER', hp: 26, glow: 0xff2f6d, pattern: 0 },
-  { name: 'VOID LANCER',  hp: 40, glow: 0xc46bff, pattern: 1 },
-  { name: 'STAR EATER',   hp: 56, glow: 0xffa53a, pattern: 2 },
+  // half 按模型实际包围盒(建模脚本导出时会打印)乘归一化系数算出来,再往里收一点:
+  // 冠刺、翼尖、枪尖这些细长件不该吃满判定,否则会出现"打在空处却中了"
+  { name: 'CORE CARRIER', hp: 26, glow: 0xff2f6d, pattern: 0, half: { x: 4.6, y: 3.6, z: 4.2 } },
+  { name: 'VOID LANCER',  hp: 40, glow: 0xc46bff, pattern: 1, half: { x: 4.4, y: 4.2, z: 5.6 } },
+  { name: 'STAR EATER',   hp: 56, glow: 0xffa53a, pattern: 2, half: { x: 4.6, y: 2.6, z: 4.4 } },
 ];
 
 export type ObstacleKind = 'asteroid' | 'mine' | 'block';
@@ -215,7 +224,7 @@ export const HITBOX = {
   player: { x: 0.62, y: 0.34, z: 1.0 },
   // Y 半高刻意比模型厚:俯视视角下高度差是最难判断的一维,判定薄了就变成"看着中了却没中"
   enemy: { x: 0.72, y: 0.5, z: 0.85 },
-  boss: { x: 6.0, y: 1.5, z: 3.6 },
+  // Boss 的判定盒不在这里 —— 三艘形态不同,各自写在 BOSS_SPEC.half 里
   shot: 0.22,
   power: 0.7,
 } as const;

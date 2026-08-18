@@ -19,6 +19,7 @@ import os
 import sys
 
 import bpy
+import mathutils
 
 
 # ---------------------------------------------------------------- 基础工具
@@ -127,7 +128,20 @@ def export(path):
         sum(len(p.vertices) - 2 for p in o.data.polygons)
         for o in bpy.data.objects if o.type == 'MESH'
     )
-    print(f"EXPORTED {path} tris={tris} size={os.path.getsize(path)}")
+    # 顺带把包围盒打出来:引擎侧的归一化和 BOSS_SPEC.half 都要按这个尺寸换算,
+    # 靠肉眼估模型尺寸必然对不上判定盒
+    lo = [float("inf")] * 3
+    hi = [float("-inf")] * 3
+    for o in bpy.data.objects:
+        if o.type != 'MESH':
+            continue
+        for corner in o.bound_box:
+            world = o.matrix_world @ mathutils.Vector(corner)
+            for i in range(3):
+                lo[i] = min(lo[i], world[i])
+                hi[i] = max(hi[i], world[i])
+    dims = tuple(round(hi[i] - lo[i], 2) for i in range(3))
+    print(f"EXPORTED {path} tris={tris} size={os.path.getsize(path)} dims(x,y,z)={dims}")
 
 
 # ---------------------------------------------------------------- 敌机
@@ -176,56 +190,373 @@ def build_enemy_drone():
 # ---------------------------------------------------------------- Boss
 
 def build_boss_carrier():
-    """核心战舰:宽体舰身 + 两侧炮塔吊舱 + 中央裸露核心。约 9 宽、7 长。"""
+    """核心战舰(CORE CARRIER):王冠母舰。约 14 宽 × 13 长 × 8.5 高。
+
+    上一版已经有"环 + 核心"的负空间,但它还是一个平的圆环 —— 从玩家视角看过去,
+    整艘船的信息全压在一个平面上,没有任何东西朝你伸过来,所以只是"大",不"凶"。
+
+    这一版加的是**指向玩家的体量**:
+    - 环外缘长出一圈冠刺,轮廓从"圆"变成"王冠",不再是个规整的工业零件;
+    - 四条巨爪从环上向前环抱过来,爪尖是炮口 —— 玩家被四门炮夹在中间;
+    - 核心外面罩一层半开的虹膜装甲,只从正面那道缝里漏光,
+      "要打的地方"从一颗裸球变成一道快闭上的缝,压迫感和可读性都在;
+    - 舰体加高加厚、引擎从五个排成七个,后面的体量撑得住前面的爪。
+
+    机头朝 +Y,环躺在 XZ 平面上(Z 是上)。
+    """
     reset_scene()
-    hull = make_material("Boss 暗紫装甲", (0.075, 0.055, 0.11), metal=0.86, rough=0.36)
-    plate = make_material("Boss 深色机械", (0.035, 0.035, 0.05), metal=0.92, rough=0.52)
-    trim = make_material("Boss 钛灰装甲", (0.19, 0.2, 0.24), metal=0.9, rough=0.3)
+    hull = make_material("Boss 暗紫装甲", (0.07, 0.05, 0.105), metal=0.86, rough=0.36)
+    plate = make_material("Boss 深色机械", (0.03, 0.03, 0.045), metal=0.92, rough=0.52)
+    trim = make_material("Boss 钛灰装甲", (0.2, 0.21, 0.26), metal=0.9, rough=0.28)
     core = make_material("Boss 核心能量", (0.95, 0.2, 0.45), metal=0.0, rough=0.18,
-                         emit=(1.0, 0.24, 0.5), emit_strength=8.0)
+                         emit=(1.0, 0.24, 0.5), emit_strength=9.0)
     glow = make_material("Boss 舷灯", (0.35, 0.85, 1.0), metal=0.0, rough=0.2,
                          emit=(0.4, 0.9, 1.0), emit_strength=5.0)
 
-    # 舰体:中央梯形主体 + 前缘撞角
-    taper("主舰体", hull, loc=(0, -0.3, 0), scale=(4.4, 1.0, 4.6),
-          rot=(math.radians(-90), 0, 0), tip=0.62)
-    box("上层甲板", hull, loc=(0, -0.5, 0.62), scale=(3.0, 3.2, 0.5))
-    box("舰桥", trim, loc=(0, -1.5, 1.05), scale=(1.5, 1.5, 0.55))
-    wedge("前缘撞角", trim, loc=(0, 2.55, 0), scale=(2.2, 0.7, 1.9), rot=(math.radians(90), 0, 0))
+    # ---- 后段舰体:所有结构的根。它不需要好看,需要够重 —— 前面伸出去的爪子
+    # 全靠它在视觉上配平,舰体单薄的话整艘船会读成"一个环在飘"
+    taper("主舰体", hull, loc=(0, -3.4, 0), scale=(7.6, 2.3, 6.0),
+          rot=(math.radians(-90), 0, 0), tip=0.46)
+    box("舰腹装甲", plate, loc=(0, -3.6, -1.5), scale=(6.0, 5.6, 1.0))
+    box("脊背一层", trim, loc=(0, -3.2, 1.5), scale=(3.0, 4.6, 0.7))
+    box("脊背二层", trim, loc=(0, -4.0, 2.3), scale=(2.2, 3.0, 0.9))
+    box("舰桥", trim, loc=(0, -4.6, 3.1), scale=(1.7, 1.8, 0.8))
+    box("舰桥窗", glow, loc=(0, -5.4, 3.1), scale=(1.3, 0.24, 0.26))
+    # 舰体上的高塔:把剪影往上顶,俯视视角下这一维最容易被压扁
+    for i, (x, h) in enumerate(((-2.3, 1.6), (2.3, 1.6))):
+        box(f"侧塔{i}", plate, loc=(x, -3.8, 1.9), scale=(0.7, 1.4, h))
+        box(f"侧塔灯{i}", glow, loc=(x, -3.8, 1.9 + h * 0.5), scale=(0.5, 0.5, 0.16))
 
-    # 中央核心:裸露的能量球嵌在装甲缺口里,是玩家的视觉打击点
-    ball("核心球", core, loc=(0, 0.55, 0.25), scale=(1.5, 1.5, 1.3))
-    ring("核心护环", plate, loc=(0, 0.55, 0.25), scale=(2.5, 2.5, 2.5), rot=(math.radians(90), 0, 0))
-    ring("核心斜环", trim, loc=(0, 0.55, 0.25), scale=(2.2, 2.2, 2.2),
-         rot=(math.radians(90), math.radians(40), 0))
+    # ---- 主环:十二段折线环,环面正对玩家。全场唯一的巨型圆环,是这艘船的身份
+    RING_R, RING_Y = 4.8, 2.1
+    SEGMENTS = 12
+    seg_len = 2 * RING_R * math.tan(math.pi / SEGMENTS) * 1.08
+    for i in range(SEGMENTS):
+        a = (i + 0.5) / SEGMENTS * math.tau
+        # 环躺在 XZ 平面上,切线方向要绕 Y 轴转;绕 Z 转只会让各段各转各的,拼不成环
+        box(f"环段{i}", hull,
+            loc=(math.cos(a) * RING_R, RING_Y, math.sin(a) * RING_R),
+            scale=(seg_len, 1.5, 1.25), rot=(0, -(a + math.pi / 2), 0))
+        box(f"环槽{i}", core,
+            loc=(math.cos(a) * (RING_R - 0.7), RING_Y + 0.35, math.sin(a) * (RING_R - 0.7)),
+            scale=(seg_len * 0.74, 0.4, 0.3), rot=(0, -(a + math.pi / 2), 0))
+        # 冠刺:一圈朝外的尖刺,长短交替。轮廓从"圆环"变成"王冠",
+        # 远处黑影里也能读出攻击性 —— 规整的圆是工业件,带刺的圆才是战舰
+        k = 1.0 if i % 2 == 0 else 0.6
+        wedge(f"冠刺{i}", trim,
+              loc=(math.cos(a) * (RING_R + 0.9 * k), RING_Y, math.sin(a) * (RING_R + 0.9 * k)),
+              scale=(0.8 * k, 0.8 * k, 2.2 * k),
+              rot=(0, math.pi / 2 - a, 0))
 
-    # 两侧吊舱与炮塔
-    p = taper("右吊舱", hull, loc=(3.3, 0.1, -0.05), scale=(1.5, 1.3, 3.4),
-              rot=(math.radians(-90), 0, 0), tip=0.5)
-    mirror_x(p, "左吊舱")
-    g = tube("右主炮", plate, loc=(3.3, 2.1, -0.05), scale=(0.5, 0.5, 2.2),
-             rot=(math.radians(90), 0, 0))
-    mirror_x(g, "左主炮")
-    m = tube("右炮口", core, loc=(3.3, 3.2, -0.05), scale=(0.42, 0.42, 0.18),
-             rot=(math.radians(90), 0, 0))
-    mirror_x(m, "左炮口")
-    v = box("右吊舱能量槽", core, loc=(3.3, -0.5, 0.62), scale=(0.34, 2.0, 0.12))
-    mirror_x(v, "左吊舱能量槽")
+    # ---- 环上的四个节点:巨爪的根,加装甲块让八边形不至于太规整
+    NODES = [i / 4 * math.tau + math.pi / 4 for i in range(4)]
+    for i, a in enumerate(NODES):
+        box(f"环节点{i}", trim, loc=(math.cos(a) * RING_R, RING_Y, math.sin(a) * RING_R),
+            scale=(1.7, 2.1, 1.7), rot=(0, -a, 0))
 
-    # 翼板:把轮廓横向拉开,远处也能一眼认出是 Boss
-    w = box("右翼板", hull, loc=(2.1, -1.6, 0.05), scale=(2.6, 1.8, 0.24),
-            rot=(0, math.radians(-7), math.radians(-14)))
-    mirror_x(w, "左翼板")
-    l = box("右舷灯", glow, loc=(2.3, -2.3, 0.2), scale=(1.8, 0.16, 0.09),
-            rot=(0, 0, math.radians(-14)))
-    mirror_x(l, "左舷灯")
+    # ---- 四条巨爪:从环上向前环抱。整艘船唯一朝玩家伸过来的东西,
+    # "凶"和"大"的差别就在这儿 —— 爪尖是四门炮,玩家被夹在中间打
+    tilt = math.radians(11)
+    for i, a in enumerate(NODES):
+        # 小角度近似:绕 X 抬头 + 绕 Z 偏航,合起来让 +Y 朝内收
+        rot = (-math.sin(a) * tilt, 0, math.cos(a) * tilt)
+        rx, rz = math.cos(a) * (RING_R + 0.25), math.sin(a) * (RING_R + 0.25)
+        box(f"爪上臂{i}", hull, loc=(rx, RING_Y + 2.7, rz), scale=(1.9, 5.6, 1.7), rot=rot)
+        # 臂外侧的甲板:正面看过去,爪子的宽度全靠它。没有这一片,四条爪在
+        # 透视压缩下只剩四根针,读成"蜘蛛腿"而不是"环抱过来的手臂"
+        box(f"爪外甲{i}", hull, loc=(rx * 1.16, RING_Y + 2.4, rz * 1.16),
+            scale=(1.5, 4.8, 0.5), rot=(rot[0], -a, rot[2]))
+        box(f"爪上臂槽{i}", core, loc=(rx * 0.88, RING_Y + 2.7, rz * 0.88),
+            scale=(1.1, 4.4, 0.26), rot=rot)
+        # 前臂再往里收一截,四只爪在正前方合出一个更小的口
+        fx, fz = math.cos(a) * (RING_R - 1.1), math.sin(a) * (RING_R - 1.1)
+        box(f"爪前臂{i}", trim, loc=(fx, RING_Y + 6.4, fz), scale=(1.5, 3.4, 1.35),
+            rot=(-math.sin(a) * tilt * 2.6, 0, math.cos(a) * tilt * 2.6))
+        cx, cz = math.cos(a) * (RING_R - 2.3), math.sin(a) * (RING_R - 2.3)
+        box(f"爪炮座{i}", plate, loc=(cx, RING_Y + 7.9, cz), scale=(1.6, 1.4, 1.6))
+        tube(f"爪主炮{i}", plate, loc=(cx, RING_Y + 8.9, cz), scale=(0.62, 0.62, 1.8),
+             rot=(math.radians(90), 0, 0))
+        tube(f"爪炮口{i}", core, loc=(cx, RING_Y + 9.9, cz), scale=(0.42, 0.42, 0.24),
+             rot=(math.radians(90), 0, 0))
+        wedge(f"爪刺{i}", trim, loc=(cx * 1.35, RING_Y + 7.4, cz * 1.35),
+              scale=(0.55, 0.55, 2.0), rot=(math.radians(-90), 0, 0))
 
-    # 尾部推进阵列
-    for i, x in enumerate((-1.7, -0.6, 0.6, 1.7)):
-        tube(f"{i}号引擎", plate, loc=(x, -2.95, 0.1), scale=(0.8, 0.8, 1.0),
+    # ---- 环心:虹膜装甲 + 核心。八片装甲斜着围住核心,只从正面漏光。
+    # 裸球是"一个靶子",半闭的虹膜是"它在戒备" —— 同样是打这里,后者才有交战感
+    ball("核心球", core, loc=(0, RING_Y, 0), scale=(2.2, 2.0, 2.2))
+    for i in range(8):
+        a = i / 8 * math.tau
+        box(f"虹膜{i}", trim,
+            loc=(math.cos(a) * 2.15, RING_Y - 0.1, math.sin(a) * 2.15),
+            scale=(1.9, 1.5, 0.34), rot=(math.radians(42), -(a + math.pi / 2), 0))
+    hoop("核心细环", trim, loc=(0, RING_Y, 0), scale=(3.3, 3.3, 3.3),
+         rot=(math.radians(90), 0, 0), thickness=0.06)
+    hoop("核心斜环", glow, loc=(0, RING_Y + 0.4, 0), scale=(2.9, 2.9, 2.9),
+         rot=(math.radians(90), math.radians(40), 0), thickness=0.045)
+
+    # ---- 把环架在舰体前方的四根斜撑
+    for i in range(4):
+        a = i / 4 * math.tau
+        box(f"环撑{i}", plate,
+            loc=(math.cos(a) * RING_R * 0.74, RING_Y - 2.8, math.sin(a) * RING_R * 0.74),
+            scale=(0.5, 5.2, 0.5), rot=(math.radians(-13), 0, 0))
+
+    # ---- 下挂机库:六个朝前的发射口,交代"每波敌机是从这儿放出来的"
+    box("机库舱", hull, loc=(0, -1.0, -2.3), scale=(9.0, 3.6, 1.4))
+    for i, x in enumerate((-3.5, -2.1, -0.7, 0.7, 2.1, 3.5)):
+        box(f"机库口{i}", plate, loc=(x, 0.75, -2.3), scale=(0.95, 0.7, 0.9))
+        box(f"机库灯{i}", glow, loc=(x, 1.08, -2.3), scale=(1.0, 0.14, 0.5))
+
+    # ---- 两侧吊舱:横向轮廓撑到环之外,读到的顺序才是
+    # "很大一坨 → 中间有个带刺的环 → 环心有条亮缝"
+    pod = taper("右吊舱", hull, loc=(6.2, -2.0, -0.3), scale=(2.1, 1.8, 5.0),
+                rot=(math.radians(-90), 0, 0), tip=0.42)
+    mirror_x(pod, "左吊舱")
+    for j, (dz, s) in enumerate(((0.75, 1.0), (-0.75, 0.8))):
+        pg = tube(f"右吊舱主炮{j}", plate, loc=(6.2, 1.4, -0.3 + dz), scale=(0.6 * s, 0.6 * s, 3.0),
+                  rot=(math.radians(90), 0, 0))
+        mirror_x(pg, f"左吊舱主炮{j}")
+        pm = tube(f"右吊舱炮口{j}", core, loc=(6.2, 3.0, -0.3 + dz), scale=(0.5 * s, 0.5 * s, 0.24),
+                  rot=(math.radians(90), 0, 0))
+        mirror_x(pm, f"左吊舱炮口{j}")
+    pv = box("右吊舱能量槽", core, loc=(6.2, -2.2, 1.05), scale=(0.34, 3.2, 0.18))
+    mirror_x(pv, "左吊舱能量槽")
+
+    # ---- 尾部推进阵列:七个,大小不均。均匀排布像民用件,不均匀才像军舰
+    for i, (x, k) in enumerate(((-3.1, 0.6), (-2.1, 0.85), (-0.9, 1.15), (0.35, 1.15),
+                                (1.6, 0.85), (2.6, 0.7), (3.4, 0.5))):
+        tube(f"{i}号引擎", plate, loc=(x, -6.0, 0.1), scale=(1.0 * k, 1.0 * k, 1.3),
              rot=(math.radians(90), 0, 0))
-        tube(f"{i}号尾焰", core, loc=(x, -3.45, 0.1), scale=(0.62, 0.62, 0.1),
+        tube(f"{i}号尾焰", core, loc=(x, -6.7, 0.1), scale=(0.78 * k, 0.78 * k, 0.14),
              rot=(math.radians(90), 0, 0))
+
+    # ---- 侧翼稳定板:最宽处再往外撑一点
+    fin = box("右稳定板", hull, loc=(5.2, -3.4, 0.6), scale=(1.5, 3.2, 0.32),
+              rot=(0, math.radians(-20), 0))
+    mirror_x(fin, "左稳定板")
+    fl = box("右舷灯", glow, loc=(5.2, -4.6, 0.6), scale=(1.7, 0.18, 0.12))
+    mirror_x(fl, "左舷灯")
+
+
+def build_boss_lancer():
+    """虚空刺枪(VOID LANCER):三叉戟歼击舰。约 14 宽 × 20 长 × 6 高。
+
+    三场 Boss 必须靠剪影区分,不能靠配色 —— 它们在 Bloom 下都是一团亮光。
+    母舰是"带刺的环",这一艘走完全相反的路:**一把叉**。
+
+    上一版是单根矛。单根矛的问题是它太"细":玩家正面看它,矛身被透视压成一个点,
+    剩下的全靠四片翼撑着,读出来是"一个 X",不是一把武器。
+    这一版给它三根枪管 —— 中间一根巨矛、两侧两根副矛,三个尖同时对着你,
+    加上主炮外面那层张开的八片装甲颚,才有"这东西是来穿人的"那种意思。
+
+    核心裸露在主炮根部的肋笼里 —— 想打它就得往三个枪口正中间凑。
+    """
+    reset_scene()
+    hull = make_material("刺枪暗紫装甲", (0.075, 0.048, 0.125), metal=0.88, rough=0.33)
+    plate = make_material("刺枪深色机械", (0.03, 0.03, 0.045), metal=0.92, rough=0.5)
+    trim = make_material("刺枪钛灰装甲", (0.21, 0.21, 0.27), metal=0.9, rough=0.26)
+    core = make_material("刺枪核心能量", (0.78, 0.42, 1.0), metal=0.0, rough=0.18,
+                         emit=(0.76, 0.42, 1.0), emit_strength=9.0)
+    glow = make_material("刺枪舷灯", (0.45, 0.85, 1.0), metal=0.0, rough=0.2,
+                         emit=(0.5, 0.9, 1.0), emit_strength=5.0)
+
+    # ---- 主炮管:整艘船的身份。够长才叫矛
+    tube("加速炮管", trim, loc=(0, 4.6, 0), scale=(1.9, 1.9, 10.4), rot=(math.radians(90), 0, 0))
+    tube("炮口", core, loc=(0, 9.9, 0), scale=(1.6, 1.6, 0.55), rot=(math.radians(90), 0, 0))
+    wedge("枪尖", trim, loc=(0, 11.2, 0), scale=(1.7, 1.7, 2.6), rot=(math.radians(-90), 0, 0))
+    # 枪尖四片破甲刃:尖端不是一个点而是一组刃,近看才有细节撑得住
+    for i in range(4):
+        a = i / 4 * math.tau + math.pi / 4
+        box(f"破甲刃{i}", trim, loc=(math.cos(a) * 0.85, 10.4, math.sin(a) * 0.85),
+            scale=(1.5, 2.6, 0.28), rot=(math.radians(-16), -a, 0))
+    # 炮管上的加速环:五道,把"这是一门在蓄能的炮"讲清楚
+    for i, y in enumerate((0.9, 2.9, 4.9, 6.9, 8.6)):
+        hoop(f"加速环{i}", core, loc=(0, y, 0), scale=(2.9, 2.9, 2.9),
+             rot=(math.radians(90), 0, 0), thickness=0.07)
+        box(f"环卡箍{i}", plate, loc=(0, y, 0), scale=(3.0, 0.5, 0.42))
+        box(f"环卡箍竖{i}", plate, loc=(0, y, 0), scale=(0.42, 0.5, 3.0))
+
+    # ---- 主炮外的装甲颚:八片朝前张开的长条。它给主炮加了一圈"厚度",
+    # 正面看过去就不再是一根细针,而是一个张着口的枪套
+    for i in range(8):
+        a = i / 8 * math.tau + math.pi / 8
+        # 往外张 14°:平行于炮管的话正面只是一圈同心线,张开才有喇叭口,
+        # 玩家正对它时看到的是一圈朝自己扩开的甲片,而不是一根光溜溜的管子
+        box(f"炮颚{i}", hull, loc=(math.cos(a) * 3.1, 3.4, math.sin(a) * 3.1),
+            scale=(2.1, 7.2, 0.5), rot=(math.radians(14), -(a + math.pi / 2), 0))
+        box(f"炮颚灯{i}", core, loc=(math.cos(a) * 3.45, 3.2, math.sin(a) * 3.45),
+            scale=(0.36, 5.6, 0.16), rot=(math.radians(14), -(a + math.pi / 2), 0))
+        wedge(f"炮颚尖{i}", trim, loc=(math.cos(a) * 4.2, 7.2, math.sin(a) * 4.2),
+              scale=(1.1, 1.1, 2.4), rot=(math.radians(-74), -a, 0))
+
+    # ---- 两根副矛:三叉戟的两侧齿。比主矛短一截,尖端错开,
+    # 三个尖不齐平才有纵深 —— 齐平会读成一堵栅栏
+    for sign in (1, -1):
+        px = sign * 4.6
+        tube(f"副炮管{sign}", trim, loc=(px, 3.2, 0), scale=(1.15, 1.15, 7.6),
+             rot=(math.radians(90), 0, 0))
+        tube(f"副炮口{sign}", core, loc=(px, 7.1, 0), scale=(0.95, 0.95, 0.4),
+             rot=(math.radians(90), 0, 0))
+        wedge(f"副枪尖{sign}", trim, loc=(px, 8.1, 0), scale=(1.1, 1.1, 1.9),
+              rot=(math.radians(-90), 0, 0))
+        for j, y in enumerate((1.6, 3.6, 5.6)):
+            hoop(f"副加速环{sign}{j}", core, loc=(px, y, 0), scale=(1.8, 1.8, 1.8),
+                 rot=(math.radians(90), 0, 0), thickness=0.06)
+        # 把副矛接到舰体上的斜撑
+        box(f"副矛撑{sign}", plate, loc=(px * 0.62, -0.4, 0), scale=(4.6, 1.1, 0.75),
+            rot=(0, 0, math.radians(-8) * sign))
+
+    # ---- 中段舰体、肋笼与裸露核心
+    taper("舰体", hull, loc=(0, -2.0, 0), scale=(3.6, 1.7, 6.0),
+          rot=(math.radians(-90), 0, 0), tip=0.58)
+    ball("核心球", core, loc=(0, -0.2, 0.4), scale=(2.0, 2.0, 1.8))
+    for i in range(6):
+        a = i / 6 * math.tau
+        box(f"肋{i}", trim, loc=(math.cos(a) * 1.5, -0.2, 0.4 + math.sin(a) * 1.5),
+            scale=(0.34, 2.6, 0.34), rot=(0, 0, 0))
+    hoop("核心环", trim, loc=(0, -0.2, 0.4), scale=(3.1, 3.1, 3.1),
+         rot=(math.radians(90), 0, 0), thickness=0.07)
+    box("背脊", trim, loc=(0, -2.6, 1.5), scale=(1.7, 4.4, 0.6))
+
+    # ---- X 形后掠翼:四片,绕炮管轴每 90° 一片。玩家正面看它时,
+    # 矛身被透视压掉,撑起剪影的其实是这四片翼,所以翼展要够
+    for i in range(4):
+        a = i / 4 * math.tau + math.pi / 4
+        box(f"翼{i}", hull, loc=(math.cos(a) * 4.4, -1.4, math.sin(a) * 4.4),
+            scale=(8.2, 3.6, 0.48), rot=(0, -a, 0))
+        box(f"翼灯{i}", glow, loc=(math.cos(a) * 6.1, -1.0, math.sin(a) * 6.1),
+            scale=(5.4, 0.3, 0.2), rot=(0, -a, 0))
+        # 翼尖前伸的镰刃:翼不再是一块板,而是一只朝前抓的爪
+        box(f"翼刃{i}", trim, loc=(math.cos(a) * 8.0, -0.4, math.sin(a) * 8.0),
+            scale=(1.8, 5.6, 0.7), rot=(0, -a, 0))
+        box(f"翼刃灯{i}", core, loc=(math.cos(a) * 8.35, 0.4, math.sin(a) * 8.35),
+            scale=(0.22, 3.6, 0.3), rot=(0, -a, 0))
+        wedge(f"翼刃尖{i}", trim, loc=(math.cos(a) * 8.0, 2.8, math.sin(a) * 8.0),
+              scale=(1.4, 0.6, 2.6), rot=(math.radians(-90), -a, 0))
+        box(f"翼根舱{i}", plate, loc=(math.cos(a) * 2.2, -1.6, math.sin(a) * 2.2),
+            scale=(1.7, 3.8, 1.1), rot=(0, -a, 0))
+        tube(f"翼挂炮{i}", plate, loc=(math.cos(a) * 5.2, 1.2, math.sin(a) * 5.2),
+             scale=(0.42, 0.42, 3.0), rot=(math.radians(90), 0, 0))
+        tube(f"翼挂炮口{i}", core, loc=(math.cos(a) * 5.2, 2.8, math.sin(a) * 5.2),
+             scale=(0.36, 0.36, 0.2), rot=(math.radians(90), 0, 0))
+
+    # ---- 尾部:四大两小推进,重心视觉上压在后面,矛才"戳得动"
+    box("引擎座", plate, loc=(0, -4.8, 0), scale=(5.2, 2.2, 2.4))
+    for i, (x, z, k) in enumerate(((-2.0, 0.5, 1.0), (2.0, 0.5, 1.0),
+                                   (-1.3, -0.9, 0.7), (1.3, -0.9, 0.7))):
+        tube(f"{i}号引擎", plate, loc=(x, -5.6, z), scale=(1.6 * k, 1.6 * k, 2.0),
+             rot=(math.radians(90), 0, 0))
+        tube(f"{i}号尾焰", core, loc=(x, -6.8, z), scale=(1.25 * k, 1.25 * k, 0.18),
+             rot=(math.radians(90), 0, 0))
+
+
+def build_boss_eater():
+    """吞星者(STAR EATER):巨口母舰。约 16 宽 × 14 长 × 11 高。
+
+    第三种剪影必须和"带刺的环"、"三叉戟"都不像 —— 这一艘是**一张张开的嘴**。
+    上下两片巨颚向前张开,三排齿,喉咙深处是烧着的胃核,嘴里还卡着一块没消化完的岩体。
+    它不是飞行器造型,是生物造型,在一堆硬表面里天然扎眼。
+
+    上一版嘴张得不够、也太干净。这一版补的是"这张嘴用过":
+    颚外缘长出一排背棘、两条侧颚从下方朝前抄过来、颚上有纵向的肋 —— 咬合结构越具体,
+    "堵住整条航道"这件事就越吓人。
+    """
+    reset_scene()
+    hull = make_material("吞星者暗橙装甲", (0.115, 0.062, 0.035), metal=0.85, rough=0.4)
+    plate = make_material("吞星者深色机械", (0.038, 0.032, 0.032), metal=0.92, rough=0.5)
+    tooth = make_material("颚齿", (0.6, 0.57, 0.52), metal=0.9, rough=0.22)
+    rock = make_material("未消化岩体", (0.14, 0.12, 0.11), metal=0.3, rough=0.85)
+    core = make_material("胃核能量", (1.0, 0.55, 0.15), metal=0.0, rough=0.2,
+                         emit=(1.0, 0.5, 0.12), emit_strength=10.0)
+    glow = make_material("吞星者舷灯", (1.0, 0.75, 0.3), metal=0.0, rough=0.2,
+                         emit=(1.0, 0.72, 0.25), emit_strength=4.5)
+
+    # ---- 上下颚:两片厚板绕 X 轴张开约 60°。
+    # 用板不用锥体:锥体的体积会把嘴填满,张角再大也看不出"张着",
+    # 而板条在侧面留出的那道楔形空隙,才是"这是一张嘴"的全部信息量
+    for sign, name in ((1, "上颚"), (-1, "下颚")):
+        tilt = math.radians(34) * sign
+        # 颚不是一整块方板:中间一块 + 两侧各一块后掠的翼板。
+        # 一整块的话正面剪影是个矩形,读成推土机铲斗;
+        # 后掠出来的斜边才让轮廓收成"喙",是活物而不是工程机械
+        box(name, hull, loc=(0, 3.0, 2.0 * sign), scale=(10.0, 7.4, 1.25), rot=(tilt, 0, 0))
+        for side in (1, -1):
+            box(f"{name}侧板{side}", hull, loc=(side * 6.0, 2.2, 1.55 * sign),
+                scale=(4.2, 6.4, 1.05), rot=(tilt, 0, math.radians(-13) * side))
+            # 颚角上的獠牙:朝前上方翘出去,正面剪影的四个角就不再是直角
+            wedge(f"{name}角牙{side}", tooth, loc=(side * 6.6, 6.0, 2.3 * sign),
+                  scale=(1.2, 1.2, 3.4),
+                  rot=(math.radians(-58) * sign, 0, math.radians(-20) * side))
+        box(f"{name}外脊", plate, loc=(0, 2.4, 2.5 * sign), scale=(3.4, 5.8, 0.6), rot=(tilt, 0, 0))
+        # 颚上的纵肋:让这块大板不再是一块平板,近距离也有东西看
+        for i, x in enumerate((-5.0, -3.4, -1.8, 1.8, 3.4, 5.0)):
+            box(f"{name}肋{i}", plate, loc=(x, 3.0, 2.35 * sign), scale=(0.5, 6.4, 0.35),
+                rot=(tilt, 0, 0))
+        # 三排齿:朝嘴里长,不是朝外支棱。齿尖方向直接按世界方向给
+        # (上颚 ≈ 朝前下方,下颚镜像),不要跟着颚板的倾角走 ——
+        # 跟着颚板转出来的是一排"从背上长出来的刺",侧面看像梳子,不像牙。
+        # (y, 颚内表面高度, 基准大小, 齿长)
+        for row, (fy, sz, ks, lz) in enumerate((
+                (6.2, 2.95, 1.05, 2.9), (4.3, 2.30, 0.72, 2.0), (2.9, 1.75, 0.48, 1.3))):
+            for i, x in enumerate((-5.4, -4.2, -3.0, -1.8, -0.6, 0.6, 1.8, 3.0, 4.2, 5.4)):
+                k = ks * (1.0 if i % 2 == 0 else 0.62)
+                # 齿根贴在颚的内表面上,整颗齿往嘴里伸
+                wedge(f"{name}齿{row}_{i}", tooth,
+                      loc=(x, fy, (sz - 0.45 * lz * k) * sign),
+                      scale=(0.95 * k, 0.95 * k, lz * k),
+                      rot=(math.radians(-153) * sign, 0, 0))
+        # 缘灯打断成一段段夹在齿之间。一条通长的亮条在 Bloom 下会糊成日光灯管,
+        # 把整排牙齿的形状全吃掉
+        for i, x in enumerate((-4.8, -2.4, 0.0, 2.4, 4.8)):
+            box(f"{name}缘灯{i}", glow, loc=(x, 6.7, 3.0 * sign), scale=(1.5, 0.34, 0.16),
+                rot=(tilt, 0, 0))
+        # 背棘:沿颚背排一列朝后的尖刺,轮廓从"两块板"变成"活物的脊"
+        for i, y in enumerate((0.2, 1.4, 2.6, 3.8)):
+            h = 2.4 - i * 0.35
+            wedge(f"{name}棘{i}", tooth,
+                  loc=(0, y, 3.4 * sign), scale=(0.85, 0.85, h),
+                  rot=(math.radians(90) * sign + tilt * 0.4, 0, 0))
+
+    # ---- 侧颚:两条从下方朝前抄的钳臂。上下颚管"高度",侧颚管"宽度",
+    # 四片合起来才读成一个能把整条航道咬合掉的口器
+    for sign in (1, -1):
+        sx = sign * 6.4
+        box(f"侧颚{sign}", hull, loc=(sx, 3.4, -0.4), scale=(1.5, 8.0, 3.4),
+            rot=(0, 0, math.radians(-9) * sign))
+        box(f"侧颚灯{sign}", core, loc=(sx - sign * 0.75, 3.4, -0.4), scale=(0.22, 6.0, 1.0))
+        for i, y in enumerate((5.6, 4.0, 2.4)):
+            k = 1.0 - i * 0.22
+            wedge(f"侧颚齿{sign}{i}", tooth, loc=(sx - sign * 1.1, y, -0.4),
+                  scale=(2.2 * k, 0.9 * k, 0.9 * k),
+                  rot=(0, math.radians(-90) * sign, 0))
+        wedge(f"侧颚尖{sign}", hull, loc=(sx - sign * 0.4, 7.6, -0.4), scale=(1.4, 1.4, 2.8),
+              rot=(math.radians(-90), 0, math.radians(-10) * sign))
+
+    # ---- 喉咙:三道往里收的环 + 胃核 + 一块没咽下去的岩体。
+    # 环一层层缩小才有"深"的错觉,平铺一个亮球只会读成贴纸
+    ball("胃核", core, loc=(0, 1.6, 0), scale=(3.4, 3.2, 3.4))
+    for i, (y, s) in enumerate(((4.4, 5.6), (3.2, 4.6), (2.2, 3.8))):
+        hoop(f"喉环{i}", plate if i == 0 else core, loc=(0, y, 0), scale=(s, s, s),
+             rot=(math.radians(90), 0, 0), thickness=0.11 - i * 0.02)
+    ball("未消化岩块", rock, loc=(1.5, 4.2, 0.9), scale=(2.0, 1.8, 1.9), subdiv=1)
+    ball("岩屑", rock, loc=(-1.9, 3.4, -1.1), scale=(1.1, 1.0, 1.0), subdiv=1)
+
+    # ---- 躯干与两侧推进荚:躯干短粗,把体量堆在颚后面
+    taper("躯干", hull, loc=(0, -3.2, 0), scale=(7.6, 3.0, 5.8),
+          rot=(math.radians(-90), 0, 0), tip=0.46)
+    box("背甲", plate, loc=(0, -3.6, 2.6), scale=(3.2, 5.0, 0.8))
+    for sign in (1, -1):
+        tube(f"推进荚{sign}", hull, loc=(sign * 4.8, -2.6, 0), scale=(2.7, 2.7, 6.0),
+             rot=(math.radians(90), 0, 0))
+        box(f"荚灯{sign}", glow, loc=(sign * 4.8, -2.6, 1.4), scale=(0.32, 4.2, 0.22))
+        tube(f"荚尾焰{sign}", core, loc=(sign * 4.8, -5.9, 0), scale=(2.2, 2.2, 0.22),
+             rot=(math.radians(90), 0, 0))
+        # 荚上的副炮:嘴是主要威胁,但它也得能还手
+        tube(f"荚炮{sign}", plate, loc=(sign * 4.8, 1.2, 1.9), scale=(0.5, 0.5, 2.6),
+             rot=(math.radians(90), 0, 0))
+        tube(f"荚炮口{sign}", core, loc=(sign * 4.8, 2.6, 1.9), scale=(0.42, 0.42, 0.22),
+             rot=(math.radians(90), 0, 0))
+    tube("主尾焰", core, loc=(0, -6.2, 0), scale=(3.4, 3.4, 0.24), rot=(math.radians(90), 0, 0))
 
 
 # ---------------------------------------------------------------- 场景结构物(两侧掠过的巨型物件)
@@ -548,6 +879,8 @@ def build_pickup_life():
 BUILDERS = {
     "enemy-drone": build_enemy_drone,
     "boss-carrier": build_boss_carrier,
+    "boss-lancer": build_boss_lancer,
+    "boss-eater": build_boss_eater,
     # 场景结构物。它们不参与碰撞,只在两侧掠过,所以尺寸直接按最终世界单位建,
     # 不像战机那样进引擎后再归一化
     "prop-truss": build_pylon_truss,
@@ -565,10 +898,22 @@ BUILDERS = {
 
 
 def main():
+    """用法:blender -b --python 本脚本 -- <输出目录> [只重建的模型名...]
+
+    不带模型名就全量重建。只改了一艘 Boss 时把名字列在后面,
+    其它 glb 就不会被重新导出 —— 同样的输入两次导出的字节并不完全一致,
+    全量跑一遍会让 git 里多出一堆无意义的二进制改动。
+    """
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     out_dir = argv[0] if argv else "public/neon-strike/models"
+    wanted = argv[1:]
+    unknown = [n for n in wanted if n not in BUILDERS]
+    if unknown:
+        raise SystemExit(f"未知模型名: {unknown};可选: {sorted(BUILDERS)}")
     os.makedirs(out_dir, exist_ok=True)
     for name, build in BUILDERS.items():
+        if wanted and name not in wanted:
+            continue
         build()
         export(os.path.join(out_dir, f"{name}.glb"))
 

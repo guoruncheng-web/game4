@@ -16,7 +16,8 @@ const VFX_BASE = '/neon-strike/assets/vfx';
 export type Assets = {
   player: THREE.Object3D;
   enemy: THREE.Object3D;
-  boss: THREE.Object3D;
+  /** 三艘 Boss,顺序对应 config 里的 BOSS_SPEC */
+  bosses: THREE.Object3D[];
   fx: Record<FxTexture, THREE.Texture>;
   /** 两侧掠过的巨型结构物。没产出模型时是空数组,Stage 会回落到程序化柱体 */
   props: THREE.Object3D[];
@@ -58,11 +59,14 @@ const FX_FILES: Record<FxTexture, string> = {
  * 三个模型来自不同流程,原始尺度差了一个数量级,统一归一化之后
  * 游戏里的距离、碰撞盒、镜头参数才有一套能对得上的量纲。
  */
-function normalize(root: THREE.Object3D, targetLength: number) {
+function normalize(root: THREE.Object3D, target: number, axis: 'z' | 'x' = 'z') {
   const box = new THREE.Box3().setFromObject(root);
   const size = box.getSize(new THREE.Vector3());
   const center = box.getCenter(new THREE.Vector3());
-  const scale = targetLength / Math.max(size.z, 1e-4);
+  // 战机按机身长度归一化,Boss 按翼展。三艘 Boss 的长宽比差得很远
+  // (刺枪长 15.5 宽 10.9,母舰长 8.3 宽 12.4),统一按长度归一化的话
+  // 刺枪会被压成一根比小兵还不起眼的针,而它在画面上的存在感其实来自翼展。
+  const scale = target / Math.max(axis === 'x' ? size.x : size.z, 1e-4);
   const wrapper = new THREE.Group();
   root.position.sub(center);
   root.scale.setScalar(1);
@@ -94,11 +98,11 @@ function tuneMaterials(root: THREE.Object3D) {
   });
 }
 
-function loadModel(loader: GLTFLoader, file: string, length: number): Promise<THREE.Object3D> {
+function loadModel(loader: GLTFLoader, file: string, size: number, axis: 'z' | 'x' = 'z'): Promise<THREE.Object3D> {
   return new Promise((resolve, reject) => {
     loader.load(`${MODEL_BASE}/${file}`, (gltf) => {
       tuneMaterials(gltf.scene);
-      resolve(normalize(gltf.scene, length));
+      resolve(normalize(gltf.scene, size, axis));
     }, undefined, reject);
   });
 }
@@ -129,17 +133,21 @@ export async function loadAssets(onProgress?: (done: number, total: number) => v
   const gltf = new GLTFLoader();
   const textureLoader = new THREE.TextureLoader();
   const fxKeys = Object.keys(FX_FILES) as FxTexture[];
-  const total = 3 + fxKeys.length + PROP_FILES.length + OBSTACLE_FILES.length + PICKUP_FILES.length;
+  // 玩家 + 敌机 + 三艘 Boss
+  const total = 5 + fxKeys.length + PROP_FILES.length + OBSTACLE_FILES.length + PICKUP_FILES.length;
   let done = 0;
   const tick = <T,>(promise: Promise<T>) => promise.then((value) => {
     onProgress?.(++done, total);
     return value;
   });
 
-  const [player, enemy, boss, ...rest] = await Promise.all([
+  const [player, enemy, carrier, lancer, eater, ...rest] = await Promise.all([
     tick(loadModel(gltf, 'player-fighter.glb', 2.6)),
     tick(loadModel(gltf, 'enemy-drone.glb', 1.9)),
-    tick(loadModel(gltf, 'boss-carrier.glb', 8.4)),
+    // Boss 按翼展 9.6 归一化 —— 航道最窄时半宽 4.2,这个尺寸刚好横占满整条航道
+    tick(loadModel(gltf, 'boss-carrier.glb', 9.6, 'x')),
+    tick(loadModel(gltf, 'boss-lancer.glb', 9.6, 'x')),
+    tick(loadModel(gltf, 'boss-eater.glb', 9.6, 'x')),
     ...fxKeys.map((key) => tick(loadTexture(textureLoader, FX_FILES[key]))),
     ...PROP_FILES.map((file) => tick(loadProp(gltf, file))),
     ...OBSTACLE_FILES.map(([, file]) => tick(loadProp(gltf, file))),
@@ -159,7 +167,7 @@ export async function loadAssets(onProgress?: (done: number, total: number) => v
   });
   const fx = {} as Record<FxTexture, THREE.Texture>;
   fxKeys.forEach((key, i) => { fx[key] = textures[i]; });
-  return { player, enemy, boss, fx, props, obstacles, pickups };
+  return { player, enemy, bosses: [carrier, lancer, eater], fx, props, obstacles, pickups };
 }
 
 /**

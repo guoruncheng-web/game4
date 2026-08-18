@@ -150,6 +150,9 @@ export class World {
   private lastBossImpact = 0;
   private hitStopUntil = 0;
   private ended = false;
+  /** 三艘 Boss 的实体,索引对齐 BOSS_SPEC */
+  private bosses: Enemy[] = [];
+  /** 当前场上的那一艘 */
   private boss?: Enemy;
   private bossName = '';
 
@@ -233,19 +236,24 @@ export class World {
       });
     }
 
-    // Boss 单独一只,模型和小兵不同,建一份挂着复用
-    const bossRoot = cloneShip(this.assets.boss);
-    bossRoot.rotation.y = Math.PI;
-    bossRoot.visible = false;
-    this.group.add(bossRoot);
-    const bossArmor = collectArmorMaterials(bossRoot);
-    this.boss = {
-      root: bossRoot, glow: collectGlowMaterials(bossRoot), armor: bossArmor,
-      armorBase: bossArmor.map((m) => m.color.getHex()),
-      active: false, kind: 'grunt', hp: 1, maxHp: 1, boss: true, score: 1200, collidable: false,
-      vx: 0, vy: 0, vz: 0, phase: 0, diveAt: 0, dived: false,
-      half: { ...HITBOX.boss }, flashUntil: 0, pattern: 0, alt: 0,
-    };
+    // 三艘 Boss 各建一份挂着:它们是三种形态,不是同一艘换色,
+    // 换 Boss 时只是把 this.boss 指过去,模型不重建
+    for (let i = 0; i < BOSS_SPEC.length; i++) {
+      const proto = this.assets.bosses[i] ?? this.assets.bosses[0];
+      if (!proto) break;
+      const root = cloneShip(proto);
+      root.rotation.y = Math.PI;
+      root.visible = false;
+      this.group.add(root);
+      const armor = collectArmorMaterials(root);
+      this.bosses.push({
+        root, glow: collectGlowMaterials(root), armor,
+        armorBase: armor.map((m) => m.color.getHex()),
+        active: false, kind: 'grunt', hp: 1, maxHp: 1, boss: true, score: 1200, collidable: false,
+        vx: 0, vy: 0, vz: 0, phase: 0, diveAt: 0, dived: false,
+        half: { ...BOSS_SPEC[i].half }, flashUntil: 0, pattern: 0, alt: 0,
+      });
+    }
 
     for (let i = 0; i < SHOT_POOL; i++) {
       const mesh = makeShotMesh(0x9ffcff, 0.09, 1.8);
@@ -686,9 +694,14 @@ export class World {
   }
 
   private spawnBoss() {
-    if (this.ended || !this.boss) return;
-    const spec = BOSS_SPEC[(this.bossIndex() - 1) % BOSS_SPEC.length];
-    const boss = this.boss;
+    if (this.ended || !this.bosses.length) return;
+    const index = (this.bossIndex() - 1) % BOSS_SPEC.length;
+    const spec = BOSS_SPEC[index];
+    // 换形态:上一艘留在场上的话先收掉(正常流程里它已经被打掉了,这里只是兜底)
+    if (this.boss && this.boss !== this.bosses[index]) this.retireEnemy(this.boss);
+    const boss = this.bosses[index] ?? this.bosses[0];
+    this.boss = boss;
+    boss.half = { ...spec.half };
     boss.active = true;
     boss.boss = true;
     boss.collidable = false;
@@ -702,7 +715,9 @@ export class World {
     boss.root.position.set(0, this.stage.playArea.centerY + 0.6, SPACE.spawnZ);
     boss.root.rotation.set(0, Math.PI, 0);
     boss.root.visible = true;
-    this.paintGlow(boss, spec.glow);
+    // Boss 不重染发光件 —— 三艘的能量色已经烤在各自的模型里(品红 / 紫 / 橙),
+    // 而且各自还带一套冷色舷灯。统一刷成 spec.glow 会把这层次抹平,
+    // 三艘在 Bloom 下就都变成"一团同色的光",剪影再不同也白搭。
     this.restoreArmor(boss);
     this.bossName = spec.name;
     // 入场期间只放展示动画,不参与子弹碰撞
