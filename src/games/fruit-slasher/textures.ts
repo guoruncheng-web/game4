@@ -17,6 +17,42 @@ export function preloadArt(scene: Phaser.Scene) {
   scene.load.image('fs-life', `${ASSET_ROOT}/ui/life.png`);
 }
 
+/**
+ * 素材是 AI 出图,原图普遍比实际显示尺寸大 4~6 倍(水果最大只画到 112px,原图却有 475px)。
+ * 逻辑画布固定 540×960,再大的贴图也只是白占显存、白做纹理缩采样,
+ * 在低端机上是实打实的卡顿来源。Boot 阶段一次性重采样到"够用就好"的尺寸,
+ * 之后整局都用小图。倍数留了 ~1.5×,放大动效也不会糊。
+ */
+const MAX_SIZE: Array<[RegExp, number]> = [
+  [/^fs-fruit-|^fs-half-/, 256],
+  [/^fs-bomb$/, 192],
+  [/^fs-background$/, 640],
+  [/^fs-plaque$/, 512],
+  [/^fs-panel$/, 640],
+  [/^fs-life$/, 96],
+];
+
+export function downscaleArt(scene: Phaser.Scene) {
+  for (const key of scene.textures.getTextureKeys()) {
+    const limit = MAX_SIZE.find(([pattern]) => pattern.test(key))?.[1];
+    if (limit === undefined) continue;
+    const source = scene.textures.get(key).getSourceImage();
+    if (!(source instanceof HTMLImageElement)) continue;
+    const scale = limit / Math.max(source.width, source.height);
+    if (scale >= 1) continue;
+    const width = Math.max(1, Math.round(source.width * scale));
+    const height = Math.max(1, Math.round(source.height * scale));
+    // 先把原图引用拿在手上,再删掉旧贴图,好让画布贴图沿用同一个 key
+    scene.textures.remove(key);
+    const canvas = scene.textures.createCanvas(key, width, height);
+    if (!canvas) continue;
+    canvas.context.imageSmoothingEnabled = true;
+    canvas.context.imageSmoothingQuality = 'high';
+    canvas.context.drawImage(source, 0, 0, width, height);
+    canvas.refresh();
+  }
+}
+
 /** 粒子和空生命槽保持运行时生成，便于场景着色复用。 */
 export function createArtTextures(scene: Phaser.Scene) {
   if (scene.textures.exists('fs-drop')) return;

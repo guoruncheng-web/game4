@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
-import { createArtTextures, preloadArt } from '../textures';
+import { createArtTextures, downscaleArt, preloadArt } from '../textures';
+import { warmupSfx } from '../sfx';
 
 export class BootScene extends Phaser.Scene {
   private loadFailed = false;
@@ -38,7 +39,10 @@ export class BootScene extends Phaser.Scene {
   }
   create() {
     if (this.loadFailed) return;
+    downscaleArt(this);
     createArtTextures(this);
+    // 音效在这里就下好并解码,不要等到局内第一次切中才现下现解
+    warmupSfx();
     this.scene.start('FruitMenu');
   }
 }

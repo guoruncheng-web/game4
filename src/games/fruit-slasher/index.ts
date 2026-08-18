@@ -20,6 +20,9 @@ export function startGame(parent: HTMLElement): Phaser.Game {
     // FIT 会留边,但页面本身铺了道场背景图,留出来的部分正好露出背景,不会是黑边。
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     physics: { default: 'arcade', arcade: { gravity: { x: 0, y: GRAVITY }, debug: false } },
+    // 双显卡笔记本默认会挑集显跑 WebGL,切水果这种满屏半透明特效很容易掉帧;
+    // powerPreference 明确要独显。batchSize 调大让刀光 + 果肉 + 粒子少提交几次 draw call。
+    render: { powerPreference: 'high-performance', antialias: true, batchSize: 4096 },
     input: { activePointers: 2 },
     scene: [BootScene, MenuScene, GameScene, PauseScene, GameOverScene],
   });

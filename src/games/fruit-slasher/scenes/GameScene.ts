@@ -68,6 +68,18 @@ export class GameScene extends Phaser.Scene {
   /** 限时模式的剩余毫秒;非限时模式为 null */
   private remainMs: number | null = null;
   private pausedAt = 0;
+  /** 倒计时当前显示的字面与配色状态,只有真的变了才去动 Text */
+  private timerLabel = '';
+  private timerWarn = false;
+  /** 刀光上一帧是否画了东西,没画就不用再 clear 一次 */
+  private slashDrawn = false;
+  /** 命中检测复用的几何体,避免每次 pointermove 都新建一堆临时对象 */
+  private hitLine = new Phaser.Geom.Line();
+  private hitCircle = new Phaser.Geom.Circle();
+  private hits: Array<{ target: Target; t: number }> = [];
+  private missFlash?: Phaser.GameObjects.Rectangle;
+  private comboBurst!: Phaser.GameObjects.Graphics;
+  private comboLabel!: Phaser.GameObjects.Text;
 
   constructor() { super('FruitGame'); }
 
@@ -128,7 +140,11 @@ export class GameScene extends Phaser.Scene {
     // 轨迹静止一段时间就自然断刀。没有这条的话按住不放能把整局切中数攒成一个
     // 巨型 combo,结束时一次性结算,总分直接翻倍,连击数也失去可比性。
     if (this.strokeHits > 0 && time - this.lastMoveAt > GAMEPLAY.strokeIdleMs) this.finishStroke();
-    this.points = this.points.filter((point) => time - point.time <= GAMEPLAY.slashPointLifeMs);
+    // 轨迹点本来就是按时间递增 push 的,过期的一定是最前面连续一段,
+    // 直接砍掉这一段就行,不用每帧 filter 出一个新数组喂给 GC。
+    let expired = 0;
+    while (expired < this.points.length && time - this.points[expired].time > GAMEPLAY.slashPointLifeMs) expired += 1;
+    if (expired > 0) this.points.splice(0, expired);
     this.drawSlash(time);
 
     for (const child of this.targets.getChildren()) {
@@ -140,7 +156,7 @@ export class GameScene extends Phaser.Scene {
     }
     for (const child of this.halves.getChildren()) {
       const half = child as Target;
-      if (half.active && half.y > GAME_HEIGHT + 150) half.destroy();
+      if (half.active && half.y > GAME_HEIGHT + 150) half.disableBody(true, true);
     }
   }
 
@@ -159,6 +175,9 @@ export class GameScene extends Phaser.Scene {
     this.floatCursor = 0;
     this.strokePointer = null;
     this.lastMoveAt = 0;
+    this.timerLabel = '';
+    this.timerWarn = false;
+    this.slashDrawn = false;
     this.remainMs = this.modeSpec.seconds === null ? null : this.modeSpec.seconds * 1000;
   }
 
@@ -201,11 +220,24 @@ export class GameScene extends Phaser.Scene {
       .on('pointerup', () => this.pauseGame());
   }
 
+  /**
+   * 倒计时每帧都会调一次,但 Text.setText / setColor 会重画一整张 canvas
+   * 并把贴图重新上传到 GPU —— 每帧一次足够在中低端机上啃掉可观的帧时间。
+   * 显示到 0.1 秒,一秒最多变 10 次,变了才刷。
+   */
   private refreshTimer() {
     if (!this.timerText || this.remainMs === null) return;
     const left = Math.max(0, this.remainMs) / 1000;
-    this.timerText.setText(left.toFixed(1));
-    this.timerText.setColor(left <= 10 ? PALETTE.ember : PALETTE.gold);
+    const label = left.toFixed(1);
+    if (label !== this.timerLabel) {
+      this.timerLabel = label;
+      this.timerText.setText(label);
+    }
+    const warn = left <= 10;
+    if (warn !== this.timerWarn) {
+      this.timerWarn = warn;
+      this.timerText.setColor(warn ? PALETTE.ember : PALETTE.gold);
+    }
   }
 
   private pauseGame() {
@@ -269,14 +301,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   private processSlash(from: Phaser.Math.Vector2, to: Phaser.Math.Vector2) {
-    const line = new Phaser.Geom.Line(from.x, from.y, to.x, to.y);
+    const line = this.hitLine.setTo(from.x, from.y, to.x, to.y);
     const lengthSq = Phaser.Math.Distance.Squared(from.x, from.y, to.x, to.y);
-    const hits: Array<{ target: Target; t: number }> = [];
+    const hits = this.hits;
+    hits.length = 0;
     for (const child of this.targets.getChildren()) {
       const target = child as Target;
       if (!target.active || target.getData('cut')) continue;
       const radius = Number(target.getData('radius'));
-      if (!Phaser.Geom.Intersects.LineToCircle(line, new Phaser.Geom.Circle(target.x, target.y, radius))) continue;
+      if (!Phaser.Geom.Intersects.LineToCircle(line, this.hitCircle.setTo(target.x, target.y, radius))) continue;
       const t = lengthSq === 0 ? 0 : Phaser.Math.Clamp(((target.x - from.x) * (to.x - from.x) + (target.y - from.y) * (to.y - from.y)) / lengthSq, 0, 1);
       hits.push({ target, t });
     }
@@ -308,7 +341,13 @@ export class GameScene extends Phaser.Scene {
     const normal = slashAngle + Math.PI / 2;
     for (const side of [-1, 1]) {
       const halfKey = fruitHalfTexture(kind, side < 0 ? 'a' : 'b');
-      const half = this.halves.create(x + Math.cos(normal) * side * 5, y + Math.sin(normal) * side * 5, halfKey) as Target;
+      const hx = x + Math.cos(normal) * side * 5;
+      const hy = y + Math.sin(normal) * side * 5;
+      const half = this.halves.get(hx, hy, halfKey) as Target | null;
+      if (!half) continue;
+      half.setTexture(halfKey);
+      half.enableBody(true, hx, hy, true, true);
+      half.setAngle(0).setAlpha(1);
       half.setVelocity(vx + Math.cos(normal) * side * 100, vy + Math.sin(normal) * side * 100);
       half.setAngularVelocity(side * 190 + angle * 0.5);
       const halfHeight = FRUIT_RADII[kind] * 1.9;
@@ -325,13 +364,15 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * 目标是 create 出来的(不是带回收的对象池),只 disable 不销毁会在长局里越堆越多,
-   * update 和 processSlash 每次都要遍历全部。延迟一帧再 destroy,避开物理碰撞遍历。
+   * 目标进对象池,不销毁。
+   * 之前是「disable + 延迟一帧 destroy」,一局下来要反复新建/销毁上百个带物理体的 Image,
+   * 每次都要分配 body、注册进物理世界、再拆掉,GC 攒够了就是一次肉眼可见的顿挫。
+   * 现在留在 group 里等 spawn 复用;失活对象在 update / processSlash 里本来就被 continue 跳过,
+   * 而且总数被 maxTargets 封顶,遍历成本可以忽略。
    */
   private retire(target: Target) {
     if (!target.active) return;
     target.disableBody(true, true);
-    this.time.delayedCall(0, () => target.destroy());
   }
 
   private finishStroke() {
@@ -371,8 +412,12 @@ export class GameScene extends Phaser.Scene {
 
   private missFruit() {
     if (this.ending) return;
-    const warning = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xff4b3e, 0.14).setDepth(105);
-    this.tweens.add({ targets: warning, alpha: 0, duration: 260, onComplete: () => warning.destroy() });
+    const warning = this.missFlash;
+    if (warning) {
+      this.tweens.killTweensOf(warning);
+      warning.setAlpha(0.14).setVisible(true);
+      this.tweens.add({ targets: warning, alpha: 0, duration: 260, onComplete: () => warning.setVisible(false) });
+    }
 
     if (!this.modeSpec.missCostsLife) {
       // 禅意模式连秒数都不扣,漏了就漏了,只给一下轻提示
@@ -453,13 +498,18 @@ export class GameScene extends Phaser.Scene {
     const kind = this.rng.pick(FRUIT_KINDS);
     const spread = (index - (count - 1) / 2) * this.rng.between(52, 70);
     const x = Phaser.Math.Clamp(center + spread, 55, GAME_WIDTH - 55);
-    const fruit = this.targets.create(x, GAMEPLAY.spawnY, fruitTexture(kind)) as Target;
+    const fruit = this.targets.get(x, GAMEPLAY.spawnY, fruitTexture(kind)) as Target | null;
+    if (!fruit) return;
+    // 池子里捞出来的旧对象带着上一轮的贴图/角度,全部重置一遍
+    fruit.setTexture(fruitTexture(kind));
+    fruit.enableBody(true, x, GAMEPLAY.spawnY, true, true);
+    fruit.setAngle(0).setAlpha(1);
     const diameter = FRUIT_RADII[kind] * 2;
     fruit.setDisplaySize(diameter * (fruit.width / fruit.height), diameter);
     const inward = (GAME_WIDTH / 2 - x) * this.rng.realInRange(0.28, 0.5);
     fruit.setVelocity(inward + this.rng.between(-75, 75), this.rng.between(-930, -780));
     fruit.setAngularVelocity(this.rng.between(-210, 210));
-    fruit.setDataEnabled(); fruit.setData('kind', kind); fruit.setData('isBomb', false); fruit.setData('cut', false);
+    fruit.setData('kind', kind); fruit.setData('isBomb', false); fruit.setData('cut', false);
     fruit.setData('radius', FRUIT_RADII[kind] * 0.8);
     const sourceRadius = Math.min(fruit.width, fruit.height) * 0.4;
     fruit.setCircle(sourceRadius, fruit.width / 2 - sourceRadius, fruit.height / 2 - sourceRadius);
@@ -469,11 +519,15 @@ export class GameScene extends Phaser.Scene {
   private spawnBomb(center: number) {
     if (this.ending || this.targets.countActive(true) >= GAMEPLAY.maxTargets) return;
     const x = Phaser.Math.Clamp(center + this.rng.sign() * this.rng.between(92, 150), 58, GAME_WIDTH - 58);
-    const bomb = this.targets.create(x, GAMEPLAY.spawnY + 15, 'fs-bomb') as Target;
+    const bomb = this.targets.get(x, GAMEPLAY.spawnY + 15, 'fs-bomb') as Target | null;
+    if (!bomb) return;
+    bomb.setTexture('fs-bomb');
+    bomb.enableBody(true, x, GAMEPLAY.spawnY + 15, true, true);
+    bomb.setAngle(0).setAlpha(1);
     bomb.setDisplaySize(90 * (bomb.width / bomb.height), 90);
     bomb.setVelocity((GAME_WIDTH / 2 - x) * 0.34 + this.rng.between(-45, 45), this.rng.between(-875, -795));
     bomb.setAngularVelocity(this.rng.between(-65, 65));
-    bomb.setDataEnabled(); bomb.setData('isBomb', true); bomb.setData('cut', false); bomb.setData('radius', 27);
+    bomb.setData('isBomb', true); bomb.setData('cut', false); bomb.setData('radius', 27);
     const bombSourceRadius = bomb.width * 0.38;
     bomb.setCircle(bombSourceRadius, bomb.width / 2 - bombSourceRadius, bomb.height * 0.35);
     bomb.setDepth(32);
@@ -487,8 +541,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   private drawSlash(time: number) {
+    if (this.points.length < 2) {
+      // 没轨迹就别每帧再 clear 一次:Graphics.clear 也要重建一遍命令缓冲
+      if (this.slashDrawn) { this.slash.clear(); this.slashDrawn = false; }
+      return;
+    }
     this.slash.clear();
-    if (this.points.length < 2) return;
+    this.slashDrawn = true;
     for (let i = 1; i < this.points.length; i++) {
       const a = this.points[i - 1]; const b = this.points[i];
       const alpha = Phaser.Math.Clamp(1 - (time - b.time) / GAMEPLAY.slashPointLifeMs, 0, 1);
@@ -513,6 +572,19 @@ export class GameScene extends Phaser.Scene {
       lifespan: { min: 420, max: 720 }, scaleX: { start: 0.85, end: 0.2 }, scaleY: { start: 0.35, end: 0.1 },
       tint: [0xffd45a, 0xff6b4a, 0x66eaff, 0xffffff], emitting: false,
     }).setDepth(96);
+    this.missFlash = this.add
+      .rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xff4b3e, 0.14)
+      .setDepth(105)
+      .setVisible(false);
+    // 连击特效同理:每次现建 Graphics + Text 等于现画一张 canvas 再传一次贴图,
+    // 而它偏偏出现在一刀多杀、场上最忙的那一瞬间。几何是固定的,建一次画一次就够。
+    this.comboBurst = this.add.graphics({ x: GAME_WIDTH / 2, y: 350 })
+      .setBlendMode(Phaser.BlendModes.ADD).setDepth(94).setVisible(false);
+    this.drawComboBurst(this.comboBurst);
+    this.comboLabel = this.add.text(GAME_WIDTH / 2, 350, '', {
+      align: 'center', fontFamily: 'system-ui, sans-serif', fontSize: '34px', fontStyle: 'bold', color: '#ffd45a',
+      stroke: '#3a2118', strokeThickness: 7,
+    }).setOrigin(0.5).setDepth(100).setVisible(false);
     this.floatPool = Array.from({ length: 12 }, () => this.add.text(0, 0, '', {
       fontFamily: 'system-ui, sans-serif', fontSize: '22px', fontStyle: 'bold',
       color: PALETTE.cream, stroke: '#071326', strokeThickness: 4,
@@ -537,7 +609,29 @@ export class GameScene extends Phaser.Scene {
 
   private comboText(count: number, bonus: number) {
     const x = GAME_WIDTH / 2, y = 350;
-    const burst = this.add.graphics({ x, y }).setBlendMode(Phaser.BlendModes.ADD).setDepth(94).setScale(0.35);
+    const burst = this.comboBurst;
+    this.tweens.killTweensOf(burst);
+    burst.setPosition(x, y).setScale(0.35).setAlpha(1).setAngle(0).setVisible(true);
+    this.tweens.add({
+      targets: burst,
+      alpha: { from: 1, to: 0 }, scale: { from: 0.35, to: 1.25 }, angle: 18,
+      duration: 520, ease: 'Cubic.easeOut',
+      onComplete: () => burst.setVisible(false),
+    });
+    this.confetti.emitParticleAt(x, y, 18);
+    const label = this.comboLabel;
+    this.tweens.killTweensOf(label);
+    label.setText(`${count} FRUIT COMBO\n+${bonus}`)
+      .setPosition(x, y).setScale(0.6).setAlpha(1).setVisible(true);
+    this.tweens.add({ targets: label, scale: 1, duration: 130, ease: 'Back.easeOut' });
+    this.tweens.add({
+      targets: label, y: 310, alpha: 0, delay: 420, duration: 260,
+      onComplete: () => label.setVisible(false),
+    });
+  }
+
+  /** 连击爆闪的几何形状是固定的,只在建池子时画一次 */
+  private drawComboBurst(burst: Phaser.GameObjects.Graphics) {
     burst.lineStyle(9, 0xffd45a, 0.85).strokeCircle(0, 0, 76);
     burst.lineStyle(3, 0xffffff, 0.95).strokeCircle(0, 0, 58);
     burst.lineStyle(5, 0x66eaff, 0.9).lineBetween(-104, 62, 104, -62);
@@ -548,18 +642,5 @@ export class GameScene extends Phaser.Scene {
       burst.lineStyle(i % 2 ? 2 : 4, i % 2 ? 0xff7048 : 0xffef9c, 0.9);
       burst.lineBetween(Math.cos(angle) * inner, Math.sin(angle) * inner, Math.cos(angle) * outer, Math.sin(angle) * outer);
     }
-    this.tweens.add({
-      targets: burst,
-      alpha: { from: 1, to: 0 }, scale: { from: 0.35, to: 1.25 }, angle: 18,
-      duration: 520, ease: 'Cubic.easeOut',
-      onComplete: () => burst.destroy(),
-    });
-    this.confetti.emitParticleAt(x, y, 18);
-    const label = this.add.text(x, y, `${count} FRUIT COMBO\n+${bonus}`, {
-      align: 'center', fontFamily: 'system-ui, sans-serif', fontSize: '34px', fontStyle: 'bold', color: '#ffd45a',
-      stroke: '#3a2118', strokeThickness: 7,
-    }).setOrigin(0.5).setDepth(100).setScale(0.6);
-    this.tweens.add({ targets: label, scale: 1, duration: 130, ease: 'Back.easeOut' });
-    this.tweens.add({ targets: label, y: 310, alpha: 0, delay: 420, duration: 260, onComplete: () => label.destroy() });
   }
 }
