@@ -76,7 +76,13 @@ export default function Page() {
 }
 ```
 
-首页会自动出现新卡片,不需要改首页代码。
+**首页不会自动出现卡片,必须手动改 `src/app/page.tsx`。**
+`page.tsx` 是一张手写的卡片墙(每款游戏一段硬编码 JSX + 自己的配图/emoji/存档读取),
+不是遍历 `GAMES` 渲染的 —— 早期版本是,后来改成定制布局之后就不是了。
+registry 现在只服务于 `manifest.ts` 的快捷方式(取前 4 条)和各游戏页自己的 `getGame(slug)`。
+
+所以新增一款游戏要动的地方是 4 处:`src/games/<slug>/`、`src/app/<slug>/page.tsx`、
+`registry.ts`、以及 `src/app/page.tsx` 里补一张卡片。
 
 ## 两套引擎并存
 
@@ -85,7 +91,7 @@ export default function Page() {
 | slug | 引擎 | 容器 | 契约 |
 | --- | --- | --- | --- |
 | `star-runner`、`fruit-slasher`、`neon-strike-2d` | Phaser 3 | `PhaserCanvas` | `GameModule`,`startGame` 返回 `Phaser.Game` |
-| `neon-strike` | Three.js | `ThreeCanvas` | `ThreeGameModule`,`startGame` 返回 `{ destroy() }` |
+| `neon-strike`、`eight-ball`、`triple-pile` | Three.js | `ThreeCanvas` | `ThreeGameModule`,`startGame` 返回 `{ destroy() }` |
 
 `neon-strike` 已重写为 Three.js 版(`three/` 渲染 + `world.ts` 玩法 + `ui/` DOM 覆盖层),
 初代 Phaser 竖屏弹幕版原样保留在 `neon-strike-2d`。两版是**各自独立的游戏**:
@@ -209,6 +215,14 @@ Codex 使用 `.codex/agents/*.toml`;Claude Code 兼容副本保留在 `.claude/a
   `blender -b --python tools/blender/neon-strike/build_models.py -- public/neon-strike/models`
   产出的 glb 进仓库;结构物(`prop-*.glb`)缺失时 Stage 会自动回落到程序化柱体,
   障碍物(`obstacle-*.glb`)缺失时这一局就没有障碍物 —— 都不会报错、不会开不了局
+- 叠叠消(triple-pile)的 12 个火锅食材模型由 `tools/blender/triple-pile/build_models.py` 无头生成:
+  读 `src/games/triple-pile/assets/source/*-chroma.png`(品红抠像的正视图渲染)→ 抠像 + alpha bleed +
+  降采样 → 按形体建低模 + 平面投影 UV → `public/triple-pile/models/*.glb`(贴图内嵌,约 4.3MB)。
+  `blender -b --python tools/blender/triple-pile/build_models.py`
+  改完用 `preview.py` 渲两张验收图(正视图应该和源图几乎一样)。
+  **改脚本前先读 `src/games/triple-pile/ART.md` §0**,那里写了这套方案成立的三条前提和踩过的四个坑
+  (图元自带 UV 层、UV 球极点、Blender Z-up vs glTF Y-up、抠像残留必须 bleed)。
+  模型缺失时游戏直接报错,不做回落 —— 食材就是这个游戏本身。
 - 可以使用 rFXGen 来生成游戏音效，我在本机(mac)上安装好了
   (`~/Applications/rFXGen/rfxgen_v5.0_macos/rfxgen.app/Contents/MacOS/rfxgen`,支持 `--input x.rfx --output x.wav --format 44100,16,1` 无 GUI 渲染;
   Linux VM 里可以 `ssh mac@192.168.64.1` 直接调它)

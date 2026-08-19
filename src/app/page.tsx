@@ -44,6 +44,8 @@ export default function Home() {
   const [fruitBestScore, setFruitBestScore] = useState(0);
   const [neonBestScore, setNeonBestScore] = useState(0);
   const [neon2dBestScore, setNeon2dBestScore] = useState(0);
+  /** 叠叠消是关卡制,没有最高分,卡片上显示的是「已解锁到第几关」 */
+  const [pileLevel, setPileLevel] = useState(1);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -52,6 +54,17 @@ export default function Home() {
       const storedNeonScore = Number(localStorage.getItem('neon-strike-best') || 0);
       // 2D 初代版本走自己的 key,两版存档互不覆盖
       const storedNeon2dScore = Number(localStorage.getItem('neon-strike-2d-best') || 0);
+      // 叠叠消存的是 JSON,解析失败就当作只解锁了第 1 关 —— 首页不该因为一条脏数据白屏
+      let storedPileLevel = 1;
+      try {
+        const raw = localStorage.getItem('triple-pile-progress');
+        const parsed = raw ? (JSON.parse(raw) as { unlocked?: number }) : null;
+        if (parsed && Number.isFinite(Number(parsed.unlocked))) {
+          storedPileLevel = Math.min(Math.max(Math.floor(Number(parsed.unlocked)), 1), 12);
+        }
+      } catch {
+        storedPileLevel = 1;
+      }
       const storedMuted = localStorage.getItem('game-box-muted') === 'true';
       const rawVolume = localStorage.getItem('game-box-volume');
       const storedVolume = rawVolume === null ? 1 : Number(rawVolume);
@@ -60,6 +73,7 @@ export default function Home() {
       setFruitBestScore(Number.isFinite(storedFruitScore) ? storedFruitScore : 0);
       setNeonBestScore(Number.isFinite(storedNeonScore) ? storedNeonScore : 0);
       setNeon2dBestScore(Number.isFinite(storedNeon2dScore) ? storedNeon2dScore : 0);
+      setPileLevel(storedPileLevel);
       setSilent(storedSilent);
     }, 0);
     return () => window.clearTimeout(timer);
@@ -235,6 +249,18 @@ export default function Home() {
                 <p className="mt-2 text-xs font-bold text-amber-300">英文界面 · 三档对手</p>
               </div>
               <span className="grid size-11 place-items-center rounded-2xl bg-emerald-300/10 text-emerald-300"><Play size={21} className="fill-current" /></span>
+            </GameLink>
+            <GameLink
+              href="/triple-pile"
+              className="flex items-center gap-4 rounded-3xl border border-white bg-[#2b1a10] p-2.5 shadow-[0_8px_24px_rgba(190,120,46,0.24)] transition active:scale-[0.99]"
+            >
+              <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_50%_35%,#c98a45,#1a120c_72%)] text-5xl shadow-inner">🍲</div>
+              <div className="min-w-0 flex-1">
+                <p className="text-lg font-black text-amber-300">叠叠消</p>
+                <p className="mt-0.5 text-sm font-bold text-amber-100/90">俯视捞菜，三个一组消除</p>
+                <p className="mt-2 text-xs font-bold text-orange-300">已解锁第 {pileLevel} 关 · 共 12 关</p>
+              </div>
+              <span className="grid size-11 place-items-center rounded-2xl bg-amber-300/10 text-amber-300"><Play size={21} className="fill-current" /></span>
             </GameLink>
             {upcomingGames.map((game) => (
               <article

@@ -54,6 +54,13 @@ export const GAMES: GameMeta[] = [
     controls: '拖动台面瞄准 · 拖底部力度条松手出杆 · ← → 微调 · 空格出杆',
     accent: 'text-emerald-400',
   },
+  {
+    slug: 'triple-pile',
+    title: '叠叠消',
+    tagline: '俯视火锅捞菜 · 三个一组消除 · 拿走就塌',
+    controls: '点/触摸捞起食材 · 凑齐 3 个同类自动消除 · P / ESC 暂停',
+    accent: 'text-amber-400',
+  },
 ];
 
 export function getGame(slug: string): GameMeta | undefined {
