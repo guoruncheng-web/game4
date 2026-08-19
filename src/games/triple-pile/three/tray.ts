@@ -84,6 +84,7 @@ export class TrayView {
     }
   }
 
+  /** 槽位从左到右依次填充,位置本身就是贴图中量出的格子中心 */
   slotPosition(i: number): THREE.Vector3 {
     return this.slots[Math.min(i, TRAY.slots - 1)];
   }

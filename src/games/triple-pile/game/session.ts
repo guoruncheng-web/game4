@@ -262,7 +262,7 @@ export class Session {
     }
   }
 
-  /** 槽位里的物件跟着自己的格子走。消除后右侧整体左移,就是靠这里的插值表现出来的 */
+  /** 槽位里的物件跟着自己的格子走。消除后右侧整体左移,靠这里的插值平滑归位 */
   private updateTrayPieces(dt: number) {
     const k = Math.min(dt * 14, 1);
     for (const piece of this.pieces) {

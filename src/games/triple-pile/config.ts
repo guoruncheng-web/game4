@@ -11,10 +11,16 @@ export const VIEW = { width: 540, height: 960 } as const;
 
 /** 锅体。视觉半径必须和 physics 的 collider 环内接半径对齐,见 ARCHITECTURE.md §5.3 */
 export const POT = {
-  /** 内壁半径 */
-  radius: 4.2,
+  /**
+   * 内壁半径。
+   *
+   * 相机是按这个数自动适配距离的(stage.ts 的 fitDistance),所以**锅变小 = 相机推近**,
+   * 锅在屏幕上还是那么大,但食材会显得更大、更容易认。
+   * 初版 4.2 的问题是同样数量的食材摊在更大的地板上,看起来又少又空。
+   */
+  radius: 3.7,
   /** 锅底半径(内壁略带锥度,底部收一点) */
-  bottomRadius: 4.0,
+  bottomRadius: 3.5,
   /** 内壁高 */
   height: 3.0,
   /**
@@ -27,7 +33,7 @@ export const POT = {
    * 宁可物理比视觉紧一点:代价是「看着还有缝却塞不进去」,基本察觉不到;
    * 反过来则是食材明晃晃地穿出锅外,一眼就看见。
    */
-  physicsRadius: 3.78,
+  physicsRadius: 3.30,
   /** 锅壁用多少段 cuboid 近似圆(物理) */
   segments: 24,
   /** 锅体旋转面的径向分段(视觉)。48 段在锅口这么大的圆上已经看不出棱 */
@@ -52,7 +58,7 @@ export const BROTH = {
   /** 汤面高度(锅底以上)。要低于堆顶,让上层食材露出汤面 —— 那才像一锅正在煮的东西 */
   level: 1.15,
   /** 汤面半径,略小于锅内壁,免得和锅壁穿插 */
-  radius: 4.02,
+  radius: 3.52,
   /** 奶白骨汤。清汤/红汤都试过,白汤是唯一不和任何一类食材撞色的 */
   color: 0xf2ebdc,
   opacity: 0.55,
@@ -205,8 +211,14 @@ export const FILL = {
   batchIntervalMs: 60,
   /** 投放高度(锅底以上) */
   dropHeight: 5.2,
-  /** 投放点的水平散布半径 */
-  spread: 3.0,
+  /**
+   * 投放点的水平散布半径。
+   *
+   * **必须贴近物理锅壁**,否则食材全落在中间一小圈里,外面留一圈空汤 ——
+   * 那正是「没铺满整个锅」的直接原因。留 0.6 是给食材本身的半径,
+   * 免得一出生就卡在墙上。
+   */
+  spread: 2.7,
   /** 初速,轻微向下,免得在空中飘 */
   initialVelocityY: -1.5,
 } as const;
@@ -216,5 +228,5 @@ export type PowerupId = 'takeOut' | 'complete' | 'shuffle';
 export const POWERUPS: ReadonlyArray<{ id: PowerupId; label: string; desc: string }> = [
   { id: 'takeOut', label: '移出', desc: '把槽位最左边 3 个退回锅里' },
   { id: 'complete', label: '凑齐', desc: '自动补满数量最多的那一类并消除' },
-  { id: 'shuffle', label: '打乱', desc: '锅里所有食材重新堆一次' },
+  { id: 'shuffle', label: '打乱剩余', desc: '打乱锅里剩余食材并重新堆放' },
 ];

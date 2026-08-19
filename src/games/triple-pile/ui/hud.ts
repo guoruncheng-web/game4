@@ -56,8 +56,7 @@ export class Hud {
     for (const item of POWERUPS) {
       const button = el('button', 'tp-power');
       const icon = el('i');
-      // 图标素材按 id 命名。「打乱」的素材还没有 —— 404 时 CSS 里那层木纹金边兜底会露出来,
-      // 按钮照样能看能用;素材补上之后不用改代码
+      // 图标素材按 id 命名,统一使用木纹金框的位图按钮
       icon.style.setProperty('--icon', `url("/triple-pile/ui/${ICONS[item.id]}.png")`);
       button.append(icon, el('span', undefined, item.label));
       button.title = item.desc;

@@ -2,7 +2,7 @@
  * 叠叠消(Triple Pile)的入口与状态机。
  *
  * 分层:Stage 管渲染,Session 管一局的玩法,ui/ 管 DOM 覆盖层,
- * 这里只负责把三者串起来 —— 加载 → 关卡选择 → 开局 → 暂停 / 结算 → 回关卡选择,
+ * 这里只负责把三者串起来 —— 加载 → 第 1 关 → 第 2 关 → 暂停 / 最终结算,
  * 以及主循环、输入转发和销毁。
  */
 
@@ -15,7 +15,7 @@ import { Vfx } from './three/vfx';
 import { initPhysics } from './physics/world';
 import { disposeAssets, loadGameAssets, type GameAssets } from './three/assets';
 import { Hud } from './ui/hud';
-import { levelSelectScreen, loadingScreen, pauseScreen, resultScreen } from './ui/screens';
+import { loadingScreen, pauseScreen, resultScreen } from './ui/screens';
 import { ensureStyles, removeStyles } from './ui/style';
 import { loadProgress, recordLevel, saveProgress } from './storage';
 import { closeSfx, sfxFail, sfxWin } from './sfx';
@@ -23,10 +23,16 @@ import type { PowerupId } from './config';
 
 export type GameHandle = { destroy(): void };
 
-/** 场上物件的峰值(第 12 关)。InstancedMesh 的容量按它开,每关不用重建 */
-const MAX_PIECES = 120;
-/** 道具按钮从第 3 关开始出现 —— 那是首次可能死于槽位塞满的一关 */
-const POWERUP_FROM_LEVEL = 3;
+/** 场上物件的峰值(第 2 关)。InstancedMesh 的容量按它开,每关不用重建 */
+const MAX_PIECES = 150;
+/**
+ * 道具从第 1 关就出现。
+ *
+ * 初版是从第 3 关才放出来(不想让新手一上来面对三个看不懂的按钮),
+ * 但关卡砍到两关之后那条规则会让道具**永远不出现** ——
+ * 而第 2 关是满锅 12 类,玩家必须在第 1 关就摸熟三个道具才有活路。
+ */
+const POWERUP_FROM_LEVEL = 1;
 
 export function startGame(parent: HTMLElement): GameHandle {
   ensureStyles();
@@ -76,12 +82,6 @@ export function startGame(parent: HTMLElement): GameHandle {
     paused = false;
   };
 
-  const toMenu = () => {
-    stopSession();
-    progress = loadProgress();
-    show(levelSelectScreen(progress, startLevel));
-  };
-
   function startLevel(id: number) {
     if (!field || !tray || !vfx) return;
     stopSession();
@@ -115,12 +115,21 @@ export function startGame(parent: HTMLElement): GameHandle {
     } else {
       sfxFail();
     }
+
+    // 第 1 关只是教学段,通关后不打断节奏,下一次任务队列直接安全切到第 2 关。
+    // 不能在 Session.finish 的调用栈里同步 dispose 物理世界,那会释放仍在执行的方法所属对象。
+    if (result.won && currentLevel < LEVEL_COUNT) {
+      window.setTimeout(() => {
+        if (!destroyed) startLevel(currentLevel + 1);
+      }, 0);
+      return;
+    }
+
     const reason = result.won ? 'win' : result.remainMs <= 0 ? 'time' : 'stuck';
     // 结算面板出来之后这一锅留在原地当背景,只是不再接受拾取(Session 自己会拒)
     show(resultScreen(currentLevel, result, reason, {
-      onNext: () => startLevel(Math.min(currentLevel + 1, LEVEL_COUNT)),
       onRetry: () => startLevel(currentLevel),
-      onMenu: toMenu,
+      onFirst: () => startLevel(1),
     }));
   }
 
@@ -134,7 +143,7 @@ export function startGame(parent: HTMLElement): GameHandle {
     show(pauseScreen(currentLevel, {
       onResume: resume,
       onRestart: () => startLevel(currentLevel),
-      onMenu: toMenu,
+      onFirst: () => startLevel(1),
     }));
   }
 
@@ -219,7 +228,7 @@ export function startGame(parent: HTMLElement): GameHandle {
       field = new PieceField(stage.scene, loaded.pieces, MAX_PIECES);
       tray = new TrayView(stage.scene, stage, loaded.pieces, loaded.tray);
       vfx = new Vfx(stage.scene);
-      toMenu();
+      startLevel(1);
     })
     .catch((error) => {
       console.error('[triple-pile] 初始化失败', error);

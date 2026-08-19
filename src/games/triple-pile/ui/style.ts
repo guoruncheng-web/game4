@@ -58,12 +58,16 @@ const CSS = `
 .tp-timer.tp-urgent { color: #ff9b74; }
 
 .tp-left {
-  min-width: 44px; text-align: right;
+  width: 74px; height: 68px; flex: none;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border: 0 solid transparent; border-left-width: 25px; border-right-width: 25px;
+  border-image: url("/triple-pile/ui/timer-panel.png") 0 70 fill / 0 25px stretch;
+  text-align: center;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 12px; color: var(--dim); line-height: 1.3;
+  font-size: 11px; color: var(--dim); line-height: 1.05;
   text-shadow: 0 1px 2px rgba(0,0,0,0.6);
 }
-.tp-left b { display: block; font-size: 19px; color: #ffeacf; }
+.tp-left b { display: block; font-size: 22px; color: #ffeacf; }
 
 /* 开局提示 / 分数飘字:同一张胶囊素材,切片 80、border 28px = 80 × (56/159) */
 .tp-toast {
@@ -91,7 +95,7 @@ const CSS = `
 
 /* ---------------------------------------------------------------- 道具 */
 .tp-powers {
-  position: absolute; left: 0; right: 0; bottom: 96px;
+  position: absolute; left: 0; right: 0; bottom: 138px;
   display: flex; justify-content: center; gap: 18px;
 }
 .tp-power {
@@ -100,10 +104,7 @@ const CSS = `
 }
 .tp-power i {
   display: block; width: 58px; height: 58px;
-  /*
-   * 底下垫一层木纹金边的 CSS 兜底:「打乱」的图标素材还没有,
-   * 图片 404 时这层会露出来,按钮仍然能看能用,不会变成一个空洞。
-   */
+  /* 底下保留木纹金边兜底,素材加载失败时按钮仍然清晰可用 */
   background:
     var(--icon, none) center/contain no-repeat,
     linear-gradient(#7a4a24, #4a2a12);
@@ -112,6 +113,7 @@ const CSS = `
 }
 .tp-power span {
   font-size: 12px; font-weight: 700; color: #ffe6b8;
+  white-space: nowrap;
   text-shadow: 0 1px 2px rgba(0,0,0,0.7);
 }
 .tp-power:active { transform: translateY(2px); }
@@ -147,17 +149,6 @@ const CSS = `
   box-shadow: inset 0 0 0 2px rgba(232,180,92,0.55);
 }
 .tp-btn:active { transform: translateY(2px); }
-
-/* ---------------------------------------------------------------- 关卡选择 */
-.tp-levels { margin-top: 14px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; }
-.tp-level {
-  aspect-ratio: 1; border-radius: 12px; font-size: 17px; font-weight: 700; color: #ffd89a;
-  background: rgba(255,230,184,0.08); box-shadow: inset 0 0 0 2px rgba(232,180,92,0.45);
-  display: grid; place-items: center; line-height: 1.15;
-}
-.tp-level.tp-done { background: linear-gradient(#f0c268, #cf9436); color: #3d2409; box-shadow: inset 0 0 0 2px rgba(255,236,190,0.5); }
-.tp-level:disabled { opacity: 0.3; cursor: default; }
-.tp-level small { display: block; font-size: 9px; font-weight: 500; opacity: 0.8; }
 
 .tp-loading { display: grid; place-items: center; height: 100%; font-size: 15px; color: var(--dim); }
 `;

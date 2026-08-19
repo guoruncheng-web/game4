@@ -1,11 +1,10 @@
 /**
- * 弹层:关卡选择、暂停、失败、通关。
+ * 弹层:暂停、失败、最终通关。
  * 同一时刻只允许有一个,由 index.ts 的 show() 管。
  */
 
-import { LEVELS, LEVEL_COUNT, getLevel } from '../levels';
+import { getLevel } from '../levels';
 import type { Result } from '../game/session';
-import { loadStats, type Progress } from '../storage';
 import { formatTime } from './hud';
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string) {
@@ -29,33 +28,10 @@ function button(label: string, onClick: () => void, ghost = false) {
   return node;
 }
 
-// ---------------------------------------------------------------- 关卡选择
-
-export function levelSelectScreen(progress: Progress, onPick: (id: number) => void) {
-  const stats = loadStats();
-  const grid = el('div', 'tp-levels');
-  for (const level of LEVELS) {
-    const unlocked = level.id <= progress.unlocked;
-    const stat = stats[String(level.id)];
-    const node = el('button', `tp-level${stat ? ' tp-done' : ''}`);
-    node.innerHTML = stat
-      ? `${level.id}<small>${formatTime(stat.timeMs)}</small>`
-      : `${level.id}<small>${level.typeCount} 类</small>`;
-    node.disabled = !unlocked;
-    if (unlocked) node.addEventListener('click', () => onPick(level.id));
-    grid.append(node);
-  }
-  return screen([
-    el('div', 'tp-title', '叠叠消'),
-    el('div', 'tp-sub', '点食材放进下方 7 格 · 凑齐 3 个同类就消\n格子塞满或时间到就输了'),
-    grid,
-  ]);
-}
-
 // ---------------------------------------------------------------- 暂停
 
 export function pauseScreen(levelId: number, actions: {
-  onResume: () => void; onRestart: () => void; onMenu: () => void;
+  onResume: () => void; onRestart: () => void; onFirst: () => void;
 }) {
   return screen([
     el('div', 'tp-title', '暂停'),
@@ -63,7 +39,7 @@ export function pauseScreen(levelId: number, actions: {
     withActions([
       button('继续', actions.onResume),
       button('重开本关', actions.onRestart, true),
-      button('返回关卡', actions.onMenu, true),
+      ...(levelId > 1 ? [button('从第一关开始', actions.onFirst, true)] : []),
     ]),
   ]);
 }
@@ -71,10 +47,9 @@ export function pauseScreen(levelId: number, actions: {
 // ---------------------------------------------------------------- 结算
 
 export function resultScreen(levelId: number, result: Result, reason: 'time' | 'stuck' | 'win', actions: {
-  onNext: () => void; onRetry: () => void; onMenu: () => void;
+  onRetry: () => void; onFirst: () => void;
 }) {
   const level = getLevel(levelId);
-  const hasNext = result.won && levelId < LEVEL_COUNT;
   const stats = el('div', 'tp-stats');
   const row = (label: string, value: string) => {
     const node = el('span');
@@ -100,10 +75,9 @@ export function resultScreen(levelId: number, result: Result, reason: 'time' | '
     el('div', 'tp-sub', subtitle),
     stats,
     withActions([
-      hasNext ? button('下一关', actions.onNext) : button('再来一次', actions.onRetry),
-      hasNext ? button('重玩本关', actions.onRetry, true) : button('返回关卡', actions.onMenu, true),
-      hasNext ? button('返回关卡', actions.onMenu, true) : el('div'),
-    ].filter((n) => n.tagName === 'BUTTON') as HTMLElement[]),
+      button(result.won ? '再玩第二关' : '重试本关', actions.onRetry),
+      ...(levelId > 1 ? [button('从第一关开始', actions.onFirst, true)] : []),
+    ]),
     el('div', 'tp-sub', `${level.typeCount} 类 · ${level.total} 个`),
   ]);
 }

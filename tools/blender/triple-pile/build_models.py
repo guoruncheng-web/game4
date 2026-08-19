@@ -90,21 +90,35 @@ ALPHA_ERODE = 2
 # 而这些东西在屏幕上最大也就一百来像素,512 已经远超实际采样率
 MAX_TEX = 512
 
+# alpha 模式 —— **这一列决定模型的侧面会不会被 alphaTest 裁掉**,不是可有可无的开关:
+#
+#   "keep" 保留抠像轮廓,只把它向外扩几像素。适用于模型的正投影轮廓和源图轮廓基本一致的形体
+#          (球、圆盘、长条)。外扩是为了救「最外一圈」—— 边缘那一圈面正好采样在轮廓边界上,
+#          不扩就会被裁掉一条细边。
+#
+#   "patch" 只取图中心一小块平整区域,按模型的每个面各自平铺(不走整体平面投影)。
+#          豆腐必须用这个:它的源图是立方体的**四分之三视角**,而模型是正对镜头的方盒。
+#          走平面投影的话,盒子正面显示的是「一张画着立方体的图」,加上盒子自己的顶面,
+#          等于把透视画了两遍,读起来是一块发白的板;而盒子的侧面会去采样六边形轮廓之外的
+#          透明区,被 alphaTest 整片裁掉 —— 那正是「只看得到其中一面」。
+#          豆腐是唯一表面完全均匀的食材,取一小块平铺反而最干净。
 ITEMS = [
-    # key,               形体,    最大边长(世界单位), 厚度系数, 段数
-    ("tofu",             "box",   0.90, 1.00, 0),
-    ("beef-roll",        "bar",   0.95, 1.00, 16),
-    ("crab-stick",       "bar",   1.15, 1.00, 16),
-    ("sausage",          "bar",   1.15, 1.00, 16),
-    ("tofu-skin-roll",   "bar",   1.10, 1.00, 16),
-    ("corn",             "disc",  0.92, 0.46, 20),
-    ("lotus-root",       "disc",  0.95, 0.28, 20),
-    ("shiitake",         "blob",  0.98, 0.70, 20),
-    ("fish-ball",        "blob",  0.84, 1.00, 20),
-    ("lettuce",          "blob",  0.96, 0.82, 20),
-    ("napa-cabbage",     "blob",  1.05, 0.62, 20),
-    ("dumpling",         "blob",  1.10, 0.42, 20),
+    # key,               形体,    最大边长(世界单位), 厚度系数, 段数, alpha
+    ("tofu",             "box",   0.90, 1.00, 0,  "patch"),
+    ("beef-roll",        "bar",   0.95, 1.00, 16, "keep"),
+    ("crab-stick",       "bar",   1.15, 1.00, 16, "keep"),
+    ("sausage",          "bar",   1.15, 1.00, 16, "keep"),
+    ("tofu-skin-roll",   "bar",   1.10, 1.00, 16, "keep"),
+    ("corn",             "disc",  0.92, 0.46, 20, "keep"),
+    ("lotus-root",       "disc",  0.95, 0.28, 20, "keep"),
+    ("shiitake",         "blob",  0.98, 0.70, 20, "keep"),
+    ("fish-ball",        "blob",  0.84, 1.00, 20, "keep"),
+    ("lettuce",          "blob",  0.96, 0.82, 20, "keep"),
+    ("napa-cabbage",     "blob",  1.05, 0.62, 20, "keep"),
+    ("dumpling",         "blob",  1.10, 0.42, 20, "keep"),
 ]
+# "keep" 模式下 alpha 向外扩多少像素(在源图分辨率下量)
+ALPHA_DILATE = 10
 
 
 # ---------------------------------------------------------------- 抠像
@@ -169,6 +183,26 @@ def bleed_edges(rgba, iterations=18):
         filled = filled | newly
     out = rgba.copy()
     out[..., :3] = rgb
+    return out
+
+
+def dilate_alpha(rgba, px):
+    """把不透明区向外扩 px 像素。
+
+    平面投影下,模型最外一圈的面正好采样在轮廓边界上,alpha 在那里已经掉到 0 附近,
+    alphaTest 会把它们整片裁掉 —— 表现是圆盘少一圈边、球体轮廓发毛。
+    向外扩一圈之后这些面就落在实心区里了。RGB 已经 bleed 过,扩出来的部分是食材本色。
+    """
+    alpha = rgba[..., 3].copy()
+    for _ in range(px):
+        grown = alpha.copy()
+        grown[1:, :] = np.maximum(grown[1:, :], alpha[:-1, :])
+        grown[:-1, :] = np.maximum(grown[:-1, :], alpha[1:, :])
+        grown[:, 1:] = np.maximum(grown[:, 1:], alpha[:, :-1])
+        grown[:, :-1] = np.maximum(grown[:, :-1], alpha[:, 1:])
+        alpha = grown
+    out = rgba.copy()
+    out[..., 3] = alpha
     return out
 
 
@@ -258,6 +292,33 @@ def build_mesh(name, shape, half_x, half_y, half_z, segments, bar_angle=0.0, bar
     return obj
 
 
+def project_uv_box(obj):
+    """按面的主法线做立方体贴图:每个面各自把自己的两个面内轴映射到 [0,1]。
+
+    配合 "patch" 模式用 —— 贴图是一小块平整纹理,六个面各贴一份,
+    不带任何来自源图的透视信息。
+    """
+    mesh = obj.data
+    while mesh.uv_layers:
+        mesh.uv_layers.remove(mesh.uv_layers[0])
+    uv_layer = mesh.uv_layers.new(name="UVMap")
+    bounds = [
+        (min(v.co[i] for v in mesh.vertices), max(v.co[i] for v in mesh.vertices))
+        for i in range(3)
+    ]
+    spans = [max(hi - lo, 1e-6) for lo, hi in bounds]
+    for poly in mesh.polygons:
+        n = poly.normal
+        axis = max(range(3), key=lambda i: abs(n[i]))
+        u_axis, v_axis = [i for i in range(3) if i != axis]
+        for loop_index in poly.loop_indices:
+            co = mesh.vertices[mesh.loops[loop_index].vertex_index].co
+            uv_layer.data[loop_index].uv = (
+                (co[u_axis] - bounds[u_axis][0]) / spans[u_axis],
+                (co[v_axis] - bounds[v_axis][0]) / spans[v_axis],
+            )
+
+
 def project_uv(obj, min_x, min_y, size_x, size_y):
     """沿 -Z 的平面投影。因为模型 XY 包围盒 == 贴图不透明区包围盒,这一步是精确对齐的。"""
     mesh = obj.data
@@ -318,20 +379,34 @@ def make_material(name, texture_path):
 
 # ---------------------------------------------------------------- 主流程
 
-def build_item(key, shape, target_size, depth_ratio, segments, src_dir, tex_dir):
+def build_item(key, shape, target_size, depth_ratio, segments, alpha_mode, src_dir, tex_dir):
     src = os.path.join(src_dir, f"{key}-chroma.png")
     if not os.path.exists(src):
         raise FileNotFoundError(src)
 
-    rgba = bleed_edges(key_chroma(load_pixels(src)))
-    x0, y0, x1, y1 = content_bbox(rgba[..., 3])
-    cropped = rgba[y0:y1, x0:x1]
+    keyed = key_chroma(load_pixels(src))
+    # 裁剪框按**原始**轮廓算,免得扩过的 alpha 把模型尺寸也一起撑大
+    x0, y0, x1, y1 = content_bbox(keyed[..., 3])
+    # fill 模式要把整个裁剪框铺满食材色,所以 bleed 要一直跑到填满为止
+    rgba = dilate_alpha(bleed_edges(keyed, iterations=18), ALPHA_DILATE)
+    if alpha_mode == "patch":
+        # 取块位置往下偏一点:四分之三视角下,轮廓框的正中心正好压在
+        # 顶面和正面的那条交界线上,取到的块会带一道斜缝,而且六个面会各重复一次。
+        # 下移之后落在纯正面里,是整张图最平整的一片
+        cx = (x0 + x1) // 2
+        cy = int((y0 + y1) / 2 + (y1 - y0) * 0.18)
+        half = int(min(x1 - x0, y1 - y0) * 0.16)
+        cropped = rgba[cy - half:cy + half, cx - half:cx + half].copy()
+        cropped[..., 3] = 1.0
+    else:
+        cropped = rgba[y0:y1, x0:x1].copy()
     px_w, px_h = x1 - x0, y1 - y0
 
     tex_path = os.path.join(tex_dir, f"{key}.png")
     tex_size = save_png(cropped, tex_path)
 
     # 世界尺寸:长边取 target_size,短边按图的宽高比推出来 —— 这样轮廓才对得上
+    px_w, px_h = x1 - x0, y1 - y0  # 尺寸永远按原始轮廓框推,和贴图裁法无关
     if px_w >= px_h:
         size_x = target_size
         size_y = target_size * px_h / px_w
@@ -352,7 +427,10 @@ def build_item(key, shape, target_size, depth_ratio, segments, src_dir, tex_dir)
         half_z = bar_radius
 
     obj = build_mesh(key, shape, half_x, half_y, half_z, segments, bar_angle, bar_half_len, bar_radius)
-    project_uv(obj, -half_x, -half_y, size_x, size_y)
+    if alpha_mode == "patch":
+        project_uv_box(obj)
+    else:
+        project_uv(obj, -half_x, -half_y, size_x, size_y)
     obj.data.materials.append(make_material(key, tex_path))
 
     tris = sum(max(len(p.vertices) - 2, 0) for p in obj.data.polygons)
@@ -479,9 +557,9 @@ def main():
     print(f"[triple-pile] 输出: {out_dir}")
 
     report = []
-    for key, shape, size, depth, segments in ITEMS:
+    for key, shape, size, depth, segments, alpha_mode in ITEMS:
         clear_scene()
-        obj, info = build_item(key, shape, size, depth, segments, src_dir, tex_dir)
+        obj, info = build_item(key, shape, size, depth, segments, alpha_mode, src_dir, tex_dir)
         export(obj, out_dir)
         report.append(info)
         print(f"  ✓ {key:16s} {shape:5s} 三角 {info['tris']:4d}  "

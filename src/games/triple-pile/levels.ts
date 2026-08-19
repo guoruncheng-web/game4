@@ -25,26 +25,20 @@ export type Level = {
 const S = 1000;
 
 /**
- * DESIGN.md §9 的难度曲线。三个旋钮:类型数、总数、限时。
+ * 关卡表。**只有两关**:第一关热身,第二关直接满锅。
  *
- * 两条硬约束:
+ * 这是对参考游戏的对齐 —— 它也是两关制,难度不靠一级级爬,而是「教会你」和「考死你」两段。
+ * 所以中间没有过渡关,第 2 关的类型数直接从 4 跳到 12。
+ *
+ * 两条硬约束(改数值时必须守住):
  * 1. **total 必须能被 3 整除**,而且 total/3 ≥ typeCount(每类至少凑得出一组)。
- * 2. **第 1 关必须是 3 类**。鸽笼不等式(§8.1)说 7 格槽位要塞满至少需要 4 类,
- *    所以 3 类那一关**不可能死于槽位** —— 新手只可能超时,不会在还没理解规则时被判负。
+ * 2. 第 1 关的类型数决定它有多宽容 —— 鸽笼不等式(§8.1)说 7 格槽位要塞满至少需要 4 类。
+ *    4 类是「理论上会死、实际上很难死」的那一档,正好当热身;
+ *    真想让第一关完全不可能死于槽位,把它降到 3。
  */
 export const LEVELS: readonly Level[] = [
-  { id: 1, typeCount: 3, total: 18, timeMs: 180 * S },
-  { id: 2, typeCount: 4, total: 24, timeMs: 180 * S },
-  { id: 3, typeCount: 5, total: 30, timeMs: 170 * S },
-  { id: 4, typeCount: 6, total: 39, timeMs: 170 * S },
-  { id: 5, typeCount: 7, total: 48, timeMs: 165 * S },
-  { id: 6, typeCount: 8, total: 57, timeMs: 160 * S },
-  { id: 7, typeCount: 9, total: 66, timeMs: 155 * S },
-  { id: 8, typeCount: 10, total: 75, timeMs: 150 * S },
-  { id: 9, typeCount: 11, total: 84, timeMs: 145 * S },
-  { id: 10, typeCount: 12, total: 93, timeMs: 140 * S },
-  { id: 11, typeCount: 12, total: 105, timeMs: 130 * S },
-  { id: 12, typeCount: 12, total: 120, timeMs: 120 * S },
+  { id: 1, typeCount: 4, total: 48, timeMs: 240 * S },
+  { id: 2, typeCount: 12, total: 150, timeMs: 300 * S },
 ] as const;
 
 export const LEVEL_COUNT = LEVELS.length;

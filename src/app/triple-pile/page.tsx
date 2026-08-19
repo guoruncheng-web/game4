@@ -23,7 +23,7 @@ export default function TriplePilePage() {
       <Link
         href="/"
         aria-label="返回游戏盒子"
-        className="absolute left-3 top-2.5 z-20 size-[46px] bg-[url('/triple-pile/ui/button-back.png')] bg-contain bg-center bg-no-repeat transition active:scale-90"
+        className="absolute left-3 top-[21px] z-20 size-[46px] bg-[url('/triple-pile/ui/button-back.png')] bg-contain bg-center bg-no-repeat transition active:scale-90"
       />
     </main>
   );
