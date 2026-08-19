@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "ws": "node --env-file=.env.local server/ws.mjs",
     "icons": "node tools/pwa/build-icons.mjs"
   },
   "dependencies": {

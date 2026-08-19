@@ -1,0 +1,17 @@
+[Unit]
+Description=Game Box 联机 WebSocket 服务
+After=network.target docker.service
+
+[Service]
+Type=simple
+User=deploy
+WorkingDirectory=/srv/gameai
+Environment=WS_PORT=7011
+ExecStart=/usr/bin/node --env-file=/srv/gameai/.env.local /srv/gameai/server/ws.mjs
+Restart=always
+RestartSec=3
+StandardOutput=append:/var/log/gameai-ws.log
+StandardError=append:/var/log/gameai-ws.log
+
+[Install]
+WantedBy=multi-user.target
