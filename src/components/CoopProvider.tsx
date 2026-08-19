@@ -58,6 +58,13 @@ export function useCoop() {
 /** 断线重连的退避:1s 起,翻倍,封顶 15s */
 const RECONNECT_MIN = 1000;
 const RECONNECT_MAX = 15000;
+/**
+ * 连续失败多少次就认定「服务不可用」并明确报错。
+ *
+ * 不设这个的话,本地开发忘了起 WS 进程时页面会**永远显示「正在连接」**——
+ * 那是最误导人的状态:看起来像在努力,其实永远不会好。
+ */
+const FAIL_THRESHOLD = 3;
 
 export default function CoopProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
@@ -65,6 +72,7 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
   const wsRef = useRef<WebSocket | null>(null);
   const retryRef = useRef(RECONNECT_MIN);
   const timerRef = useRef<number>(0);
+  const failRef = useRef(0);
   /** 局内消息的处理函数。游戏场景挂上,离开时摘掉 */
   const gameHandler = useRef<((data: unknown) => void) | null>(null);
 
@@ -98,6 +106,7 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
 
       ws.onopen = () => {
         retryRef.current = RECONNECT_MIN;
+        failRef.current = 0;
         setConnected(true);
         setError(null);
         ws.send(JSON.stringify({ t: 'hello' }));
@@ -139,6 +148,14 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
           setMe(null);
           setStart(null);
           return;
+        }
+        failRef.current += 1;
+        if (failRef.current >= FAIL_THRESHOLD) {
+          setError(
+            process.env.NODE_ENV === 'development'
+              ? '连不上联机服务。本地要另开一个终端跑 pnpm ws'
+              : '连不上联机服务,请稍后再试',
+          );
         }
         // 退避重连:服务重启或网络抖动时不至于把服务器打爆
         timerRef.current = window.setTimeout(connect, retryRef.current);

@@ -181,9 +181,14 @@ registry 现在只服务于 `manifest.ts` 的快捷方式(取前 4 条)和各游
 
 ```bash
 pnpm dev      # 开发
+pnpm ws       # 联机 WebSocket 服务(另开一个终端,联机功能必需)
 pnpm build    # 生产构建(会跑 tsc 类型检查)
 pnpm lint
 ```
+
+**联机要两个进程。** `server/ws.mjs` 是独立的 WebSocket 服务,`pnpm dev` **不会**带起它 ——
+只跑 dev 的话,页面会一直显示「正在连接联机服务」并无限重连(开发模式下会提示你跑 pnpm ws)。
+线上是两个 systemd 单元:`gameai`(Next)和 `gameai-ws`(WebSocket),见 `deploy/README.md`。
 
 - 本仓库用 pnpm;非交互环境下执行 `pnpm install` 需要 `CI=true`。
 - **不要用裸 `tsc --noEmit` 当作类型检查通过与否的判据。**

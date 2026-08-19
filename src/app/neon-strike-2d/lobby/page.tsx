@@ -43,7 +43,11 @@ export default function LobbyPage() {
           </button>
         </Panel>
       ) : !connected ? (
-        <Panel><p className="text-sm font-bold text-slate-500">正在连接联机服务…</p></Panel>
+        <Panel>
+          <p className="text-sm font-bold text-slate-500">
+            {error ?? '正在连接联机服务…'}
+          </p>
+        </Panel>
       ) : room ? (
         <Panel>
           <p className="text-xs font-bold uppercase tracking-widest text-slate-400">房间 {room.id}</p>
