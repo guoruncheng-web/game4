@@ -7,10 +7,10 @@
  * 用 --experimental-strip-types 是为了直接复用 src/lib/auth.ts 里的 hashPassword,
  * 别在测试脚本里另写一份哈希格式 —— 那样测的就不是线上那套了。
  */
-import { neon } from '@neondatabase/serverless';
+import postgres from 'postgres';
 import { hashPassword } from '../../src/lib/auth.ts';
 
-const sql = neon(process.env.DATABASE_URL!);
+const sql = postgres(process.env.DATABASE_URL!, { ssl: process.env.DATABASE_URL!.includes('sslmode=require') ? 'require' : false });
 await sql`delete from users where username like 'test-e2e-%'`;
 
 if (process.argv.includes('--clean')) {
