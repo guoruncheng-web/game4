@@ -1,0 +1,73 @@
+# push 到 main 就部署到阿里云主机(www.gameai.xingzdh.com)。
+#
+# 为什么是 Actions 主动推,而不是服务器去拉:
+# **那台服务器拉不动 GitHub** —— 实测 git clone 45 秒没有结果(国内机器的常见情况)。
+# 所以方向必须反过来:GitHub 的 runner 在墙外,SSH 进服务器是通的。
+#
+# 需要在仓库 Settings → Secrets and variables → Actions 配一个 secret:
+#   DEPLOY_SSH_KEY  —— 服务器上 deploy 账号的私钥(/home/deploy/.ssh/gh_actions)
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  # 手动也能触发,回滚或重跑时用得上
+  workflow_dispatch:
+
+concurrency:
+  # 连续 push 时只保留最后一次,避免两次部署互相覆盖
+  group: deploy-production
+  cancel-in-progress: true
+
+env:
+  HOST: 47.86.46.212
+  USER: deploy
+  APP_DIR: /srv/gameai
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 准备 SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: 同步代码
+        run: |
+          # --delete 保持服务器和仓库一致,但三样东西必须排除:
+          #   .env.local  服务器独有的密钥配置,仓库里没有,删了应用就起不来
+          #   node_modules / .next  下一步在服务器上重建,传过去纯属浪费带宽
+          rsync -az --delete \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            --exclude '.next' \
+            --exclude '.env.local' \
+            --exclude 'src/games/*/assets' \
+            -e "ssh -o StrictHostKeyChecking=accept-new" \
+            ./ "$USER@$HOST:$APP_DIR/"
+
+      - name: 安装依赖并构建
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new "$USER@$HOST" bash -se <<'REMOTE'
+            set -e
+            cd /srv/gameai
+            export PATH=$PATH:/usr/local/bin
+            CI=true pnpm install --frozen-lockfile
+            CI=true pnpm build
+          REMOTE
+
+      - name: 重启服务
+        run: |
+          ssh "$USER@$HOST" 'sudo systemctl restart gameai && sleep 5 && sudo systemctl is-active gameai'
+
+      - name: 冒烟检查
+        run: |
+          # 部署完必须真的访问一次。构建成功但运行时崩掉(比如缺环境变量)是最常见的翻车方式
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://www.gameai.xingzdh.com/)
+          echo "首页返回 $code"
+          test "$code" = "200"
