@@ -108,6 +108,8 @@ export class GameScene extends Phaser.Scene {
   private isCoop = false;
   /** 阵亡观战中:飞机半透明、不吃伤害、不参与碰撞,等下一波复活 */
   private spectating = false;
+  /** 队友的名字。单独存一份 —— coopSession 在对方掉线时会被清掉,而结算页还要用 */
+  private coopName = '队友';
   private waitingText?: Phaser.GameObjects.Text;
   private mode: GameMode = 'campaign';
   private difficulty: DifficultyId = 'normal';
@@ -532,6 +534,7 @@ export class GameScene extends Phaser.Scene {
     this.peerShots = this.physics.add.group({ defaultKey: 'ns-shot', maxSize: 64 });
     if (!this.coop) return;
     this.isCoop = true;
+    this.coopName = this.coop.peer;
 
     // 对方的飞机换个色相区分。**不加物理体** —— 它纯粹是表现,
     // 对方的碰撞和受伤都在对方那一端判,这边多一份判定只会打架
@@ -1278,9 +1281,14 @@ export class GameScene extends Phaser.Scene {
         score: this.score, wave: this.wave, difficulty: this.difficulty,
         mode: this.mode, victory, at: Date.now(),
       });
+    // 队友的名字和分数在 coopSession 里,而它在队友掉线时会被清掉 ——
+    // 所以掉线那一刻就把名字记下来了(peerName 不随 session 消失)
+    const coop = this.isCoop
+      ? { peer: this.coopName, peerScore: this.peerState.score, me: '你' }
+      : undefined;
     this.time.delayedCall(victory ? 1100 : 500, () => this.scene.start('NeonGameOver', {
       score: this.score, wave: this.wave, best, rank, victory,
-      mode: this.mode, difficulty: this.difficulty,
+      mode: this.mode, difficulty: this.difficulty, coop,
     }));
   }
 }
