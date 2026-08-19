@@ -86,6 +86,14 @@ export class GameScene extends Phaser.Scene {
   private readonly netEnemies = new Map<number, BodyImage>();
   /** 单人模式下的敌机编号。联机时编号由 host 统一发放 */
   private localEnemyId = 0;
+  /** netId → 道具,用于「对方捡走了」时把它移掉 */
+  private readonly netPowers = new Map<number, BodyImage>();
+  /** guest 收到的敌机位置校正目标。每帧朝它插值靠拢,不硬设 */
+  private readonly syncTargets = new Map<number, { x: number; y: number }>();
+  private lastSyncAt = 0;
+  private lastStateAt = 0;
+  /** 对方的分数和命数,给 HUD */
+  private peerState = { score: 0, lives: 0, dead: false };
   private mode: GameMode = 'campaign';
   private difficulty: DifficultyId = 'normal';
   private diff: DifficultySpec = DIFFICULTIES.normal;
@@ -178,6 +186,8 @@ export class GameScene extends Phaser.Scene {
         this.coopSession = undefined;
         this.coop = undefined;
         this.netEnemies.clear();
+        this.netPowers.clear();
+        this.syncTargets.clear();
       }
     });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
@@ -211,6 +221,7 @@ export class GameScene extends Phaser.Scene {
     else this.player.setVelocity(0);
     // 自己的位置按 20Hz 节流发出去,节流在 CoopSession 里做
     this.coopSession?.tick(this.time.now, this.player.x, this.player.y);
+    this.tickCoop(this.time.now);
     if (time - this.lastShot >= TUNING.fireDelay) this.fire(time);
     if (time - this.lastKill > TUNING.comboWindow) this.combo = 1;
     this.player.setAlpha(time < this.invulnerableUntil && Math.floor(time / 80) % 2 ? 0.25 : 1);
@@ -369,7 +380,11 @@ export class GameScene extends Phaser.Scene {
       : `WAVE ${String(this.wave).padStart(2, '0')}`;
     const lives = this.lives > 0 ? '▲ '.repeat(this.lives).trim() : '—';
     const power = '▮'.repeat(this.weapon) + '▯'.repeat(TUNING.maxWeapon - this.weapon);
-    this.statusText.setText(`${waveLabel}\n${lives}\nPWR ${power}`);
+    // 联机时多显示一行队友:协作模式里「他还有几条命」直接影响你要不要冒险
+    const peer = this.coopSession
+      ? `\n${this.coopSession.peerName} ${this.peerState.dead ? '阵亡' : `▲${this.peerState.lives}`} ${String(this.peerState.score).padStart(6, '0')}`
+      : '';
+    this.statusText.setText(`${waveLabel}\n${lives}\nPWR ${power}${peer}`);
   }
 
   /** 预建所有会被高频触发的特效对象 */
@@ -514,6 +529,18 @@ export class GameScene extends Phaser.Scene {
         if (enemy?.active) this.destroyEnemy(enemy);
       },
       onHitReport: (id, damage) => this.applyRemoteHit(id, damage),
+      onBossSpawn: (id, spec, hp) => this.applyBossSpawn(id, spec, hp),
+      onBossHp: (hp, maxHp) => this.paintBossBar(hp, maxHp),
+      onSync: (entries) => {
+        for (const [id, x, y] of entries) this.syncTargets.set(id, { x, y });
+      },
+      onPower: (id, kind, x, y) => this.applyPower(id, kind as PowerKind, x, y),
+      onTaken: (id) => {
+        const power = this.netPowers.get(id);
+        this.netPowers.delete(id);
+        if (power?.active) power.disableBody(true, true);
+      },
+      onPeerState: (score, lives, dead) => { this.peerState = { score, lives, dead }; },
       onPeerLeft: () => this.onPeerLeft(),
     });
   }
@@ -554,6 +581,50 @@ export class GameScene extends Phaser.Scene {
     const hp = Number(enemy.getData('hp')) - damage;
     enemy.setData('hp', hp);
     if (hp <= 0) this.destroyEnemy(enemy, 'guest');
+  }
+
+  /** Boss 血条。host 打完自己画,guest 靠 boss 消息画 —— 同一段代码两边用 */
+  private paintBossBar(hp: number, maxHp: number) {
+    const ratio = Math.max(0, hp / (maxHp || 1));
+    this.bossBar.setScale(ratio, 1);
+    this.bossBar.setFillStyle(ratio > 0.66 ? 0xff4b52 : ratio > 0.33 ? 0xff8a3d : 0xffd23d);
+    this.bossPhase.setText(`PHASE ${ratio > 0.66 ? 1 : ratio > 0.33 ? 2 : 3}`);
+  }
+
+  /**
+   * 每帧的联机维护:host 定期广播位置校正,guest 朝目标插值靠拢。
+   *
+   * **插值而不是硬设**:硬设会让敌机每 250ms 抖一下,比漂移本身更难看。
+   * 偏差大到一定程度才硬拉 —— 那说明已经不是漂移,是丢了事件。
+   */
+  private tickCoop(now: number) {
+    const session = this.coopSession;
+    if (!session) return;
+
+    if (session.isHost) {
+      if (now - this.lastSyncAt >= 250) {
+        this.lastSyncAt = now;
+        const entries: Array<[number, number, number]> = [];
+        for (const [id, enemy] of this.netEnemies) {
+          if (enemy.active) entries.push([id, Math.round(enemy.x), Math.round(enemy.y)]);
+        }
+        session.broadcastSync(entries);
+      }
+    } else if (this.syncTargets.size) {
+      for (const [id, target] of this.syncTargets) {
+        const enemy = this.netEnemies.get(id);
+        if (!enemy?.active) { this.syncTargets.delete(id); continue; }
+        const dx = target.x - enemy.x, dy = target.y - enemy.y;
+        if (Math.hypot(dx, dy) > 60) enemy.setPosition(target.x, target.y);
+        else enemy.setPosition(enemy.x + dx * 0.2, enemy.y + dy * 0.2);
+      }
+      this.syncTargets.clear();
+    }
+
+    if (now - this.lastStateAt >= 1000) {
+      this.lastStateAt = now;
+      session.broadcastState(this.score, this.lives, this.weapon, this.ended);
+    }
   }
 
   private onPeerLeft() {
@@ -670,15 +741,28 @@ export class GameScene extends Phaser.Scene {
 
   private spawnBoss() {
     if (this.ended) return;
-    const spec = BOSS_SPEC[(this.bossIndex() - 1) % BOSS_SPEC.length];
+    // guest 不自己造 Boss,等 host 的 bspawn —— 血量带着难度和波次,两端各算必然不一致
+    if (this.coopSession && !this.coopSession.isHost) return;
+    const specIndex = (this.bossIndex() - 1) % BOSS_SPEC.length;
+    const spec = BOSS_SPEC[specIndex];
     const hp = Math.round((spec.hp + this.wave * 2) * this.diff.bossHp);
+    const id = this.coopSession ? this.coopSession.allocEnemyId() : ++this.localEnemyId;
+    this.applyBossSpawn(id, specIndex, hp);
+    this.coopSession?.broadcastBossSpawn(id, specIndex, hp);
+  }
+
+  /** 按参数造 Boss。两端跑同一段代码 */
+  private applyBossSpawn(id: number, specIndex: number, hp: number) {
+    if (this.ended) return;
+    const spec = BOSS_SPEC[specIndex];
     const boss = this.enemies.create(GAME_WIDTH / 2, -170, 'ns-boss') as BodyImage;
     boss.setDisplaySize(390, 300).setBlendMode(Phaser.BlendModes.NORMAL).setTint(spec.tint);
-    boss.setData({ hp, maxHp: hp, boss: true, pattern: spec.pattern, alt: 0, score: 1200 * this.bossIndex() })
+    boss.setData({ hp, maxHp: hp, boss: true, pattern: spec.pattern, alt: 0, score: 1200 * this.bossIndex(), netId: id })
       .setVelocity(0, 0).setDepth(8);
     boss.body.setSize(boss.width * 0.76, boss.height * 0.72, true);
     // 入场期间只播放展示动画，不参与子弹碰撞，避免连续受击造成整机白闪。
     boss.body.enable = false;
+    if (this.coopSession) this.netEnemies.set(id, boss);
     this.bossBarBack.setVisible(true); this.bossBar.setVisible(true).setScale(1, 1);
     this.bossLabel.setVisible(true).setText(spec.name);
     this.bossPhase.setVisible(true).setText('PHASE 1');
@@ -692,10 +776,12 @@ export class GameScene extends Phaser.Scene {
         boss.body.enable = true;
         boss.body.reset(boss.x, boss.y);
         boss.setVelocityX(82 + spec.pattern * 26).setBounce(1).setCollideWorldBounds(true);
-        this.bossAttack(boss);
+        // 弹幕只由 host 排:两端各放一份就是双倍弹幕,而且落点还对不上
+        if (!this.coopSession || this.coopSession.isHost) this.bossAttack(boss);
       },
     });
   }
+
 
   private bossAttack(boss: BodyImage) {
     if (!boss.active || this.ended) return;
@@ -794,10 +880,9 @@ export class GameScene extends Phaser.Scene {
       this.showLaserImpact(impactX, impactY, true);
     }
     if (boss) {
-      const ratio = Math.max(0, hp / Number(enemy.getData('maxHp')));
-      this.bossBar.setScale(ratio, 1);
-      this.bossBar.setFillStyle(ratio > 0.66 ? 0xff4b52 : ratio > 0.33 ? 0xff8a3d : 0xffd23d);
-      this.bossPhase.setText(`PHASE ${ratio > 0.66 ? 1 : ratio > 0.33 ? 2 : 3}`);
+      const maxHp = Number(enemy.getData('maxHp'));
+      this.paintBossBar(hp, maxHp);
+      this.coopSession?.broadcastBossHp(hp, maxHp);
     }
     if (hp <= 0) this.destroyEnemy(enemy);
   }
@@ -843,13 +928,28 @@ export class GameScene extends Phaser.Scene {
   }
 
   private dropPower(x: number, y: number, kind: PowerKind) {
-    const power = this.powers.create(x, y, POWER_TEXTURE[kind]) as BodyImage;
-    power.setData('kind', kind).setVelocityY(130).setDepth(11);
+    // 掉不掉、掉什么由 host 一家决定 —— 两端各摇一次的话火力等级会分叉
+    if (this.coopSession && !this.coopSession.isHost) return;
+    const id = this.coopSession ? this.coopSession.allocEnemyId() : ++this.localEnemyId;
+    this.applyPower(id, kind, x, y);
+    this.coopSession?.broadcastPower(id, kind, x, y);
   }
 
+  private applyPower(id: number, kind: PowerKind, x: number, y: number) {
+    const power = this.powers.create(x, y, POWER_TEXTURE[kind]) as BodyImage;
+    power.setData({ kind, netId: id }).setVelocityY(130).setDepth(11);
+    if (this.coopSession) this.netPowers.set(id, power);
+  }
+
+  /** 捡道具:本地生效 + 告诉对方把它移掉。双方同时碰到会各拿一份,协作模式里无害 */
   private takePower(_playerObject: Phaser.GameObjects.GameObject, powerObject: Phaser.GameObjects.GameObject) {
     const power = powerObject as BodyImage;
     const kind = (power.getData('kind') as PowerKind) ?? 'shield';
+    const netId = Number(power.getData('netId')) || 0;
+    if (netId) {
+      this.netPowers.delete(netId);
+      this.coopSession?.broadcastTaken(netId);
+    }
     this.retire(power);
     sfx.pickup();
     if (kind === 'weapon') {

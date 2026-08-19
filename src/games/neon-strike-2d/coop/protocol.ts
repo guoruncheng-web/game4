@@ -36,13 +36,19 @@ export type NetMessage =
       phase: number; diveIn: number; vx: number; vy: number; fireIn: number | null; gunner: boolean;
     }
   | { t: 'efire'; id: number; x: number; y: number; angle: number; speed: number }
+  /**
+   * Boss 生成。和普通敌机同一套思路:host 摇好参数,两端用同一段代码造。
+   * 单独一条消息是因为 Boss 有血条、有阶段、入场动画也不一样。
+   */
+  | { t: 'bspawn'; id: number; spec: number; hp: number }
   /** 低频位置校正,4Hz。guest 收到后插值靠拢,不硬设(硬设会每 250ms 抖一下) */
   | { t: 'sync'; e: Array<[number, number, number]> }
   /** 敌机死亡的最终裁决。by 决定这一杀记给谁 */
   | { t: 'dead'; id: number; by: Role }
   | { t: 'power'; id: number; kind: string; x: number; y: number }
   | { t: 'taken'; id: number; by: Role }
-  | { t: 'boss'; hp: number; phase: number }
+  /** Boss 血量。guest 只用它更新血条,不参与判定 */
+  | { t: 'boss'; hp: number; maxHp: number }
 
   /** guest→host:我打中了谁。最终生死由 host 裁决 */
   | { t: 'hit'; id: number; damage: number }

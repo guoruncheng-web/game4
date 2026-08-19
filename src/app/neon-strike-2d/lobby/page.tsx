@@ -12,7 +12,7 @@ import { useCoop } from '@/components/CoopProvider';
  * 接受后两人都在这里看到彼此 → **由房主点开始**,两人一起进游戏。
  */
 export default function LobbyPage() {
-  const { user, openPanel } = useAuth();
+  const { user, loading, openPanel } = useAuth();
   const { connected, me, online, room, error, doInvite, leave, startGame } = useCoop();
   const [picked, setPicked] = useState<number | ''>('');
 
@@ -31,7 +31,11 @@ export default function LobbyPage() {
         </div>
       </header>
 
-      {!user ? (
+      {loading ? (
+        // 必须先看 loading:user 初值就是 null,不判的话在 /api/auth/me 回来之前
+        // 会先闪一屏「需要登录」—— 明明登着却让人去登录,是最容易被当成 bug 的表现
+        <Panel><p className="text-sm font-bold text-slate-500">正在确认登录状态…</p></Panel>
+      ) : !user ? (
         <Panel>
           <p className="text-sm font-bold text-slate-500">联机需要登录后才能用 —— 邀请要知道你是谁。</p>
           <button onClick={() => openPanel()} className="mt-3 min-h-11 w-full rounded-2xl bg-gradient-to-b from-[#43d875] to-[#2cbe60] font-black text-white">

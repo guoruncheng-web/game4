@@ -45,6 +45,18 @@ export type CoopHooks = {
   onEnemyDead(id: number): void;
   /** host 专用:guest 报告打中了谁 */
   onHitReport(id: number, damage: number): void;
+  /** guest 专用:host 生成了 Boss */
+  onBossSpawn(id: number, spec: number, hp: number): void;
+  /** guest 专用:Boss 血量变了,只更新血条 */
+  onBossHp(hp: number, maxHp: number): void;
+  /** guest 专用:敌机位置校正 */
+  onSync(entries: Array<[number, number, number]>): void;
+  /** guest 专用:道具掉落 */
+  onPower(id: number, kind: string, x: number, y: number): void;
+  /** 道具被对方捡走了 */
+  onTaken(id: number): void;
+  /** 对方的状态,给 HUD */
+  onPeerState(score: number, lives: number, dead: boolean): void;
   /** 对方掉线了 */
   onPeerLeft(): void;
 };
@@ -98,6 +110,39 @@ export class CoopSession {
     if (this.isHost) this.bridge.send({ t: 'spawn', ...p });
   }
 
+  broadcastBossSpawn(id: number, spec: number, hp: number) {
+    if (this.isHost) this.bridge.send({ t: 'bspawn', id, spec, hp });
+  }
+
+  broadcastBossHp(hp: number, maxHp: number) {
+    if (this.isHost) this.bridge.send({ t: 'boss', hp, maxHp });
+  }
+
+  /**
+   * 敌机位置校正。**只有 host 发**,4Hz。
+   *
+   * 两端各自按 spawn 参数本地模拟,但 Arcade 的积分依赖每帧 dt,帧率不同必然缓慢漂移。
+   * 这条不是「同步位置」,是「纠正漂移」—— 所以频率可以很低,
+   * guest 收到后插值靠拢而不是硬设(硬设会让敌机每 250ms 抖一下)。
+   */
+  broadcastSync(entries: Array<[number, number, number]>) {
+    if (this.isHost && entries.length) this.bridge.send({ t: 'sync', e: entries });
+  }
+
+  broadcastPower(id: number, kind: string, x: number, y: number) {
+    if (this.isHost) this.bridge.send({ t: 'power', id, kind, x, y });
+  }
+
+  /** 道具被谁捡了。两端都要发 —— 捡的人自己知道,得告诉对方把它移掉 */
+  broadcastTaken(id: number) {
+    this.bridge.send({ t: 'taken', id, by: this.role });
+  }
+
+  /** 自己的状态,给对方的 HUD 显示 */
+  broadcastState(score: number, lives: number, weapon: number, dead: boolean) {
+    this.bridge.send({ t: 'state', score, lives, weapon, dead });
+  }
+
   /** host 宣布敌机死亡。by 决定这一杀记给谁 */
   broadcastDead(id: number, by: Role) {
     if (this.isHost) this.bridge.send({ t: 'dead', id, by });
@@ -135,6 +180,24 @@ export class CoopSession {
         break;
       case 'dead':
         if (!this.isHost) this.hooks.onEnemyDead(msg.id);
+        break;
+      case 'bspawn':
+        if (!this.isHost) this.hooks.onBossSpawn(msg.id, msg.spec, msg.hp);
+        break;
+      case 'boss':
+        if (!this.isHost) this.hooks.onBossHp(msg.hp, msg.maxHp);
+        break;
+      case 'sync':
+        if (!this.isHost) this.hooks.onSync(msg.e);
+        break;
+      case 'power':
+        if (!this.isHost) this.hooks.onPower(msg.id, msg.kind, msg.x, msg.y);
+        break;
+      case 'taken':
+        this.hooks.onTaken(msg.id);
+        break;
+      case 'state':
+        this.hooks.onPeerState(msg.score, msg.lives, msg.dead);
         break;
       case 'hit':
         if (this.isHost) this.hooks.onHitReport(msg.id, msg.damage);
