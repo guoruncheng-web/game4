@@ -197,8 +197,13 @@ function leaveFishRoom(room, userId) {
   broadcastFishRooms();
 }
 
-/** 解散房间。**必须两边都通知到**,否则留在匹配页的那个人会一直等一个不会来的人 */
-function closeRoom(roomId, reason) {
+/**
+ * 解散房间。**必须每个人都通知到**,否则留在匹配页的人会一直等一个不会来的人。
+ *
+ * byName 是离开者的名字:前端要在导航栏下方显示「谁谁离开了游戏」,
+ * 没有名字就只能笼统地说「队友」。走的人自己不需要看这条提示。
+ */
+function closeRoom(roomId, reason, byName) {
   const room = rooms.get(roomId);
   if (!room) return;
   if (room.fish) room.fish.destroy();
@@ -207,7 +212,7 @@ function closeRoom(roomId, reason) {
     if (!id) continue;
     const c = clients.get(id);
     if (c && c.roomId === roomId) c.roomId = null;
-    sendTo(id, { t: 'roomClosed', reason });
+    sendTo(id, { t: 'roomClosed', reason, by: byName && c?.username !== byName ? byName : null });
   }
   broadcastOnline();
   broadcastFishRooms();
@@ -240,6 +245,7 @@ function handle(client, msg) {
       send(client.ws, { t: 'online', users: invitableList(me) });
       // 顺带补一次房间状态,理由同 pushCurrentRoom
       pushCurrentRoom(client);
+      if (!client.roomId) send(client.ws, { t: 'rooms', game: FISH_GAME, rooms: fishRoomList() });
       break;
 
     /** 邀请。对方在任何页面都能收到 —— 这正是要独立 WebSocket 而不是轮询的原因 */
@@ -260,6 +266,42 @@ function handle(client, msg) {
       break;
     }
 
+    /**
+     * 建一个捕鱼房。和邀请制不同:建完就自己坐下开打,不等人。
+     * 房间会出现在大厅列表里,别人随时能补座(DESIGN §4.2)。
+     */
+    case 'create': {
+      if (client.roomId) return send(client.ws, { t: 'error', message: '你已经在一个房间里了' });
+      const room = { id: nextRoomId++, game: FISH_GAME, hostId: me, guestId: null, started: true };
+      room.fish = createFishAdapter({ send: (userId, data) => sendTo(userId, { t: 'game', data }) });
+      rooms.set(room.id, room);
+      room.fish.join(me, client.username);
+      client.roomId = room.id;
+      send(client.ws, { t: 'room', room: roomView(room) });
+      broadcastOnline();
+      broadcastFishRooms();
+      break;
+    }
+
+    /** 占一个空座 */
+    case 'join': {
+      if (client.roomId) return send(client.ws, { t: 'error', message: '你已经在一个房间里了' });
+      const room = rooms.get(Number(msg.roomId));
+      if (!room || !room.fish) return send(client.ws, { t: 'error', message: '这个房间已经没了' });
+      const seat = room.fish.join(me, client.username);
+      if (seat === null) return send(client.ws, { t: 'error', message: '这个房间坐满了' });
+      client.roomId = room.id;
+      pushRoom(room);
+      broadcastOnline();
+      broadcastFishRooms();
+      break;
+    }
+
+    /** 主动拉一次房列表 */
+    case 'rooms':
+      send(client.ws, { t: 'rooms', game: FISH_GAME, rooms: fishRoomList() });
+      break;
+
     case 'accept': {
       const room = rooms.get(Number(msg.roomId));
       if (!room || room.guestId) return send(client.ws, { t: 'error', message: '这个邀请已经失效了' });
@@ -276,9 +318,14 @@ function handle(client, msg) {
       break;
     }
 
-    case 'leave':
-      if (client.roomId) closeRoom(client.roomId, 'left');
+    case 'leave': {
+      const room = client.roomId ? rooms.get(client.roomId) : null;
+      if (!room) return;
+      // 捕鱼房只腾座位,不解散;其它游戏仍是「一个人走全房散」
+      if (room.fish) leaveFishRoom(room, me);
+      else closeRoom(room.id, 'left', client.username);
       break;
+    }
 
     /** 开始游戏。**只有房主能开**,而且必须两个人都在 */
     case 'start': {
@@ -299,6 +346,9 @@ function handle(client, msg) {
     case 'game': {
       const room = rooms.get(client.roomId);
       if (!room) return;
+      // 捕鱼是唯一一个服务端要解析局内消息的游戏 —— 因为鱼池和金币是共享的,
+      // 裁决权不能交给某个玩家的浏览器(它的 DESIGN.md §1)
+      if (room.fish) { room.fish.input(me, msg.data); return; }
       const peer = peerOf(room, me);
       if (peer) sendTo(peer, { t: 'game', data: msg.data });
       break;
@@ -356,8 +406,11 @@ server.on('upgrade', async (req, socket, head) => {
       ws.on('close', () => {
         if (clients.get(user.id) !== client) return; // 已经被新连接顶掉了
         clients.delete(user.id);
-        if (client.roomId) closeRoom(client.roomId, 'peer-left');
+        const room = client.roomId ? rooms.get(client.roomId) : null;
+        if (room?.fish) leaveFishRoom(room, user.id);
+        else if (room) closeRoom(room.id, 'peer-left', client.username);
         broadcastOnline();
+        broadcastFishRooms();
       });
     });
   } catch (error) {

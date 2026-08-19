@@ -24,6 +24,8 @@ export type CoopRoom = {
   players: Array<{ id: number; username: string; host: boolean }>;
 };
 export type CoopInvite = { roomId: number; game: string; from: string };
+/** 大厅里的一间捕鱼房。捕鱼走开放房列表而不是定向邀请(见它的 DESIGN.md §4.2) */
+export type FishRoomListing = { id: number; count: number; max: number; names: string[] };
 
 type CoopValue = {
   /** 连上了没。断线时 UI 该显示「连接中」而不是「没人在线」 */
@@ -31,6 +33,8 @@ type CoopValue = {
   me: CoopUser | null;
   online: CoopUser[];
   room: CoopRoom | null;
+  /** 可加入的捕鱼房 */
+  fishRooms: FishRoomListing[];
   invite: CoopInvite | null;
   error: string | null;
   /** 开局信号。游戏页拿它决定自己是 host 还是 guest */
@@ -41,6 +45,10 @@ type CoopValue = {
   decline(roomId: number): void;
   leave(): void;
   startGame(): void;
+  /** 建一间捕鱼房并直接坐下(捕鱼没有"开局"这一刻) */
+  createFishRoom(): void;
+  joinFishRoom(roomId: number): void;
+  refreshFishRooms(): void;
   /** 局内消息:发给房间里的另一个人,服务端只转发不解析 */
   sendGame(data: unknown): void;
   onGame(handler: ((data: unknown) => void) | null): void;
@@ -80,9 +88,13 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
   const [me, setMe] = useState<CoopUser | null>(null);
   const [online, setOnline] = useState<CoopUser[]>([]);
   const [room, setRoom] = useState<CoopRoom | null>(null);
+  const [fishRooms, setFishRooms] = useState<FishRoomListing[]>([]);
   const [invite, setInvite] = useState<CoopInvite | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [start, setStart] = useState<CoopValue['start']>(null);
+  /** 顶部横幅:队友离开之类的一次性通知。几秒后自动消失 */
+  const [notice, setNotice] = useState<string | null>(null);
+  const noticeTimer = useRef<number>(0);
 
   const send = useCallback((msg: Record<string, unknown>) => {
     const ws = wsRef.current;
@@ -119,13 +131,21 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
           case 'ready': setMe(msg.me as CoopUser); break;
           case 'online': setOnline(msg.users as CoopUser[]); break;
           case 'room': setRoom(msg.room as CoopRoom); break;
+          case 'rooms': setFishRooms(msg.rooms as FishRoomListing[]); break;
           case 'invited': setInvite({ roomId: msg.roomId as number, game: msg.game as string, from: msg.from as string }); break;
-          case 'roomClosed':
+          case 'roomClosed': {
             setRoom(null);
             setInvite(null);
             setStart(null);
-            if (msg.reason === 'peer-left') setError('队友离开了');
+            // by 为空说明是自己走的,不用给自己弹提示
+            const who = msg.by as string | null;
+            if (who) {
+              setNotice(`${who} 离开了游戏`);
+              window.clearTimeout(noticeTimer.current);
+              noticeTimer.current = window.setTimeout(() => setNotice(null), 5000);
+            }
             break;
+          }
           case 'start':
             setStart({ roomId: msg.roomId as number, game: msg.game as string, role: msg.role as 'host' | 'guest' });
             break;
@@ -147,6 +167,7 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
           setRoom(null);
           setMe(null);
           setStart(null);
+          setFishRooms([]);
           return;
         }
         failRef.current += 1;
@@ -184,23 +205,58 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
     router.push(`/${start.game}?coop=${start.roomId}&role=${start.role}`);
   }, [start, router]);
 
+  /**
+   * 捕鱼房**没有开局信号**:占到座位就该在池边了(DESIGN §4.2)。
+   * 所以这里盯的是 room 而不是 start —— 建房和加入房走的是同一条路。
+   */
+  useEffect(() => {
+    if (room?.game !== 'fish-hunter') return;
+    if (window.location.pathname === '/fish-hunter') return;
+    router.push('/fish-hunter');
+  }, [room, router]);
+
   const value = useMemo<CoopValue>(() => ({
-    connected, me, online, room, invite, error, start, send,
+    connected, me, online, room, fishRooms, invite, error, start, send,
     doInvite: (userId, game) => { setError(null); send({ t: 'invite', userId, game }); },
-    accept: (roomId) => { setInvite(null); send({ t: 'accept', roomId }); router.push('/neon-strike-2d/lobby'); },
+    accept: (roomId) => {
+      setInvite(null);
+      // 捕鱼是直接坐下,没有匹配页;霓虹突击要先去匹配页等房主点开始
+      const game = invite?.game;
+      if (game === 'fish-hunter') send({ t: 'join', roomId });
+      else { send({ t: 'accept', roomId }); router.push('/neon-strike-2d/lobby'); }
+    },
     decline: (roomId) => { setInvite(null); send({ t: 'decline', roomId }); },
     leave: () => { send({ t: 'leave' }); setRoom(null); setStart(null); },
     startGame: () => send({ t: 'start' }),
+    createFishRoom: () => { setError(null); send({ t: 'create', game: 'fish-hunter' }); },
+    joinFishRoom: (roomId) => { setError(null); send({ t: 'join', roomId }); },
+    refreshFishRooms: () => send({ t: 'rooms', game: 'fish-hunter' }),
     sendGame: (data) => send({ t: 'game', data }),
     onGame: (handler) => { gameHandler.current = handler; },
     clearStart: () => setStart(null),
-  }), [connected, me, online, room, invite, error, start, send, router]);
+  }), [connected, me, online, room, fishRooms, invite, error, start, send, router]);
 
   return (
     <Ctx.Provider value={value}>
       {children}
+      <LeaveBanner text={notice} />
       <InviteToast />
     </Ctx.Provider>
+  );
+}
+
+/**
+ * 队友离开的横幅。挂在顶部导航栏下方,**全站可见** ——
+ * 人可能是在游戏里、匹配页或首页被通知的,做成局内的飘字就只有一处能看见。
+ */
+function LeaveBanner({ text }: { text: string | null }) {
+  if (!text) return null;
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-[max(0.75rem,env(safe-area-inset-top))] z-[100] flex justify-center px-4">
+      <div className="animate-[tp-drop_0.25s_ease-out] rounded-2xl border border-white/20 bg-slate-900/90 px-4 py-2.5 text-sm font-bold text-amber-200 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur">
+        {text}
+      </div>
+    </div>
   );
 }
 
@@ -214,7 +270,9 @@ function InviteToast() {
         <p className="text-base font-black text-[#173366]">
           {invite.from} 邀请你一起玩
         </p>
-        <p className="mt-1 text-sm font-bold text-slate-500">霓虹突击 2D · 双人协作</p>
+        <p className="mt-1 text-sm font-bold text-slate-500">
+          {invite.game === 'fish-hunter' ? '深海捕鱼 · 一池鱼最多四个人' : '霓虹突击 2D · 双人协作'}
+        </p>
         <div className="mt-3 flex gap-2">
           <button
             onClick={() => accept(invite.roomId)}

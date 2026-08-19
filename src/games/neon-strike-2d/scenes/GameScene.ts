@@ -96,6 +96,11 @@ export class GameScene extends Phaser.Scene {
   private peerState = { score: 0, lives: 0, dead: false };
   /** 对方的场景就绪了没。开局要等它 —— 否则先加载完的那个会自己先打起来 */
   private peerReady = false;
+  /**
+   * 对方飞机的目标位置。**收到就硬设的话画面会一跳一跳** ——
+   * 位置是 20Hz 发的,而画面跑 60fps,等于每三帧才动一次。存下来逐帧插值靠拢。
+   */
+  private peerTarget: { x: number; y: number } | null = null;
   private waitingText?: Phaser.GameObjects.Text;
   private mode: GameMode = 'campaign';
   private difficulty: DifficultyId = 'normal';
@@ -253,8 +258,11 @@ export class GameScene extends Phaser.Scene {
       .setOrigin(flip ? 1 : 0, 0.5)
       .setText(`SHIELD ×${this.shieldCharges}${shieldLeft}`);
     this.shieldAura.setVisible(shieldActive).setPosition(this.player.x, this.player.y);
-    // 子弹是带 maxSize 的对象池,回收即可复用
-    for (const group of [this.shots, this.enemyShots]) for (const child of group.getChildren()) {
+    // 子弹是带 maxSize 的对象池,回收即可复用。
+    // **peerShots 必须一起回收** —— 漏了它的表现极具迷惑性:对方的子弹打了约 9 秒
+    // (64 发 / 每秒 7 发)之后就再也出不来了,看着像网络断了,其实是池子耗尽;
+    // 而那几十个一直活着的物理体还在参与碰撞检测,顺带把帧率也拖下去
+    for (const group of [this.shots, this.enemyShots, this.peerShots]) for (const child of group.getChildren()) {
       const image = child as BodyImage;
       // 追踪弹可能打成近水平弹道,只按 y 回收会让它长期占着池子,Boss 取不到弹就"哑火"
       if (image.y < -80 || image.y > GAME_HEIGHT + 80 || image.x < -80 || image.x > GAME_WIDTH + 80) {
@@ -534,7 +542,11 @@ export class GameScene extends Phaser.Scene {
     );
 
     this.coopSession = new CoopSession(this.coop, {
-      onPeerPos: (x, y) => { this.peer?.setPosition(x, y); },
+      onPeerPos: (x, y) => {
+        // 第一次收到直接就位,之后才插值 —— 否则对方会从屏幕中央滑过来
+        if (!this.peerTarget) this.peer?.setPosition(x, y);
+        this.peerTarget = { x, y };
+      },
       onPeerFire: (x, y, weapon) => this.spawnPeerShots(x, y, weapon),
       onWave: (index) => this.followWave(index),
       onSpawn: (payload) => this.applySpawn(payload),
@@ -661,6 +673,15 @@ export class GameScene extends Phaser.Scene {
         else enemy.setPosition(enemy.x + dx * 0.2, enemy.y + dy * 0.2);
       }
       this.syncTargets.clear();
+    }
+
+    // 对方飞机逐帧靠拢目标位置。0.25 是"跟得上又不抖"的折中:
+    // 再大接近硬设,再小会明显拖在后面
+    if (this.peer && this.peerTarget) {
+      this.peer.setPosition(
+        this.peer.x + (this.peerTarget.x - this.peer.x) * 0.25,
+        this.peer.y + (this.peerTarget.y - this.peer.y) * 0.25,
+      );
     }
 
     if (now - this.lastStateAt >= 1000) {
