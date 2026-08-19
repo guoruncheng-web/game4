@@ -61,6 +61,13 @@ export const GAMES: GameMeta[] = [
     controls: '点/触摸捞起食材 · 凑齐 3 个同类自动消除 · P / ESC 暂停',
     accent: 'text-amber-400',
   },
+  {
+    slug: 'fish-hunter',
+    title: '深海捕鱼',
+    tagline: '横屏一池鱼 · 最多 4 人同打 · 服务端权威',
+    controls: '按住画面朝鱼开炮 · ↑ ↓ 或 ± 换炮 · 空格连发',
+    accent: 'text-cyan-300',
+  },
 ];
 
 export function getGame(slug: string): GameMeta | undefined {

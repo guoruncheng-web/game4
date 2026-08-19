@@ -176,9 +176,12 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
   // 收到开局信号就把两个人一起送进游戏。房主点了「开始」之后,
   // 客人那边不需要任何操作 —— 这是「由邀请方开始游戏」的落地方式
   useEffect(() => {
-    if (start && !window.location.pathname.startsWith(`/${start.game}`)) {
-      router.push(`/${start.game}?coop=${start.roomId}&role=${start.role}`);
-    }
+    if (!start) return;
+    // **必须精确比对路径,不能用 startsWith。**
+    // 点「开始」时两个人都在 /neon-strike-2d/lobby,而它正好以 /neon-strike-2d 开头 ——
+    // 用前缀判断会认为「已经在游戏里了」而跳过跳转,表现就是点了没反应。
+    if (window.location.pathname === `/${start.game}`) return;
+    router.push(`/${start.game}?coop=${start.roomId}&role=${start.role}`);
   }, [start, router]);
 
   const value = useMemo<CoopValue>(() => ({

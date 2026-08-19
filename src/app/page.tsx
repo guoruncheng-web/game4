@@ -46,6 +46,8 @@ export default function Home() {
   const [neon2dBestScore, setNeon2dBestScore] = useState(0);
   /** 叠叠消是关卡制,没有最高分,卡片上显示的是「已解锁到第几关」 */
   const [pileLevel, setPileLevel] = useState(1);
+  /** 捕鱼没有分数,卡片上显示的是钱包余额(单机模式那份,存在本机) */
+  const [fishCoins, setFishCoins] = useState(500);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -65,6 +67,8 @@ export default function Home() {
       } catch {
         storedPileLevel = 1;
       }
+      const rawCoins = localStorage.getItem('fish-hunter-wallet');
+      const storedCoins = rawCoins === null ? 500 : Number(rawCoins);
       const storedMuted = localStorage.getItem('game-box-muted') === 'true';
       const rawVolume = localStorage.getItem('game-box-volume');
       const storedVolume = rawVolume === null ? 1 : Number(rawVolume);
@@ -74,6 +78,7 @@ export default function Home() {
       setNeonBestScore(Number.isFinite(storedNeonScore) ? storedNeonScore : 0);
       setNeon2dBestScore(Number.isFinite(storedNeon2dScore) ? storedNeon2dScore : 0);
       setPileLevel(storedPileLevel);
+      setFishCoins(Number.isFinite(storedCoins) ? storedCoins : 500);
       setSilent(storedSilent);
     }, 0);
     return () => window.clearTimeout(timer);
@@ -261,6 +266,18 @@ export default function Home() {
                 <p className="mt-2 text-xs font-bold text-orange-300">已解锁第 {pileLevel} 关 · 共 12 关</p>
               </div>
               <span className="grid size-11 place-items-center rounded-2xl bg-amber-300/10 text-amber-300"><Play size={21} className="fill-current" /></span>
+            </GameLink>
+            <GameLink
+              href="/fish-hunter"
+              className="flex items-center gap-4 rounded-3xl border border-white bg-[#062435] p-2.5 shadow-[0_8px_24px_rgba(30,120,160,0.26)] transition active:scale-[0.99]"
+            >
+              <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_50%_35%,#1a86a8,#04141f_72%)] text-5xl shadow-inner">🐟</div>
+              <div className="min-w-0 flex-1">
+                <p className="text-lg font-black text-cyan-300">深海捕鱼</p>
+                <p className="mt-0.5 text-sm font-bold text-cyan-100/90">横屏一池鱼，最多四人同打</p>
+                <p className="mt-2 text-xs font-bold text-amber-300">金币 {fishCoins}</p>
+              </div>
+              <span className="grid size-11 place-items-center rounded-2xl bg-cyan-300/10 text-cyan-300"><Play size={21} className="fill-current" /></span>
             </GameLink>
             {upcomingGames.map((game) => (
               <article

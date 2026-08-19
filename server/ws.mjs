@@ -146,6 +146,19 @@ function closeRoom(roomId, reason) {
   broadcastOnline();
 }
 
+/**
+ * 把「你现在在哪个房间」补发给某个连接。
+ *
+ * **新连接必须补这一条。** 连接可能是重连来的(严格模式双挂载、切网、页面导航),
+ * 而新连接只会收到 ready 和 online —— 偏偏 broadcastOnline 又刻意跳过在房间里的人。
+ * 不补的话,这个人在服务端"在房间里",在浏览器里却 room 为空、在线列表也是空,
+ * 页面上就是**什么都看不到**,而另一个人却看得见他。
+ */
+function pushCurrentRoom(client) {
+  const room = client.roomId ? rooms.get(client.roomId) : null;
+  if (room) send(client.ws, { t: 'room', room: roomView(room) });
+}
+
 /** 房间里的另一个人 */
 function peerOf(room, userId) {
   return room.hostId === userId ? room.guestId : room.hostId;
@@ -158,6 +171,8 @@ function handle(client, msg) {
   switch (msg.t) {
     case 'hello':
       send(client.ws, { t: 'online', users: invitableList(me) });
+      // 顺带补一次房间状态,理由同 pushCurrentRoom
+      pushCurrentRoom(client);
       break;
 
     /** 邀请。对方在任何页面都能收到 —— 这正是要独立 WebSocket 而不是轮询的原因 */
@@ -259,6 +274,10 @@ server.on('upgrade', async (req, socket, head) => {
       clients.set(user.id, client);
 
       send(ws, { t: 'ready', me: { id: user.id, username: user.username } });
+      // 继承来的房间已经解散了就把标记清掉,否则这个人会永远"在房间里"、
+      // 既收不到在线列表也进不了新房间
+      if (client.roomId && !rooms.has(client.roomId)) client.roomId = null;
+      pushCurrentRoom(client);
       broadcastOnline();
 
       ws.on('pong', () => { client.alive = true; });
