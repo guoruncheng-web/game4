@@ -63,7 +63,9 @@ jobs:
 
       - name: 重启服务
         run: |
-          ssh "$USER@$HOST" 'sudo systemctl restart gameai && sleep 5 && sudo systemctl is-active gameai'
+          # **两个服务都要重启。** 只重启 Next 的话,改了 server/ws.mjs 的部署
+          # 会"绿灯但没生效" —— 网站是新的,联机还是旧的,而且完全看不出来
+          ssh "$USER@$HOST" 'sudo systemctl restart gameai && sudo systemctl restart gameai-ws && sleep 5 && sudo systemctl is-active gameai && sudo systemctl is-active gameai-ws'
 
       - name: 冒烟检查
         run: |
@@ -71,3 +73,7 @@ jobs:
           code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://www.gameai.xingzdh.com/)
           echo "首页返回 $code"
           test "$code" = "200"
+          # 联机服务也要探一下,否则它挂了没人知道
+          ws=$(curl -s --max-time 10 https://www.gameai.xingzdh.com/ws/health)
+          echo "联机服务 $ws"
+          echo "$ws" | grep -q '"ok":true' 
