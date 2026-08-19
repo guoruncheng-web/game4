@@ -6,7 +6,7 @@ import {
   type DifficultyId, type DifficultySpec, type GameMode,
 } from '../config';
 import { sfx } from '../sfx';
-import { pushScore, saveSettings } from '../storage';
+import { bestScore, pushScore, saveSettings } from '../storage';
 import { drawSpace } from './MenuScene';
 
 type BodyImage = Phaser.Types.Physics.Arcade.ImageWithDynamicBody;
@@ -101,6 +101,13 @@ export class GameScene extends Phaser.Scene {
    * 位置是 20Hz 发的,而画面跑 60fps,等于每三帧才动一次。存下来逐帧插值靠拢。
    */
   private peerTarget: { x: number; y: number } | null = null;
+  /**
+   * 这一局是不是联机局。**不能用 coopSession 是否为空来判** ——
+   * 队友掉线时它会被清掉,而"要不要写排行榜"必须按开局时的性质算。
+   */
+  private isCoop = false;
+  /** 阵亡观战中:飞机半透明、不吃伤害、不参与碰撞,等下一波复活 */
+  private spectating = false;
   private waitingText?: Phaser.GameObjects.Text;
   private mode: GameMode = 'campaign';
   private difficulty: DifficultyId = 'normal';
@@ -524,6 +531,7 @@ export class GameScene extends Phaser.Scene {
     // 单人时它永远是空的,不产生任何开销
     this.peerShots = this.physics.add.group({ defaultKey: 'ns-shot', maxSize: 64 });
     if (!this.coop) return;
+    this.isCoop = true;
 
     // 对方的飞机换个色相区分。**不加物理体** —— 它纯粹是表现,
     // 对方的碰撞和受伤都在对方那一端判,这边多一份判定只会打架
@@ -599,6 +607,7 @@ export class GameScene extends Phaser.Scene {
 
   /** guest 跟随 host 的波次。只做表现,不再自己排生成 —— 敌机由 spawn 事件送来 */
   private followWave(index: number) {
+    this.reviveIfDead();
     this.wave = index;
     const boss = this.wave % TUNING.bossEvery === 0;
     const finale = this.mode === 'campaign' && this.wave === CAMPAIGN_WAVES;
@@ -690,15 +699,49 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  /** 进入观战。飞机还在画面上但不参与任何判定,让队友知道你还在 */
+  private enterSpectate() {
+    if (this.spectating) return;
+    this.spectating = true;
+    this.player.setAlpha(0.3);
+    this.player.body.enable = false;
+    this.floatText(GAME_WIDTH / 2, GAME_HEIGHT - 250, '阵亡 · 下一波复活');
+    this.coopSession?.broadcastState(this.score, 0, this.weapon, true);
+  }
+
+  /** 下一波开始时复活。给 1 条命和一层护盾,不然复活瞬间又被打掉 */
+  private reviveIfDead() {
+    if (!this.spectating) return;
+    this.spectating = false;
+    this.lives = 1;
+    this.player.setAlpha(1);
+    this.player.body.enable = true;
+    this.player.setPosition(GAME_WIDTH / 2, 810);
+    this.grantShield(1, 3000);
+    this.floatText(GAME_WIDTH / 2, GAME_HEIGHT - 250, '归队');
+  }
+
   private onPeerLeft() {
     if (this.ended) return;
-    this.floatText(GAME_WIDTH / 2, GAME_HEIGHT - 250, '队友掉线了');
-    this.peer?.setAlpha(0.25);
+    const wasHost = this.coopSession?.isHost ?? true;
     this.coopSession = undefined;
+    this.peer?.setAlpha(0.25);
+    this.peerTarget = null;
+
+    if (wasHost) {
+      // 我是 host:波次、敌机都归我推,少了队友照样能打完
+      this.floatText(GAME_WIDTH / 2, GAME_HEIGHT - 250, '队友掉线了 · 独自作战');
+      return;
+    }
+    // 我是 guest:敌机全部来自 host 的事件,它一走这局就再也不会有敌机了。
+    // 必须直接结算 —— 否则玩家会对着一个永远不会结束的空场景干等
+    this.floatText(GAME_WIDTH / 2, GAME_HEIGHT - 250, '房主掉线了');
+    this.time.delayedCall(900, () => this.finish(false));
   }
 
   private startWave() {
     if (this.ended) return;
+    this.reviveIfDead();
     // guest 不自己推波次,等 host 的 wave 事件(否则两边的波次会各走各的)
     if (this.coopSession && !this.coopSession.isHost) return;
     this.wave++;
@@ -1082,7 +1125,7 @@ export class GameScene extends Phaser.Scene {
    * 共用的话"上一次挨打是几秒前"这件毫不相关的事会决定漏 4 架扣 1 命还是 4 命。
    */
   private damage(reason: 'hit' | 'leak' = 'hit') {
-    if (this.ended) return;
+    if (this.ended || this.spectating) return;
     // 两条冷却各管各的,但同一帧里"被撞 + 放跑一架"会连扣两条命(死神只有 2 条 = 直接结算),
     // 所以再加一道公共地板:任何两次掉命之间至少隔 450ms。
     if (this.time.now - this.lastDamageAt < 450) return;
@@ -1098,7 +1141,12 @@ export class GameScene extends Phaser.Scene {
     }
     this.lastDamageAt = this.time.now;
     this.lives--; sfx.hurt(); this.cameras.main.shake(180, 0.014);
-    if (this.lives <= 0) this.finish(false);
+    if (this.lives > 0) return;
+    // 联机里一方阵亡**不结束整局** —— 那会让弱的一方毁掉强的一方的体验,
+    // 是协作模式最劝退的设计(COOP.md §4.5)。改成进观战,下一波复活。
+    // 两个人都倒了才真的结算。
+    if (this.isCoop && !this.peerState.dead) this.enterSpectate();
+    else this.finish(false);
   }
 
   private checkWave() {
@@ -1223,10 +1271,13 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.shake(420, 0.016);
       if (this.mode === 'campaign') saveSettings({ endlessUnlocked: true });
     }
-    const { rank, best } = pushScore({
-      score: this.score, wave: this.wave, difficulty: this.difficulty,
-      mode: this.mode, victory, at: Date.now(),
-    });
+    // 联机局不写单人榜:两个人合力的分数和单人分数不可比,混在一起榜就废了
+    const { rank, best } = this.isCoop
+      ? { rank: 0, best: bestScore() }
+      : pushScore({
+        score: this.score, wave: this.wave, difficulty: this.difficulty,
+        mode: this.mode, victory, at: Date.now(),
+      });
     this.time.delayedCall(victory ? 1100 : 500, () => this.scene.start('NeonGameOver', {
       score: this.score, wave: this.wave, best, rank, victory,
       mode: this.mode, difficulty: this.difficulty,
