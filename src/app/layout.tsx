@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import AuthProvider from "@/components/AuthProvider";
+import CoopProvider from "@/components/CoopProvider";
 import PwaProvider from "@/components/PwaProvider";
 import "./globals.css";
 
@@ -51,8 +52,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         {/* 登录状态全站一份:头部按钮和首页卡片都要看它,各自 fetch 会互相打架 */}
         <AuthProvider>
-          {children}
-          <PwaProvider />
+          {/* 联机连接挂在全站:邀请必须在任何页面都能收到,包括首页 */}
+          <CoopProvider>
+            {children}
+            <PwaProvider />
+          </CoopProvider>
         </AuthProvider>
       </body>
     </html>
