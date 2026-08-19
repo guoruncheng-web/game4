@@ -11,10 +11,10 @@
  */
 
 import {
-  BOSS_INTERVAL_MS, BOSS_LIFE_MS, BULLET_LIFE_MS, BULLET_SPEED, catchChance,
+  BOSS_INTERVAL_MS, BOSS_LIFE_MS, BULLET_LIFE_MS, BULLET_SPEED, CANNON_MUZZLE_OFFSET, catchChance,
   FIRE_COOLDOWN_MS, FISH_KINDS, FISH_MAX, FISH_TARGET, GAME_HEIGHT, GAME_WIDTH,
   GRANT_AMOUNT, GRANT_COOLDOWN_MS, MAX_LEVEL, MAX_SEATS, MIN_LEVEL, netRadius,
-  POOL_BOTTOM, POOL_TOP, SEATS, SPAWNABLE, START_BALANCE,
+  netCoversFish, POOL_BOTTOM, POOL_TOP, SEATS, SPAWNABLE, START_BALANCE,
 } from '../config';
 import type { FishKindId } from '../config';
 import { fishPos, isGone, makeFish } from './fish';
@@ -88,16 +88,21 @@ export class FishRoom {
     if (!this.started) {
       // 第一个人进来才开始投鱼。空房不投 —— 没人看的鱼白算
       this.started = true;
-      this.nextSpawnAt = now;
+      this.seedInitialFish(now);
+      this.nextSpawnAt = now + 900;
       this.nextBossAt = now + BOSS_INTERVAL_MS;
     }
 
-    const state = this.seats[seat]!;
-    this.emit(seat, { t: 'hello', seat, seats: this.views(), balance: state.balance, now });
-    // 进房时把在场的鱼一次性补给他 —— 鱼是纯函数,补一份参数他就能算出当前位置,
-    // 这也正是断线重连不需要额外恢复逻辑的原因
-    if (this.fish.length) this.emit(seat, { t: 'spawn', fish: this.fish });
+    this.sync(seat, now);
     this.emit(null, { t: 'seat', seat, view: this.view(seat)! });
+  }
+
+  /** 画布晚于房间建立、或 WebSocket 重连时重发权威快照。 */
+  sync(seat: number, now: number): void {
+    const state = this.seats[seat];
+    if (!state) return;
+    this.emit(seat, { t: 'hello', seat, seats: this.views(), balance: state.balance, now });
+    if (this.fish.length) this.emit(seat, { t: 'spawn', fish: this.fish });
   }
 
   leave(seat: number): void {
@@ -142,7 +147,14 @@ export class FishRoom {
 
     switch (msg.t) {
       case 'aim':
-        if (Number.isFinite(msg.angle)) state.aim = msg.angle;
+        if (Number.isFinite(msg.angle)) {
+          state.aim = clampAim(msg.angle, SEATS[seat].up);
+          this.emit(null, { t: 'aim', seat, angle: state.aim });
+        }
+        break;
+
+      case 'sync':
+        this.sync(seat, now);
         break;
 
       case 'level': {
@@ -189,8 +201,8 @@ export class FishRoom {
     this.bullets.push({
       id: msg.id,
       seat,
-      x: origin.x + Math.cos(angle) * 44,
-      y: origin.y + Math.sin(angle) * 44,
+      x: origin.x + Math.cos(angle) * CANNON_MUZZLE_OFFSET,
+      y: origin.y + Math.sin(angle) * CANNON_MUZZLE_OFFSET,
       vx: Math.cos(angle) * BULLET_SPEED,
       vy: Math.sin(angle) * BULLET_SPEED,
       level: state.level,
@@ -250,6 +262,25 @@ export class FishRoom {
   }
 
   /**
+   * 首屏直接铺出一池鱼，而不是让玩家看着空背景等二十多秒。
+   * t0 向前错开后仍走同一套纯函数路径，联机重连和服务端判定都不需要特殊分支。
+   */
+  private seedInitialFish(now: number): void {
+    const showcase: FishKindId[] = ['clown', 'blue', 'puffer', 'turtle', 'ray', 'shark'];
+    const batch: FishSpawn[] = [];
+    for (let i = 0; i < 20; i += 1) {
+      const kind = i < showcase.length
+        ? showcase[i]
+        : weighted<FishKindId>(this.rng, SPAWNABLE, SPAWNABLE.map((k) => FISH_KINDS[k].weight));
+      const fish = makeFish(this.rng, this.nextFishId++, kind, now);
+      // 只取生命周期中间 15%~70%，既保证已游进画面，又不会刚进场就集体离场。
+      fish.t0 = now - fish.life * (0.15 + this.rng() * 0.55);
+      batch.push(fish);
+    }
+    this.fish.push(...batch);
+  }
+
+  /**
    * 推进炮弹并判碰撞。
    *
    * 分 4 个子步:20Hz 下一帧走 44 像素,而最小的鱼判定圈才 22 —— 整帧推进会穿过去,
@@ -292,10 +323,9 @@ export class FishRoom {
     for (const f of this.fish) {
       if (now < f.t0) continue; // 成群投放时后几条还没进场
       const p = fishPos(f, now);
-      const reach = r + FISH_KINDS[f.kind].radius;
       const dx = p.x - b.x;
       const dy = p.y - b.y;
-      if (dx * dx + dy * dy <= reach * reach) return true;
+      if (netCoversFish(f.kind, dx, dy, r)) return true;
     }
     return false;
   }
@@ -319,10 +349,9 @@ export class FishRoom {
     for (const f of this.fish) {
       if (now < f.t0) continue;
       const p = fishPos(f, now);
-      const reach = r + FISH_KINDS[f.kind].radius;
       const dx = p.x - b.x;
       const dy = p.y - b.y;
-      if (dx * dx + dy * dy <= reach * reach) covered.push({ f, x: p.x, y: p.y });
+      if (netCoversFish(f.kind, dx, dy, r)) covered.push({ f, x: p.x, y: p.y });
     }
 
     const caught: number[] = [];

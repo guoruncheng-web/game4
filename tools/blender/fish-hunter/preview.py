@@ -22,7 +22,7 @@ ORDER = ["clown", "blue", "puffer", "turtle", "ray", "shark", "dragon", "boss"]
 # 动画相位。**每个相位渲一张独立的图** —— scene.frame_set 是整个场景的,
 # 在同一张图里摆出三种姿态做不到:后设的帧会把先前所有骨架一起改掉,
 # 三列会渲成一模一样(第一次就是这么错的)
-FRAMES_AT = [0, 6, 12]
+FRAMES_AT = [0, 12, 24]
 CELL_H = 1.25
 
 for block in (bpy.data.objects, bpy.data.meshes, bpy.data.materials, bpy.data.images):

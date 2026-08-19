@@ -38,16 +38,16 @@ ARGV = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 SRC_DIR = ARGV[0] if ARGV else "public/fish-hunter/fish"
 OUT_DIR = ARGV[1] if len(ARGV) > 1 else "public/fish-hunter/models"
 
-# 贴图长边上限。源图最大 1040,而鱼在屏幕上最大也就 260px ——
-# 512 已经远超实际采样率,原尺寸进 glb 纯属浪费
-MAX_TEX = 512
+# 贴图长边上限。高 DPR 手机上 260 CSS px 的 Boss 实际会占到 780 个物理像素，
+# 512 会明显发糊；1024 在清晰度、下载体积和显存之间更合适。
+MAX_TEX = 1024
 
 # 网格密度。沿身长要足够密,不然骨骼一弯就折成几段直线
-GRID_U = 30
-GRID_V = 14
+GRID_U = 48
+GRID_V = 20
 
-# 动画:24 帧一个循环,24fps。运行时按各鱼游速调 timeScale,不用为快慢各出一份
-FRAMES = 24
+# 两秒一个循环并增加采样密度。较长周期能容纳二次谐波，避免尾巴每秒机械重复一次。
+FRAMES = 48
 
 # 每条鱼一套自己的动作配方。
 #
@@ -344,7 +344,12 @@ def animate(arm, bone_names, spec):
             reach = max(0.0, (k - hold) / max(1e-3, 1.0 - hold))
             amp = swing * (reach ** 1.5)
             pb = arm.pose.bones[bname]
-            bend = math.sin(phase - k * lag) * amp
+            # 主行波叠一层幅度较小、相位更迟的二次波：尾端会有自然的回弹，
+            # 不再像整张鱼卡片沿一条正弦曲线来回折。
+            primary = math.sin(phase - k * lag)
+            secondary = math.sin(phase * 2.0 - k * lag * 1.55 + 0.7) * 0.22
+            tail_flick = math.sin(phase * 3.0 - k * lag * 1.9) * 0.08 * (reach ** 2)
+            bend = (primary + secondary + tail_flick) * amp
             # 俯仰只打在根骨上,整条鱼一起点头
             pitch = math.sin(phase * rock_freq) * rock_amp if i == 0 else 0.0
             pb.rotation_euler = (0.0, bend + pitch, 0.0)

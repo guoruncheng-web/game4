@@ -15,25 +15,37 @@ import { LAYER } from './stage';
 export class FishActor {
   /** 外层:负责位置和朝向(绕 Z 转) */
   readonly pivot = new THREE.Group();
+  /** 叠加每条鱼不同的呼吸、侧倾和浮游，避免同种鱼像复制出来的机械编队 */
+  private readonly motion = new THREE.Group();
   /** 内层:负责左右转身(绕 Y 转 180°) */
   private readonly yaw = new THREE.Group();
   private readonly mixer: THREE.AnimationMixer | null;
+  private readonly action: THREE.AnimationAction | null;
+  private readonly baseTimeScale: number;
+  private readonly motionPhase: number;
+  private readonly maxTilt: number;
+  private swimTime = 0;
   private readonly meshes: THREE.Mesh[] = [];
   private flashUntil = 0;
 
   constructor(asset: FishAsset, spec: FishKind, seed: number) {
     const { object, mixer, action } = instantiateFish(asset);
     this.mixer = mixer;
+    this.action = action;
+    this.baseTimeScale = Math.min(1.5, Math.max(0.48, spec.speed / 115));
+    this.motionPhase = (seed * 0.61803398875 % 1) * Math.PI * 2;
+    this.maxTilt = spec.id === 'dragon' ? 0.16 : spec.id === 'boss' ? 0.1 : 0.3;
 
     // 模型身高归一到 1,这里放大到设计尺寸
     object.scale.setScalar(spec.height);
     this.yaw.add(object);
-    this.pivot.add(this.yaw);
+    this.motion.add(this.yaw);
+    this.pivot.add(this.motion);
     this.pivot.position.z = spec.value >= 80 ? LAYER.fish + 2 : LAYER.fish;
 
     if (action) {
       // 摆尾快慢跟着游速走。慢吞吞的海龟和窜来窜去的鲨鱼用同一个节奏会立刻露馅
-      action.timeScale = Math.min(2.2, Math.max(0.55, spec.speed / 95));
+      action.timeScale = this.baseTimeScale;
       // **每条鱼从不同的相位起步。** 不这么做的话,同时生成的一群鱼会
       // 分毫不差地一起摆尾,像列队体操
       this.mixer?.setTime((seed % (Math.PI * 2)) / (Math.PI * 2) * 4);
@@ -63,8 +75,21 @@ export class FishActor {
 
     const left = Math.cos(angle) < 0;
     this.yaw.rotation.y = left ? Math.PI : 0;
-    this.pivot.rotation.z = left ? Math.PI - angle : -angle;
+    // 素材是严格侧视图。路径切线在弧线顶端可能接近竖直，整条金龙跟着转 90°
+    // 会像被吊起来；只保留轻微俯仰，朝向仍由 yaw 负责。
+    const rawTilt = left ? Math.PI - angle : -angle;
+    const normalizedTilt = Math.atan2(Math.sin(rawTilt), Math.cos(rawTilt));
+    this.pivot.rotation.z = Math.max(-this.maxTilt, Math.min(this.maxTilt, normalizedTilt));
 
+    this.swimTime += dt;
+    const phase = this.swimTime * this.baseTimeScale * Math.PI + this.motionPhase;
+    this.motion.position.y = Math.sin(phase * 0.73) * 1.8;
+    this.motion.rotation.x = Math.sin(phase * 0.61 + 0.8) * 0.055;
+    this.motion.rotation.z = Math.sin(phase * 0.47 + 1.7) * 0.018;
+    this.motion.scale.y = 1 + Math.sin(phase * 0.83 + 0.4) * 0.012;
+    if (this.action) {
+      this.action.timeScale = this.baseTimeScale * (0.94 + Math.sin(phase * 0.31) * 0.06);
+    }
     this.mixer?.update(dt);
 
     if (this.flashUntil && performance.now() > this.flashUntil) {

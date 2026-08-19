@@ -12,8 +12,8 @@
 
 import * as THREE from 'three';
 import {
-  BULLET_LIFE_MS, BULLET_SPEED, FIRE_COOLDOWN_MS, FISH_KINDS, GAME_HEIGHT, GAME_WIDTH,
-  MAX_LEVEL, MIN_LEVEL, netRadius, SEATS, SEAT_COLORS,
+  BULLET_LIFE_MS, BULLET_SPEED, CANNON_MUZZLE_OFFSET, FIRE_COOLDOWN_MS, FISH_KINDS, GAME_HEIGHT, GAME_WIDTH,
+  MAX_LEVEL, MIN_LEVEL, netCoversFish, netRadius, SEATS, SEAT_COLORS,
 } from './config';
 import type { FishKindId } from './config';
 import { fishPos, isGone } from './sim/fish';
@@ -56,6 +56,7 @@ export class World {
   private readonly onPointerDown: (e: PointerEvent) => void;
   private readonly onPointerMove: (e: PointerEvent) => void;
   private readonly onPointerUp: () => void;
+  private readonly onVisibilityChange: () => void;
   private readonly onKeyDown: (e: KeyboardEvent) => void;
   private readonly onKeyUp: (e: KeyboardEvent) => void;
 
@@ -71,10 +72,15 @@ export class World {
     this.onPointerDown = (e) => { this.holding = true; this.trackPointer(e); };
     this.onPointerMove = (e) => this.trackPointer(e);
     this.onPointerUp = () => { this.holding = false; };
+    this.onVisibilityChange = () => {
+      if (document.hidden) this.holding = false;
+    };
     canvas.addEventListener('pointerdown', this.onPointerDown);
     canvas.addEventListener('pointermove', this.onPointerMove);
     window.addEventListener('pointerup', this.onPointerUp);
     window.addEventListener('pointercancel', this.onPointerUp);
+    window.addEventListener('blur', this.onPointerUp);
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
 
     this.onKeyDown = (e) => {
       if (e.code === 'Space') this.holding = true;
@@ -104,10 +110,12 @@ export class World {
         // 上排座位把相机倒过来,自己那门炮永远在屏幕下方
         this.stage.setFlipped(!SEATS[this.seat].up);
         this.hud.setSeatColor(SEAT_COLORS[this.seat]);
+        this.hud.setSeat(this.seat);
         this.hud.setBalance(msg.balance);
         this.hud.setLevel(this.level);
         for (const view of msg.seats) this.ensureCannon(view.seat);
-        this.ensureCannon(this.seat);
+        // 自己的炮台由高清 DOM 素材绘制；隐藏同位置的程序化 3D 备份，避免重影。
+        this.ensureCannon(this.seat).object.visible = false;
         this.ready = true;
         this.hud.hint(this.net.kind === 'local'
           ? '单机模式 · 余额存在本机,与账号不互通'
@@ -143,7 +151,16 @@ export class World {
         break;
 
       case 'seat':
-        if (msg.view) this.ensureCannon(msg.seat);
+        if (msg.view) {
+          const cannon = this.ensureCannon(msg.seat);
+          if (msg.seat === this.seat) cannon.object.visible = false;
+        } else {
+          this.removeCannon(msg.seat);
+        }
+        break;
+
+      case 'aim':
+        if (msg.seat !== this.seat) this.ensureCannon(msg.seat).aim(msg.angle);
         break;
 
       case 'deny':
@@ -167,6 +184,13 @@ export class World {
       this.cannons.set(seat, cannon);
     }
     return cannon;
+  }
+
+  private removeCannon(seat: number): void {
+    const cannon = this.cannons.get(seat);
+    if (!cannon) return;
+    cannon.dispose();
+    this.cannons.delete(seat);
   }
 
   private addFish(spawn: FishSpawn): void {
@@ -214,6 +238,7 @@ export class World {
     this.spawnBullet(id, this.seat, this.aim, this.level, now);
     this.net.send({ t: 'fire', id, angle: this.aim });
     play('fire');
+    this.hud.kick();
 
     const origin = SEATS[this.seat];
     this.fx.muzzle(origin.x, origin.y, this.aim, SEAT_COLORS[this.seat], this.level);
@@ -223,8 +248,8 @@ export class World {
   private spawnBullet(id: number, seat: number, angle: number, level: number, now: number): void {
     const origin = SEATS[seat];
     const object = makeBullet(SEAT_COLORS[seat], level);
-    const x = origin.x + Math.cos(angle) * 44;
-    const y = origin.y + Math.sin(angle) * 44;
+    const x = origin.x + Math.cos(angle) * CANNON_MUZZLE_OFFSET;
+    const y = origin.y + Math.sin(angle) * CANNON_MUZZLE_OFFSET;
     object.position.set(x, -y, LAYER.bullet);
     this.stage.scene.add(object);
     this.bullets.set(id, {
@@ -243,14 +268,14 @@ export class World {
       if (!latest || b.id > latest.id) latest = b;
     }
     if (!latest) return;
-    latest.object.removeFromParent();
+    disposeTransient(latest.object);
     this.bullets.delete(latest.id);
   }
 
   private popNet(id: number, x: number, y: number, seat: number, level: number): void {
     const bullet = this.bullets.get(id);
     if (bullet) {
-      bullet.object.removeFromParent();
+      disposeTransient(bullet.object);
       this.bullets.delete(id);
     }
     const r = netRadius(level);
@@ -271,10 +296,9 @@ export class World {
     const now = this.net.now();
     for (const { spawn, actor } of this.fish.values()) {
       if (now < spawn.t0 || !actor.object.visible) continue;
-      const reach = r + FISH_KINDS[spawn.kind as FishKindId].radius;
       const dx = actor.object.position.x - x;
       const dy = -actor.object.position.y - y;
-      if (dx * dx + dy * dy <= reach * reach) actor.flash();
+      if (netCoversFish(spawn.kind as FishKindId, dx, dy, r)) actor.flash();
     }
   }
 
@@ -318,6 +342,7 @@ export class World {
       : clamp(angle < 0 ? -angle : angle, EDGE, Math.PI - EDGE);
 
     this.ensureCannon(this.seat).aim(this.aim);
+    this.hud.setAim(this.aim, !origin.up);
 
     if (now - this.lastAimAt >= AIM_INTERVAL_MS) {
       this.lastAimAt = now;
@@ -351,7 +376,7 @@ export class World {
       // 本地只负责"飞出画面/超时就别画了"。真正的命中判定在服务端,
       // 它会用一条 pop 把这发收掉
       if (now - b.born > BULLET_LIFE_MS + 400 || b.y < -60 || b.y > GAME_HEIGHT + 60) {
-        b.object.removeFromParent();
+        disposeTransient(b.object);
         this.bullets.delete(id);
       }
     }
@@ -363,17 +388,33 @@ export class World {
     canvas.removeEventListener('pointermove', this.onPointerMove);
     window.removeEventListener('pointerup', this.onPointerUp);
     window.removeEventListener('pointercancel', this.onPointerUp);
+    window.removeEventListener('blur', this.onPointerUp);
+    document.removeEventListener('visibilitychange', this.onVisibilityChange);
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
     this.net.listen(null);
     for (const view of this.fish.values()) view.actor.dispose();
     this.fish.clear();
-    for (const b of this.bullets.values()) b.object.removeFromParent();
+    for (const b of this.bullets.values()) disposeTransient(b.object);
     this.bullets.clear();
+    for (const cannon of this.cannons.values()) cannon.dispose();
+    this.cannons.clear();
     this.fx.dispose();
   }
 }
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
+}
+
+/** 炮弹几何和材质是每发新建的，移出场景时必须同步释放 GPU 资源。 */
+function disposeTransient(object: THREE.Object3D): void {
+  object.removeFromParent();
+  object.traverse((node) => {
+    const mesh = node as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    mesh.geometry.dispose();
+    const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    for (const material of materials) material.dispose();
+  });
 }

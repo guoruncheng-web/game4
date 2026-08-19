@@ -11,6 +11,7 @@
  */
 
 import * as THREE from 'three';
+import { CANNON_MUZZLE_OFFSET } from '../config';
 import { LAYER } from './stage';
 
 type Track = { life: number; age: number; step: (k: number) => void; done: () => void };
@@ -49,7 +50,11 @@ export class Fx {
   /** 炮口闪光。开炮的第一反馈,必须在按下的那一帧就出现 */
   muzzle(x: number, y: number, angle: number, color: number, level: number): void {
     const flash = this.additive(DISC_GEO, color, 0.9);
-    flash.position.set(x + Math.cos(angle) * 42, -(y + Math.sin(angle) * 42), LAYER.fx);
+    flash.position.set(
+      x + Math.cos(angle) * CANNON_MUZZLE_OFFSET,
+      -(y + Math.sin(angle) * CANNON_MUZZLE_OFFSET),
+      LAYER.fx,
+    );
     const size = 16 + level * 2;
     this.add(flash, 0.12, (k) => {
       flash.scale.setScalar(size * (1 + k * 1.6));
@@ -160,13 +165,13 @@ export class Fx {
    * 而它们正是回本的机会。
    */
   alert(width: number, height: number, color: number): void {
-    const band = this.additive(DISC_GEO, color, 0.18);
-    band.scale.set(width * 0.14, height, 1);
+    const band = this.additive(DISC_GEO, color, 0.08);
+    band.scale.set(width * 0.075, height * 0.85, 1);
     band.position.set(-width * 0.2, -height / 2, LAYER.fx + 3);
     band.rotation.z = 0.2;
     this.add(band, 0.7, (k) => {
       band.position.x = -width * 0.2 + k * width * 1.4;
-      (band.material as THREE.MeshBasicMaterial).opacity = 0.18 * Math.sin(Math.PI * k);
+      (band.material as THREE.MeshBasicMaterial).opacity = 0.08 * Math.sin(Math.PI * k);
     });
   }
 

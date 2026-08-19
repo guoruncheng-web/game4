@@ -60,7 +60,11 @@ export function createFishAdapter({ send }) {
   return {
     /** 占座。满了返回 null */
     join(userId, username) {
-      if (bySeat.has(userId)) return bySeat.get(userId);
+      if (bySeat.has(userId)) {
+        const seat = bySeat.get(userId);
+        room.sync(seat, Date.now());
+        return seat;
+      }
       const seat = seats.indexOf(null);
       if (seat < 0) return null;
       seats[seat] = { userId, username };
@@ -85,6 +89,7 @@ export function createFishAdapter({ send }) {
       if (seat === undefined || !data || typeof data !== 'object') return;
       // 时钟对齐(DESIGN §3.2)。它不属于玩法,不进 FishRoom
       if (data.t === 'ping') return send(userId, { t: 'pong', id: data.id, now: Date.now() });
+      if (data.t === 'sync') return room.sync(seat, Date.now());
       room.input(seat, data, Date.now());
     },
 

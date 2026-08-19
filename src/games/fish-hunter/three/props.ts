@@ -10,8 +10,8 @@ import { SEATS, SEAT_COLORS } from '../config';
 import { instantiateCannon } from './assets';
 import { LAYER } from './stage';
 
-/** 炮台模型的底座半径是 1,这里放大到设计尺寸 */
-const CANNON_SCALE = 46;
+/** 手机横屏仍要能一眼认出的显示尺寸 */
+const CANNON_SCALE = 60;
 
 export class CannonActor {
   readonly object: THREE.Object3D;
@@ -21,15 +21,55 @@ export class CannonActor {
 
   constructor(proto: THREE.Object3D, seat: number) {
     const spec = SEATS[seat];
-    const { object, turret } = instantiateCannon(proto, SEAT_COLORS[seat]);
+    const { object } = instantiateCannon(proto, SEAT_COLORS[seat]);
     this.object = object;
-    this.turret = turret;
     this.up = spec.up;
 
+    // 导入模型在手机上缩小后只剩一个暗圆盘，炮管几乎看不见。隐藏 GLB 的网格，
+    // 保留它的根节点和资源契约，实际显示改用固定朝向相机的高对比炮台。
+    object.traverse((node) => {
+      const mesh = node as THREE.Mesh;
+      if (mesh.isMesh) mesh.visible = false;
+    });
+    this.turret = this.buildReadableCannon(object, SEAT_COLORS[seat]);
     object.scale.setScalar(CANNON_SCALE);
     object.position.set(spec.x, -spec.y, LAYER.cannon);
     // 上排座位整体倒过来:模型的炮口是朝 +Y 造的(build_props.py 的坐标系说明)
     if (!spec.up) object.rotation.z = Math.PI;
+  }
+
+  private buildReadableCannon(root: THREE.Object3D, color: number): THREE.Group {
+    const base = new THREE.Group();
+    const dark = new THREE.MeshBasicMaterial({ color: 0x061b29, side: THREE.DoubleSide });
+    const steel = new THREE.MeshBasicMaterial({ color: 0xb8d2df, side: THREE.DoubleSide });
+    const rim = new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide });
+    const glow = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+
+    const outer = new THREE.Mesh(new THREE.CircleGeometry(1.28, 32), steel);
+    outer.position.z = 0.04;
+    const disc = new THREE.Mesh(new THREE.CircleGeometry(1.12, 32), dark);
+    disc.position.z = 0.06;
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.88, 1.08, 32), rim);
+    ring.position.z = 0.08;
+    const hub = new THREE.Mesh(new THREE.CircleGeometry(0.35, 24), glow);
+    hub.position.z = 0.1;
+    base.add(outer, disc, ring, hub);
+    root.add(base);
+
+    const barrel = new THREE.Group();
+    const outline = new THREE.Mesh(new THREE.BoxGeometry(0.72, 2.15, 0.08), steel);
+    outline.position.set(0, 1.08, 0.12);
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.55, 2.02, 0.09), dark);
+    body.position.set(0, 1.08, 0.15);
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.72, 0.1), rim);
+    stripe.position.set(0, 1.1, 0.19);
+    const muzzleOuter = new THREE.Mesh(new THREE.CircleGeometry(0.43, 24), steel);
+    muzzleOuter.position.set(0, 2.13, 0.2);
+    const muzzle = new THREE.Mesh(new THREE.CircleGeometry(0.28, 20), glow);
+    muzzle.position.set(0, 2.13, 0.22);
+    barrel.add(outline, body, stripe, muzzleOuter, muzzle);
+    root.add(barrel);
+    return barrel;
   }
 
   /**
@@ -54,6 +94,18 @@ export class CannonActor {
     if (this.recoil <= 0) return;
     this.recoil = Math.max(0, this.recoil - dt * 6);
     if (this.turret) this.turret.scale.setScalar(1 - this.recoil * 0.09);
+  }
+
+  dispose(): void {
+    this.object.removeFromParent();
+    this.object.traverse((node) => {
+      const mesh = node as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      // 隐藏的 GLB 网格仍与资源原型共享 geometry；只释放本实例新建的可见几何。
+      if (mesh.visible) mesh.geometry.dispose();
+      const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      for (const material of materials) material.dispose();
+    });
   }
 }
 

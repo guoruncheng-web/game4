@@ -101,6 +101,12 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
     if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
   }, []);
 
+  // 游戏页把它放进 effect 依赖；身份必须稳定，否则房间人数一变化就会触发 cleanup，
+  // 把仍在运行的捕鱼消息处理器摘掉，之后整局看似在线却再也收不到 spawn/pop。
+  const onGame = useCallback((handler: ((data: unknown) => void) | null) => {
+    gameHandler.current = handler;
+  }, []);
+
   useEffect(() => {
     // 没登录就不连:既不能邀请也不能被邀请,连上去只是白占一个连接。
     // 这里**不清状态** —— 上一轮 effect 的 cleanup 已经把连接关了,
@@ -232,9 +238,9 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
     joinFishRoom: (roomId) => { setError(null); send({ t: 'join', roomId }); },
     refreshFishRooms: () => send({ t: 'rooms', game: 'fish-hunter' }),
     sendGame: (data) => send({ t: 'game', data }),
-    onGame: (handler) => { gameHandler.current = handler; },
+    onGame,
     clearStart: () => setStart(null),
-  }), [connected, me, online, room, fishRooms, invite, error, start, send, router]);
+  }), [connected, me, online, room, fishRooms, invite, error, start, send, onGame, router]);
 
   return (
     <Ctx.Provider value={value}>

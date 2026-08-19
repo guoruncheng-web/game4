@@ -55,6 +55,9 @@ export function createWsTransport(bridge: FishBridge): Transport {
     else backlog.push(msg as ServerMsg);
   });
 
+  // 建房时 hello/spawn 可能早于游戏页挂载而被 React 层丢掉；每次画布接上线都主动拉快照。
+  bridge.send({ t: 'sync' });
+
   // 开局先密集打几次,尽快把偏移收敛到位;之后转成低频防漂
   for (let i = 0; i < WARMUP_PINGS; i += 1) window.setTimeout(ping, i * WARMUP_GAP_MS);
   const timer = window.setInterval(ping, PING_INTERVAL_MS);

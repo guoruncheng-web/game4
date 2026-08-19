@@ -83,6 +83,8 @@ export const MAX_LEVEL = 7;
 export const FIRE_COOLDOWN_MS = 220;
 export const BULLET_SPEED = 880;
 export const BULLET_LIFE_MS = 2200;
+/** 炮台轴心到可见炮口的距离；客户端、服务端和炮口闪光必须共用。 */
+export const CANNON_MUZZLE_OFFSET = 138;
 /**
  * 网的半径。**这是炮等级唯一的真实优势**:
  * 网同时也是命中判定圈(见 room.stepBullets),网越大越不容易空放。
@@ -91,6 +93,20 @@ export const BULLET_LIFE_MS = 2200;
  */
 export function netRadius(level: number): number {
   return 46 + level * 5;
+}
+
+/**
+ * 网与鱼的画面轮廓相交测试。鱼是侧视长形素材，不能只拿一个中心圆判断：
+ * 金龙宽约 400px，原来的 62px 半径会让打中尾巴看起来像穿过去。
+ * 用按实际显示尺寸估出的椭圆，再把网半径作为 Minkowski 膨胀量加到两轴。
+ */
+export function netCoversFish(kind: FishKindId, dx: number, dy: number, net: number): boolean {
+  const spec = FISH_KINDS[kind];
+  const halfWidth = spec.height * (kind === 'dragon' ? 1 : 2 / 3);
+  const halfHeight = spec.height / 2;
+  const nx = dx / (halfWidth + net);
+  const ny = dy / (halfHeight + net);
+  return nx * nx + ny * ny <= 1;
 }
 
 /**
@@ -130,10 +146,10 @@ export const MAX_SEATS = 4;
 
 /** 炮台位置与朝向。座 0/1 在下(炮口朝上),座 2/3 在上(炮口朝下) */
 export const SEATS: Array<{ x: number; y: number; up: boolean }> = [
-  { x: 250,             y: GAME_HEIGHT - 58, up: true },
-  { x: GAME_WIDTH - 250, y: GAME_HEIGHT - 58, up: true },
-  { x: 250,             y: 58,                up: false },
-  { x: GAME_WIDTH - 250, y: 58,               up: false },
+  { x: 90,               y: GAME_HEIGHT - 40, up: true },
+  { x: GAME_WIDTH - 90,  y: GAME_HEIGHT - 40, up: true },
+  { x: 90,               y: 40,               up: false },
+  { x: GAME_WIDTH - 90,  y: 40,               up: false },
 ];
 
 /** 每个座位的固定色。网、炮台、飘字全部用它区分(DESIGN §7 可读性红线) */

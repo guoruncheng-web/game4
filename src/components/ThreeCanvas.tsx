@@ -41,5 +41,10 @@ export default function ThreeCanvas({ load }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return <div ref={containerRef} className="relative h-dvh w-screen touch-none overflow-hidden" />;
+  return (
+    <div
+      ref={containerRef}
+      className="absolute inset-0 size-full min-h-0 min-w-0 touch-none overflow-hidden"
+    />
+  );
 }

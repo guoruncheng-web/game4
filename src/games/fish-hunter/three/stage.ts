@@ -14,7 +14,7 @@
  */
 
 import * as THREE from 'three';
-import { GAME_HEIGHT, GAME_WIDTH, POOL_BOTTOM, POOL_TOP } from '../config';
+import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 
 /** 分层用的 z。数越大越靠近相机 */
 export const LAYER = {
@@ -37,30 +37,46 @@ export class Stage {
   readonly renderer: THREE.WebGLRenderer;
   private readonly parent: HTMLElement;
   private readonly caustics: THREE.Mesh[] = [];
+  private waterPlane: THREE.Mesh | null = null;
   /** 上排座位(2/3)整个相机转 180°,自己那门炮就永远在屏幕下方 */
   private flipped = false;
   private readonly onResize = () => this.resize();
+  private readonly resizeObserver: ResizeObserver | null;
 
   constructor(parent: HTMLElement) {
     this.parent = parent;
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     this.renderer.setClearColor(0x021320, 1);
-    // DPR 封到 2:再高对这种画面看不出差别,但填充率是平方级涨的
-    this.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    // 2.5 能覆盖主流高 DPR 横屏手机；鱼贴图已经升到 1024，继续卡 2 会被浏览器二次放大。
+    this.renderer.setPixelRatio(Math.min(2.5, window.devicePixelRatio || 1));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     parent.append(this.renderer.domElement);
     this.renderer.domElement.style.display = 'block';
+    // setSize(..., false) 只改绘图缓冲。若不单独固定 CSS 尺寸，DPR=2 时 canvas
+    // 会以 2 倍宽高参与布局再被父容器裁掉，所有视觉与 pointer 坐标都会错位。
+    this.renderer.domElement.style.width = '100%';
+    this.renderer.domElement.style.height = '100%';
     this.renderer.domElement.style.touchAction = 'none';
 
-    this.camera = new THREE.OrthographicCamera(0, GAME_WIDTH, 0, -GAME_HEIGHT, 1, 2000);
-    this.camera.position.set(0, 0, 800);
+    // 相机本体放在鱼池中心，投影范围使用相对中心的对称坐标。
+    // 这样上排座位旋转 180° 时会真正绕鱼池中心转，而不是绕世界原点把画面甩偏。
+    this.camera = new THREE.OrthographicCamera(
+      -GAME_WIDTH / 2, GAME_WIDTH / 2,
+      GAME_HEIGHT / 2, -GAME_HEIGHT / 2,
+      1, 2000,
+    );
+    this.camera.position.set(GAME_WIDTH / 2, -GAME_HEIGHT / 2, 800);
     this.scene.add(this.camera);
 
     this.buildLights();
     this.buildWater();
     this.resize();
     window.addEventListener('resize', this.onResize);
+    this.resizeObserver = typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver(this.onResize);
+    this.resizeObserver?.observe(parent);
   }
 
   private buildLights(): void {
@@ -76,38 +92,26 @@ export class Stage {
 
   private buildWater(): void {
     // 背景是一张竖直渐变。用顶点色而不是贴图 —— 四个顶点就够了,省一次纹理上传
-    const geo = new THREE.PlaneGeometry(GAME_WIDTH * 1.2, GAME_HEIGHT * 1.2);
-    const top = new THREE.Color(0x0a3a5c);
-    const bottom = new THREE.Color(0x01101c);
-    const colors: number[] = [];
-    // PlaneGeometry 的顶点顺序是从上到下,前两个在上
-    for (const c of [top, top, bottom, bottom]) colors.push(c.r, c.g, c.b);
-    geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-    const plane = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true }));
+    const geo = new THREE.PlaneGeometry(GAME_WIDTH, GAME_HEIGHT);
+    const material = new THREE.MeshBasicMaterial({ color: 0x073453 });
+    const plane = new THREE.Mesh(geo, material);
     plane.position.copy(toWorld(GAME_WIDTH / 2, GAME_HEIGHT / 2, LAYER.water));
+    this.waterPlane = plane;
     this.scene.add(plane);
 
-    // 焦散光斑:几片加色的椭圆,靠 update 里的缓动漂移。
-    // 没有它,一池子鱼看着像贴在玻璃上
-    const causticGeo = new THREE.CircleGeometry(1, 20);
-    for (let i = 0; i < 7; i += 1) {
-      const mat = new THREE.MeshBasicMaterial({
-        color: 0x8fd8ff, transparent: true, opacity: 0.06,
-        blending: THREE.AdditiveBlending, depthWrite: false,
-      });
-      const patch = new THREE.Mesh(causticGeo, mat);
-      patch.position.copy(toWorld(
-        (i + 0.5) * (GAME_WIDTH / 7),
-        POOL_TOP + Math.random() * (POOL_BOTTOM - POOL_TOP),
-        LAYER.caustics,
-      ));
-      patch.scale.set(140 + Math.random() * 90, 46 + Math.random() * 30, 1);
-      patch.userData.phase = Math.random() * Math.PI * 2;
-      patch.userData.baseY = patch.position.y;
-      patch.userData.baseX = patch.position.x;
-      this.caustics.push(patch);
-      this.scene.add(patch);
-    }
+    new THREE.TextureLoader().load('/fish-hunter/background-hd.png?v=2', (texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.magFilter = THREE.LinearFilter;
+      texture.minFilter = THREE.LinearMipmapLinearFilter;
+      texture.generateMipmaps = true;
+      texture.anisotropy = 8;
+      material.color.setHex(0xffffff);
+      material.map = texture;
+      material.needsUpdate = true;
+    });
+
+    // 背景图本身已经带水纹和光束，不再叠加程序化大椭圆。
+    // 两套焦散同时存在会变成截图里那种横跨半屏的灰蓝色块。
   }
 
   /** 光斑漂移。t 用本地时钟就行 —— 它不参与任何判定,不需要和服务端对齐 */
@@ -127,8 +131,13 @@ export class Stage {
    * 跑到屏幕外,那个人就没法玩了。这一点比"铺满好看"重要得多。
    */
   resize(): void {
-    const w = this.parent.clientWidth || window.innerWidth;
-    const h = this.parent.clientHeight || window.innerHeight;
+    // mobile Safari 在旋转和地址栏收起的过渡期里，clientWidth/clientHeight
+    // 可能仍是旋转前的逻辑尺寸；renderer 会按 CSS 实际边界被拉伸，导致相机
+    // 仍按旧比例投影（炮台就会被挤到左下角）。getBoundingClientRect 是最终
+    // 参与合成的尺寸，优先用它，和 pointerToSim 的坐标基准也完全一致。
+    const rect = this.parent.getBoundingClientRect();
+    const w = Math.round(rect.width) || this.parent.clientWidth || window.innerWidth;
+    const h = Math.round(rect.height) || this.parent.clientHeight || window.innerHeight;
     this.renderer.setSize(w, h, false);
 
     const want = GAME_WIDTH / GAME_HEIGHT;
@@ -138,12 +147,16 @@ export class Stage {
     if (got > want) viewW = GAME_HEIGHT * got;   // 屏幕更宽 → 左右多露一点水
     else viewH = GAME_WIDTH / got;               // 屏幕更高 → 上下多露一点水
 
-    const cx = GAME_WIDTH / 2;
-    const cy = -GAME_HEIGHT / 2;
-    this.camera.left = cx - viewW / 2;
-    this.camera.right = cx + viewW / 2;
-    this.camera.top = cy + viewH / 2;
-    this.camera.bottom = cy - viewH / 2;
+    // 背景按 cover 铺满相机视野。鱼和炮台仍使用 1280×800 逻辑坐标，
+    // 只有背景放大，因此超宽手机不会出现黑边，也不会拉伸玩法坐标。
+    // 高清图是 16:10，与逻辑鱼池同宽高比；统一缩放即可完整铺满扩展视野。
+    const backgroundScale = Math.max(viewW / GAME_WIDTH, viewH / GAME_HEIGHT);
+    this.waterPlane?.scale.setScalar(backgroundScale);
+
+    this.camera.left = -viewW / 2;
+    this.camera.right = viewW / 2;
+    this.camera.top = viewH / 2;
+    this.camera.bottom = -viewH / 2;
     this.camera.updateProjectionMatrix();
   }
 
@@ -167,13 +180,13 @@ export class Stage {
     let x = this.camera.left + u * (this.camera.right - this.camera.left);
     let y = this.camera.top - v * (this.camera.top - this.camera.bottom);
     if (this.flipped) {
-      // 相机转了 180°,屏幕坐标要绕相机中心对称回去,否则瞄准会上下左右全反
-      const cx = (this.camera.left + this.camera.right) / 2;
-      const cy = (this.camera.top + this.camera.bottom) / 2;
-      x = 2 * cx - x;
-      y = 2 * cy - y;
+      x = -x;
+      y = -y;
     }
-    return { x, y: -y };
+    return {
+      x: this.camera.position.x + x,
+      y: -(this.camera.position.y + y),
+    };
   }
 
   render(): void {
@@ -182,7 +195,16 @@ export class Stage {
 
   destroy(): void {
     window.removeEventListener('resize', this.onResize);
+    this.resizeObserver?.disconnect();
+    if (this.waterPlane) {
+      this.waterPlane.geometry.dispose();
+      const material = this.waterPlane.material as THREE.MeshBasicMaterial;
+      material.map?.dispose();
+      material.dispose();
+      this.waterPlane = null;
+    }
     this.renderer.domElement.remove();
     this.renderer.dispose();
+    this.renderer.forceContextLoss();
   }
 }

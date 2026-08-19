@@ -2,7 +2,8 @@ import { takeFishBridge } from './net/bridge';
 import { createLocalTransport } from './net/local';
 import { createWsTransport } from './net/ws';
 import { preload as preloadSfx } from './sfx';
-import { loadAssets } from './three/assets';
+import { disposeAssets, loadAssets } from './three/assets';
+import type { Assets } from './three/assets';
 import { Stage } from './three/stage';
 import { createHud } from './ui/hud';
 import { World } from './world';
@@ -33,16 +34,21 @@ export function startGame(parent: HTMLElement): GameHandle {
   hud.hint('下网中…', 60_000);
 
   let world: World | null = null;
+  let assets: Assets | null = null;
   let raf = 0;
   let last = performance.now();
   let destroyed = false;
 
   void (async () => {
     try {
-      const assets = await loadAssets();
-      if (destroyed) return;
+      const loaded = await loadAssets();
+      if (destroyed) {
+        disposeAssets(loaded);
+        return;
+      }
+      assets = loaded;
       preloadSfx();
-      world = new World(stage, assets, transport, hud);
+      world = new World(stage, loaded, transport, hud);
 
       const loop = () => {
         raf = requestAnimationFrame(loop);
@@ -65,6 +71,8 @@ export function startGame(parent: HTMLElement): GameHandle {
       destroyed = true;
       cancelAnimationFrame(raf);
       world?.destroy();
+      if (assets) disposeAssets(assets);
+      assets = null;
       hud.destroy();
       stage.destroy();
       transport.close();

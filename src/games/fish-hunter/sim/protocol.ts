@@ -55,10 +55,14 @@ export type ServerMsg =
   /** 余额。**只发给本人,且客户端只认这条**,本地不自增 */
   | { t: 'wallet'; balance: number; grant?: boolean }
   | { t: 'seat'; seat: number; view: SeatView | null }
+  /** 其他玩家炮口的表现同步；不参与命中判定。 */
+  | { t: 'aim'; seat: number; angle: number }
   /** 开炮被拒 */
   | { t: 'deny'; reason: 'broke' | 'fast' | 'bad' };
 
 export type ClientMsg =
+  /** 游戏画布刚挂载或断线重连后，请服务器重发 hello + 在场鱼快照。 */
+  | { t: 'sync' }
   /**
    * 开炮。
    *

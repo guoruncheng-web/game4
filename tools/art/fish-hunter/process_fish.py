@@ -113,9 +113,16 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=Path)
     parser.add_argument("output", type=Path)
+    parser.add_argument(
+        "--scale",
+        type=float,
+        default=1.0,
+        help="输出尺寸倍率；模型贴图建议用 4，游戏内 2D 素材保持默认 1",
+    )
     args = parser.parse_args()
     for kind, size in SIZES.items():
-        process(args.source / f"{kind}.png", args.output / f"{kind}.png", size)
+        scaled = tuple(max(1, round(value * args.scale)) for value in size)
+        process(args.source / f"{kind}.png", args.output / f"{kind}.png", scaled)
 
 
 if __name__ == "__main__":

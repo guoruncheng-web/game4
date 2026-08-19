@@ -75,33 +75,35 @@ export default function FishHunterPage() {
   }, [onGame]);
 
   return (
-    <main className="relative h-dvh w-screen overflow-hidden bg-[#021320]">
+    <main
+      aria-label={meta.title}
+      className="fixed inset-0 h-dvh w-full max-w-full touch-none overflow-hidden overscroll-none bg-[#021320]"
+    >
       <ThreeCanvas load={loadGame} />
 
-      <div className="absolute left-3 top-3 z-20 flex items-center gap-2">
+      <div className="absolute left-[calc(0.5rem+env(safe-area-inset-left))] right-[calc(0.5rem+env(safe-area-inset-right))] top-[calc(0.5rem+env(safe-area-inset-top))] z-20 flex min-w-0 origin-top-left items-center gap-1.5 overflow-hidden text-nowrap">
         <Link
           href="/"
-          className="rounded-full border border-cyan-300/30 bg-[#04202f]/80 px-3 py-1.5 text-sm text-cyan-100 backdrop-blur transition active:scale-95"
-        >
-          ← 返回
-        </Link>
+          aria-label="返回游戏盒子"
+          className="size-11 shrink-0 bg-[url('/fish-hunter/ui/button-back.png')] bg-contain bg-center bg-no-repeat drop-shadow-[0_4px_8px_rgba(0,0,0,.45)] transition active:scale-90 max-[560px]:size-9"
+        />
         {!online && (
           <Link
             href="/fish-hunter/lobby"
-            className="rounded-full border border-cyan-300/30 bg-[#04202f]/80 px-3 py-1.5 text-sm text-cyan-200/90 backdrop-blur transition active:scale-95"
+            className="grid h-10 w-[152px] shrink-0 place-items-center bg-[url('/fish-hunter/ui/button-online-lobby.png')] bg-contain bg-center bg-no-repeat pl-7 text-sm font-black text-cyan-50 drop-shadow-[0_4px_8px_rgba(0,0,0,.45)] transition active:scale-95 max-[560px]:h-8 max-[560px]:w-[126px] max-[560px]:pl-6 max-[560px]:text-xs"
           >
             联机大厅
           </Link>
         )}
         {online && (
-          <span className="rounded-full border border-cyan-300/30 bg-[#04202f]/80 px-3 py-1.5 text-sm text-cyan-200/90 backdrop-blur">
+          <span className="grid h-10 w-[152px] shrink-0 place-items-center bg-[url('/fish-hunter/ui/button-online-lobby.png')] bg-contain bg-center bg-no-repeat pl-7 text-xs font-black text-cyan-50 drop-shadow-[0_4px_8px_rgba(0,0,0,.45)] max-[560px]:h-8 max-[560px]:w-[126px] max-[560px]:pl-6">
             联机 · {room?.players.length ?? 1}/4 人
           </span>
         )}
       </div>
 
       {portrait && (
-        <div className="absolute inset-0 z-30 grid place-items-center bg-[#021320] px-8 text-center">
+        <div className="absolute inset-0 z-30 grid place-items-center overflow-hidden bg-[#021320] px-[max(2rem,env(safe-area-inset-left))] text-center">
           <div>
             <div className="mb-4 text-6xl">📱↻</div>
             <p className="text-xl font-black text-cyan-200">请横过手机</p>
