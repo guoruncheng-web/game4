@@ -7,7 +7,13 @@ Type=simple
 User=deploy
 WorkingDirectory=/srv/gameai
 Environment=WS_PORT=7011
-ExecStart=/usr/bin/node --env-file=/srv/gameai/.env.local /srv/gameai/server/ws.mjs
+# 用独立安装的 Node 24,不是系统的 20 —— 这台机器上还有别的服务在用系统 Node,
+# 不去动它。24 是因为 sim 层直接 import 浏览器侧的 .ts 源码,要靠 Node 自带的类型剥离
+# (20 没有这个能力,22 还要额外加 --experimental-strip-types)。
+#
+# --import ./server/ts-register.mjs 必须带上,而且要和 package.json 的 "ws" 脚本保持一致:
+# 那个钩子负责把 import './config' 补成 './config.ts',少了它启动就 ERR_MODULE_NOT_FOUND
+ExecStart=/opt/node24/bin/node --import /srv/gameai/server/ts-register.mjs --env-file=/srv/gameai/.env.local /srv/gameai/server/ws.mjs
 Restart=always
 RestartSec=3
 StandardOutput=append:/var/log/gameai-ws.log
