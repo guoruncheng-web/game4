@@ -12,16 +12,10 @@
  * 这样划分是因为两端各自判定击杀必然出现「我打爆的敌机在你屏幕上还活着」。
  */
 
-import { CoopNet } from './net';
+import type { CoopBridge } from './bridge';
 import {
   POS_INTERVAL_MS, type NetMessage, type Role,
 } from './protocol';
-
-/** 菜单页把握手结果交给 GameScene 的信封 */
-export type CoopHandoff = {
-  net: CoopNet;
-  room: { id: number; role: Role; peer: string };
-};
 
 /** 敌机生成的全部参数。host 摇好之后原样发给 guest */
 export type SpawnPayload = {
@@ -63,16 +57,13 @@ export class CoopSession {
   private disposed = false;
 
   constructor(
-    private readonly net: CoopNet,
-    room: { role: Role; peer: string },
+    private readonly bridge: CoopBridge,
     private readonly hooks: CoopHooks,
   ) {
-    this.role = room.role;
-    this.peerName = room.peer;
-    net.listen({
-      onMessage: (msg) => this.receive(msg),
-      onClose: () => this.hooks.onPeerLeft(),
-    });
+    this.role = bridge.role;
+    this.peerName = bridge.peer;
+    bridge.listen((data: unknown) => this.receive(data as NetMessage));
+    bridge.onClose(() => this.hooks.onPeerLeft());
   }
 
   get isHost() {
@@ -85,11 +76,11 @@ export class CoopSession {
     if (now - this.lastPosAt < POS_INTERVAL_MS) return;
     this.lastPosAt = now;
     // 位置取整:小数点后的精度在屏幕上一个像素都体现不出来,却让每条消息长一截
-    this.net.send({ t: 'pos', x: Math.round(x), y: Math.round(y) });
+    this.bridge.send({ t: 'pos', x: Math.round(x), y: Math.round(y) });
   }
 
   sendFire(x: number, y: number, weapon: number) {
-    this.net.send({ t: 'fire', x: Math.round(x), y: Math.round(y), weapon });
+    this.bridge.send({ t: 'fire', x: Math.round(x), y: Math.round(y), weapon });
   }
 
   // ---------------------------------------------------------------- host 侧
@@ -100,23 +91,23 @@ export class CoopSession {
   }
 
   broadcastWave(index: number) {
-    if (this.isHost) this.net.send({ t: 'wave', index });
+    if (this.isHost) this.bridge.send({ t: 'wave', index });
   }
 
   broadcastSpawn(p: SpawnPayload) {
-    if (this.isHost) this.net.send({ t: 'spawn', ...p });
+    if (this.isHost) this.bridge.send({ t: 'spawn', ...p });
   }
 
   /** host 宣布敌机死亡。by 决定这一杀记给谁 */
   broadcastDead(id: number, by: Role) {
-    if (this.isHost) this.net.send({ t: 'dead', id, by });
+    if (this.isHost) this.bridge.send({ t: 'dead', id, by });
   }
 
   // ---------------------------------------------------------------- guest 侧
 
   /** guest 打中了敌机:**只上报,不本地扣血**。生死由 host 说了算 */
   reportHit(id: number, damage = 1) {
-    if (!this.isHost) this.net.send({ t: 'hit', id, damage });
+    if (!this.isHost) this.bridge.send({ t: 'hit', id, damage });
   }
 
   // ---------------------------------------------------------------- 收
@@ -161,7 +152,7 @@ export class CoopSession {
   dispose(reason: 'finished' | 'quit' = 'quit') {
     if (this.disposed) return;
     this.disposed = true;
-    this.net.send({ t: 'bye', reason });
-    this.net.close('quit');
+    this.bridge.send({ t: 'bye', reason });
+    this.bridge.listen(null);
   }
 }

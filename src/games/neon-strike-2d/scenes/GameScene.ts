@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
-import { CoopSession, type CoopHandoff, type SpawnPayload } from '../coop/session';
+import { CoopSession, type SpawnPayload } from '../coop/session';
+import type { CoopBridge } from '../coop/bridge';
 import {
   CAMPAIGN_WAVES, COLORS, DIFFICULTIES, GAME_HEIGHT, GAME_WIDTH, TUNING,
   type DifficultyId, type DifficultySpec, type GameMode,
@@ -74,7 +75,7 @@ export class GameScene extends Phaser.Scene {
    * 联机握手的产物。**单人时是 undefined,所有联机分支都靠它短路** ——
    * 单人模式必须一行不改地照常跑,这是 COOP.md §7 的第一条验收。
    */
-  private coop?: CoopHandoff;
+  private coop?: CoopBridge;
   /** 联机会话。单人时是 undefined,所有联机分支都靠它短路 */
   private coopSession?: CoopSession;
   /** 对方的飞机。纯表现:不参与任何碰撞,它的伤害判定在对方那一端 */
@@ -112,7 +113,7 @@ export class GameScene extends Phaser.Scene {
 
   constructor() { super('NeonGame'); }
 
-  init(data: { mode?: GameMode; difficulty?: DifficultyId; coop?: CoopHandoff }) {
+  init(data: { mode?: GameMode; difficulty?: DifficultyId; coop?: CoopBridge }) {
     this.mode = data?.mode ?? 'campaign';
     this.difficulty = data?.difficulty && DIFFICULTIES[data.difficulty] ? data.difficulty : 'normal';
     this.diff = DIFFICULTIES[this.difficulty];
@@ -170,11 +171,10 @@ export class GameScene extends Phaser.Scene {
     // 而且服务端房间停在 connected —— 双方谁也邀请不了谁
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       if (this.coop) {
-        // 走 session 而不是直接关 net:它会先给对方发一条 bye,
+        // 走 session 而不是直接关桥:它会先给对方发一条 bye,
         // 对方就能立刻知道是「退出」而不是「网络断了」,文案不一样
         this.coopSession?.dispose('quit');
-        this.coop.net.close('quit');
-        void fetch('/api/coop/leave', { method: 'POST' }).catch(() => {});
+        this.coop.close();
         this.coopSession = undefined;
         this.coop = undefined;
         this.netEnemies.clear();
@@ -504,7 +504,7 @@ export class GameScene extends Phaser.Scene {
       undefined, this,
     );
 
-    this.coopSession = new CoopSession(this.coop.net, this.coop.room, {
+    this.coopSession = new CoopSession(this.coop, {
       onPeerPos: (x, y) => { this.peer?.setPosition(x, y); },
       onPeerFire: (x, y, weapon) => this.spawnPeerShots(x, y, weapon),
       onWave: (index) => this.followWave(index),

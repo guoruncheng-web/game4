@@ -6,8 +6,6 @@ import {
 import { getVolume, isMuted, setMuted, setVolume, sfx } from '../sfx';
 import { bestScore, clearRecords, loadScores, loadSettings, saveSettings } from '../storage';
 import { neonButton, neonPanel, segmented, volumeBar } from '../ui';
-import { Lobby, type LobbyRoom, type LobbyView } from '../coop/lobby';
-import type { CoopNet } from '../coop/net';
 
 export class MenuScene extends Phaser.Scene {
   private difficulty: DifficultyId = 'normal';
@@ -15,16 +13,6 @@ export class MenuScene extends Phaser.Scene {
   private hintText!: Phaser.GameObjects.Text;
   private overlay?: Phaser.GameObjects.Container;
 
-  /** 联机大厅。只在菜单页活着,握手完成即停掉全部轮询 */
-  private lobby?: Lobby;
-  private lobbyView: LobbyView = {
-    loggedIn: true, me: null, online: [], room: null, connecting: false, error: null,
-  };
-  private coopButton?: ReturnType<typeof neonButton>;
-  /** 当前正在展示的联机面板重绘函数。面板没开时是 undefined */
-  private redrawCoop?: () => void;
-  /** 已经弹过邀请提示的房间号,避免每次心跳重复弹 */
-  private notifiedRoom = 0;
 
   constructor() { super('NeonMenu'); }
 
@@ -91,11 +79,19 @@ export class MenuScene extends Phaser.Scene {
       }).setOrigin(0.5);
     }
 
-    this.coopButton = neonButton(
-      this, GAME_WIDTH / 2, 826, 300, 52, '联机协作 · 连接中…',
-      () => this.openCoop(), { size: 20, accent: COLORS.amber },
+    // 联机不在这里做:在线状态、邀请、房间都归全站的那条 WebSocket 管
+    // (src/components/CoopProvider.tsx),菜单页只负责把人送到匹配页去。
+    // 在 Phaser 里再实现一套列表和弹窗,等于把同一件事做两遍
+    neonButton(
+      this, GAME_WIDTH / 2, 826, 300, 52, '双人协作 · 匹配',
+      () => {
+        // 这里是 Phaser 场景,拿不到 next/navigation。整页跳转反而是对的:
+        // 它会顺带把 Phaser 实例彻底销毁,不用担心画布和音频残留
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.href = '/neon-strike-2d/lobby';
+      },
+      { size: 20, accent: COLORS.amber },
     );
-    this.startLobby();
 
     neonButton(this, GAME_WIDTH / 2 - 82, 894, 148, 50, '战绩', () => this.openScores(), { size: 19 });
     neonButton(this, GAME_WIDTH / 2 + 82, 894, 148, 50, '设置', () => this.openSettings(), { size: 19 });
@@ -113,135 +109,7 @@ export class MenuScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.input.keyboard?.removeAllListeners();
       this.events.removeAllListeners(Phaser.Scenes.Events.UPDATE);
-      // 离开菜单页必须停掉心跳,否则换到别的场景还在每 3 秒打一次接口
-      this.lobby?.stop();
-      this.lobby = undefined;
     });
-  }
-
-  // ---------------------------------------------------------------- 联机
-
-  private startLobby() {
-    this.lobby = new Lobby(
-      (view) => this.onLobbyView(view),
-      (net, room) => this.launchCoop(net, room),
-    );
-    this.lobby.start();
-  }
-
-  private onLobbyView(view: LobbyView) {
-    this.lobbyView = view;
-    // 场景销毁后 Phaser 会把 sys 和 scene 都置空,直接调 isActive() 会抛。
-    // Lobby 那边虽然也挡了一道,但异步回调迟到是常态,消费侧必须自己也能扛住
-    if (!this.sys || !this.scene?.isActive()) return;
-
-    this.coopButton?.setLabel(
-      !view.loggedIn ? '联机协作 · 需要登录'
-        : view.connecting ? '联机协作 · 建立连接中…'
-          : view.room ? `联机协作 · ${view.room.peer}`
-            : `联机协作 · ${view.online.length} 人在线`,
-    );
-    this.coopButton?.setEnabled(view.loggedIn);
-
-    // 收到邀请就主动弹出来。玩家不会一直盯着那个按钮,
-    // 而邀请只有 30 秒有效期 —— 不弹等于收不到
-    if (view.room?.state === 'pending' && view.room.role === 'guest' && this.notifiedRoom !== view.room.id) {
-      this.notifiedRoom = view.room.id;
-      this.openCoop();
-    }
-    this.redrawCoop?.();
-  }
-
-  private openCoop() {
-    if (!this.lobbyView.loggedIn) return;
-    const { container, cy, height } = this.openOverlay('联机协作', 620);
-    const body = this.add.container(0, 0);
-    container.add(body);
-
-    // 面板内容随心跳变化,所以整块重绘。列表最多十几行,重绘成本可以忽略
-    this.redrawCoop = () => {
-      if (!this.overlay) return;
-      body.removeAll(true);
-      const view = this.lobbyView;
-      const top = cy - height / 2 + 80;
-
-      if (view.error) {
-        body.add(this.add.text(GAME_WIDTH / 2, top, view.error, {
-          fontFamily: 'system-ui', fontSize: '15px', color: '#ff9b8a',
-        }).setOrigin(0.5));
-      }
-
-      if (view.connecting) {
-        body.add(this.add.text(GAME_WIDTH / 2, cy, '正在建立直连…', {
-          fontFamily: 'system-ui', fontSize: '19px', color: COLORS.ink,
-        }).setOrigin(0.5));
-        body.add(this.add.text(GAME_WIDTH / 2, cy + 34, '两台设备之间点对点,不经过服务器', {
-          fontFamily: 'monospace', fontSize: '13px', color: COLORS.muted,
-        }).setOrigin(0.5));
-        return;
-      }
-
-      const room = view.room;
-      if (room?.state === 'pending' && room.role === 'guest') {
-        body.add(this.add.text(GAME_WIDTH / 2, cy - 60, `${room.peer} 邀请你一起打`, {
-          fontFamily: 'system-ui', fontSize: '21px', color: COLORS.ink,
-        }).setOrigin(0.5));
-        body.add(neonButton(this, GAME_WIDTH / 2 - 90, cy + 10, 160, 54, '接受',
-          () => void this.lobby?.respond(room.id, true), { size: 20 }).root);
-        body.add(neonButton(this, GAME_WIDTH / 2 + 90, cy + 10, 160, 54, '拒绝',
-          () => void this.lobby?.respond(room.id, false), { size: 20, accent: COLORS.red }).root);
-        return;
-      }
-      if (room?.state === 'pending') {
-        body.add(this.add.text(GAME_WIDTH / 2, cy - 20, `已邀请 ${room.peer}`, {
-          fontFamily: 'system-ui', fontSize: '20px', color: COLORS.ink,
-        }).setOrigin(0.5));
-        body.add(this.add.text(GAME_WIDTH / 2, cy + 12, '等待对方接受…30 秒内无响应会自动取消', {
-          fontFamily: 'monospace', fontSize: '13px', color: COLORS.muted,
-        }).setOrigin(0.5));
-        body.add(neonButton(this, GAME_WIDTH / 2, cy + 70, 180, 50, '取消邀请',
-          () => void this.lobby?.leave(), { size: 19, accent: COLORS.red }).root);
-        return;
-      }
-
-      body.add(this.add.text(GAME_WIDTH / 2, top + 24, '在线玩家', {
-        fontFamily: 'monospace', fontSize: '14px', color: '#5fd6ef', letterSpacing: 3,
-      }).setOrigin(0.5));
-
-      if (view.online.length === 0) {
-        body.add(this.add.text(GAME_WIDTH / 2, cy, '现在没有其他人在线', {
-          fontFamily: 'system-ui', fontSize: '17px', color: COLORS.muted,
-        }).setOrigin(0.5));
-        body.add(this.add.text(GAME_WIDTH / 2, cy + 30, '让朋友也打开这个页面就能看到彼此', {
-          fontFamily: 'monospace', fontSize: '13px', color: '#5f8fa8',
-        }).setOrigin(0.5));
-        return;
-      }
-
-      // 一屏放 6 个,再多就不是"点一下"而是"翻列表"了
-      view.online.slice(0, 6).forEach((user, i) => {
-        const y = top + 70 + i * 62;
-        body.add(this.add.text(GAME_WIDTH / 2 - 150, y, user.username, {
-          fontFamily: 'monospace', fontSize: '17px', color: COLORS.ink,
-        }).setOrigin(0, 0.5));
-        body.add(neonButton(this, GAME_WIDTH / 2 + 130, y, 116, 44, '邀请',
-          () => void this.lobby?.invite(user.id), { size: 17 }).root);
-      });
-    };
-    this.redrawCoop();
-  }
-
-  private launchCoop(net: CoopNet, room: LobbyRoom) {
-    // 握手是异步的,回调回来时玩家可能已经离开菜单页了
-    if (!this.sys || !this.scene?.isActive()) {
-      net.close('quit');
-      return;
-    }
-    this.closeOverlay();
-    this.lobby?.stop();
-    sfx.ui();
-    // 联机固定走战役模式:无尽模式没有终点,配上"一方掉线就结束"会很难收场
-    this.scene.start('NeonGame', { mode: 'campaign', difficulty: this.difficulty, coop: { net, room } });
   }
 
   private launch(mode: 'campaign' | 'endless') {
@@ -270,7 +138,6 @@ export class MenuScene extends Phaser.Scene {
   private closeOverlay() {
     this.overlay?.destroy(true);
     this.overlay = undefined;
-    this.redrawCoop = undefined;
   }
 
   private openScores() {
