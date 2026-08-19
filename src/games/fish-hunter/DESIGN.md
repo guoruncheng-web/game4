@@ -1,6 +1,6 @@
 # 深海捕鱼（fish-hunter）—— 多人联机设计
 
-slug `fish-hunter` · 引擎 Phaser 3 · **横屏 1280×800** · 最多 4 人同池 · 服务端权威
+slug `fish-hunter` · 引擎 **Three.js** · **横屏 1280×800** · 最多 4 人同池 · 服务端权威
 
 ---
 
@@ -291,7 +291,10 @@ p    = min(0.9, K / (value × 网内鱼数))     K = 0.92
 ## 7. 视听（细则交给 game_artist 写 ART.md）
 
 - 背景：深海渐变 + 缓动光柱 + 浮游粒子，全部运行时生成，不占素材。
-- 鱼：**这一款必须用真图**——8 种鱼靠 `Graphics` 画不出辨识度，而辨识度直接决定玩家能不能瞬间判断「这条值不值得打」。走 ComfyUI 出侧视图 PNG（透明底），落 `public/fish-hunter/fish/*.png`。游动摆尾用 Phaser 的 `rope` 沿身体做正弦位移，不做逐帧序列图（8 种鱼 × 序列帧 = 素材体积失控）。
+- 鱼：**3D 模型 + 骨骼动画**（`public/fish-hunter/models/*.glb`，由 Blender 无头脚本生成，规格与验收见 ART.md §2）。
+  先出的那批侧视图 PNG 没有浪费——它们成了模型的贴图（低模 + 平面投影 UV，沿用 triple-pile 的做法）。
+  改成 3D 的理由不是「2D 不够好看」，而是**静止的贴图没有动作**：每种鱼要有自己的游动节奏，
+  这件事在 2D 里要么靠序列帧（8 种鱼 × 16 帧，素材体积失控），要么靠 rope 顶点位移（只能做单一的身体波）。
 - 炮台、网、金币：`Graphics.generateTexture()` 生成，够用。
 - 音效：rFXGen，`tools/audio/fish-hunter/build_sfx.mjs`，参照霓虹突击那套流程。清单：开炮、网炸开、捕获小鱼、捕获大鱼、金龙进场、冰冻、余额不足。
 - **可读性红线**：4 个人的网同时在场时画面很容易糊。每个座位一个固定色（青/橙/紫/绿），网、炮台、飘字全部用该色；捕获飘字只在自己捕获时用大号，别人的用小号半透明。
@@ -303,10 +306,11 @@ p    = min(0.9, K / (value × 网内鱼数))     K = 0.92
 
 每一步都是可玩的，不做「全做完才能跑」的大爆炸。
 
-1. **单机跑通**：`sim/`（鱼路径、炮弹、碰撞、捕获摇点、钱包）+ `LocalTransport` + Phaser 场景。此时已经是一款完整的单机捕鱼。
-2. **服务端房间**：`server/ws.mjs` 改多座位 + 挂 `FishRoom` + 协议 §5。`WsTransport` 接上。两人同池能互相看到网和捕获。
-3. **大厅**：房列表 / 建房 / 加入 / 邀请，`CoopProvider` 补 `fish-hunter` 分支。
-4. **金币入库**：`scripts/db/schema.sql` 加 `wallets` 表（`user_id` 主键、`balance`、`updated_at`、`last_grant_at`），服务端**批量落盘**（每 10 秒或余额变动 > 500 时写一次，进程退出时 flush）——每发炮弹写一次库是没必要的写放大。
+1. **单机跑通**（已完成）：`sim/`（鱼路径、炮弹、碰撞、捕获摇点、钱包）+ `LocalTransport` + Phaser 场景。此时已经是一款完整的单机捕鱼。
+2. **服务端房间**（已完成）：`server/ws.mjs` 改多座位 + 挂 `FishRoom` + 协议 §5。`WsTransport` 接上。
+   权威模拟跑在 `server/fish-room.mjs` 这层适配里，ws.mjs 对其它游戏仍是「只转发不解析」的哑管道。
+3. **大厅**（已完成）：房列表 / 建房 / 加入 / 邀请，`CoopProvider` 补 `fish-hunter` 分支。
+4. **金币入库**（未做）：`scripts/db/schema.sql` 加 `wallets` 表（`user_id` 主键、`balance`、`updated_at`、`last_grant_at`），服务端**批量落盘**（每 10 秒或余额变动 > 500 时写一次，进程退出时 flush）——每发炮弹写一次库是没必要的写放大。
 5. **打磨**：全屏技、BOSS、破产补助、音效、断线重连（重连即重新 `hello` 拿快照，鱼池本来就在服务端，没有恢复难题）。
 
 ### 要动的文件
@@ -327,8 +331,15 @@ src/games/fish-hunter/
     transport.ts     Transport 接口
     local.ts         LocalTransport（单机）
     ws.ts            WsTransport（联机）
-  scenes/            Boot / Menu / Game / Lobby
-  textures.ts  sfx.ts
+  three/             ★ 渲染层(Three.js)
+    stage.ts         正交相机、灯光、水体、焦散;sim 坐标 ↔ 世界坐标的唯一转换点
+    assets.ts        glb 加载、蒙皮克隆、按座位染色
+    fish.ts          一条鱼:模型 + 骨骼动画 + 朝向
+    props.ts         炮台(turret 节点单独转)与炮弹
+    fx.ts            炮口闪光 / 网炸开 / 捕获光爆 / 大鱼播报 / 金币
+  ui/hud.ts          DOM 覆盖层:余额、炮等级、提示
+  world.ts           接线层(取代 Phaser 版的 GameScene)
+  sfx.ts
 src/app/fish-hunter/page.tsx        游戏页
 src/app/fish-hunter/lobby/page.tsx  大厅
 src/games/registry.ts               追加一条元数据

@@ -91,7 +91,7 @@ registry 现在只服务于 `manifest.ts` 的快捷方式(取前 4 条)和各游
 | slug | 引擎 | 容器 | 契约 |
 | --- | --- | --- | --- |
 | `star-runner`、`fruit-slasher`、`neon-strike-2d` | Phaser 3 | `PhaserCanvas` | `GameModule`,`startGame` 返回 `Phaser.Game` |
-| `neon-strike`、`eight-ball`、`triple-pile` | Three.js | `ThreeCanvas` | `ThreeGameModule`,`startGame` 返回 `{ destroy() }` |
+| `neon-strike`、`eight-ball`、`triple-pile`、`fish-hunter` | Three.js | `ThreeCanvas` | `ThreeGameModule`,`startGame` 返回 `{ destroy() }` |
 
 `neon-strike` 已重写为 Three.js 版(`three/` 渲染 + `world.ts` 玩法 + `ui/` DOM 覆盖层),
 初代 Phaser 竖屏弹幕版原样保留在 `neon-strike-2d`。两版是**各自独立的游戏**:

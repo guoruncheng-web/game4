@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "ws": "node --env-file=.env.local server/ws.mjs",
+    "ws": "node --import ./server/ts-register.mjs --env-file=.env.local server/ws.mjs",
     "icons": "node tools/pwa/build-icons.mjs",
-    "fish:rtp": "node --import ./server/ts-register.mjs tools/sim/fish-hunter/rtp.mjs"
+    "fish:rtp": "node --import ./server/ts-register.mjs tools/sim/fish-hunter/rtp.mjs",
+    "fish:test": "node --import ./server/ts-register.mjs tools/sim/fish-hunter/room-test.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.20.0",

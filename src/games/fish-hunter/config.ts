@@ -29,6 +29,12 @@ export type FishKind = {
   value: number;
   /** 判定圈半径(像素) */
   radius: number;
+  /**
+   * 画面高度(像素)。**和 radius 解耦** —— 大鱼的轮廓可以明显超出判定圈,
+   * 不然金龙那条长身子要么判定圈大得离谱、要么画得比章鱼还小。
+   * 值来自 ART.md §2 那张表。
+   */
+  height: number;
   /** 游速(像素/秒) */
   speed: number;
   /** 随机出现权重。boss 不参与随机,由定时器投放 */
@@ -40,15 +46,21 @@ export type FishKind = {
 };
 
 export const FISH_KINDS: Record<FishKindId, FishKind> = {
-  clown:  { id: 'clown',  label: '小丑鱼', value: 2,   radius: 22, speed: 105, weight: 40,  school: 6, color: 0xff9f43 },
-  blue:   { id: 'blue',   label: '蓝鳍鱼', value: 5,   radius: 26, speed: 120, weight: 25,  school: 4, color: 0x54a0ff },
-  puffer: { id: 'puffer', label: '河豚',   value: 10,  radius: 30, speed: 78,  weight: 15,  school: 2, color: 0xfeca57 },
-  turtle: { id: 'turtle', label: '海龟',   value: 20,  radius: 38, speed: 62,  weight: 10,  school: 1, color: 0x1dd1a1 },
-  ray:    { id: 'ray',    label: '魔鬼鱼', value: 40,  radius: 44, speed: 108, weight: 6,   school: 1, color: 0xa55eea },
-  shark:  { id: 'shark',  label: '鲨鱼',   value: 80,  radius: 52, speed: 160, weight: 3,   school: 1, color: 0x8395a7 },
-  dragon: { id: 'dragon', label: '金龙',   value: 200, radius: 62, speed: 132, weight: 0.8, school: 1, color: 0xf9ca24 },
-  boss:   { id: 'boss',   label: '章鱼王', value: 500, radius: 96, speed: 46,  weight: 0,   school: 1, color: 0xee5253 },
+  clown:  { id: 'clown',  label: '小丑鱼', value: 2,   radius: 22, height: 44, speed: 105, weight: 40,  school: 6, color: 0xff9f43 },
+  blue:   { id: 'blue',   label: '蓝鳍鱼', value: 5,   radius: 26, height: 52, speed: 120, weight: 25,  school: 4, color: 0x54a0ff },
+  puffer: { id: 'puffer', label: '河豚',   value: 10,  radius: 30, height: 60, speed: 78,  weight: 15,  school: 2, color: 0xfeca57 },
+  turtle: { id: 'turtle', label: '海龟',   value: 20,  radius: 38, height: 76, speed: 62,  weight: 10,  school: 1, color: 0x5cb04a },
+  ray:    { id: 'ray',    label: '魔鬼鱼', value: 40,  radius: 44, height: 88, speed: 108, weight: 6,   school: 1, color: 0x8fc4e2 },
+  shark:  { id: 'shark',  label: '鲨鱼',   value: 80,  radius: 52, height: 104, speed: 160, weight: 3,   school: 1, color: 0x8395a7 },
+  dragon: { id: 'dragon', label: '金龙',   value: 200, radius: 62, height: 200, speed: 132, weight: 0.8, school: 1, color: 0xf9ca24 },
+  boss:   { id: 'boss',   label: '章鱼王', value: 500, radius: 96, height: 260, speed: 46,  weight: 0,   school: 1, color: 0xee5253 },
 };
+
+/**
+ * 注意 turtle 和 ray 的 color 是**按实际素材校正过的**,不等于 ART.md §2 表里最初声明的值:
+ * 出图出来海龟是叶绿(不是翡翠绿)、魔鬼鱼是灰蓝(不是紫)。
+ * 这个色只驱动飘字和描边,让它跟着画面走比让画面迁就它便宜得多。
+ */
 
 /** 随机投放的鱼种(不含 boss),顺序固定 —— 权重抽样依赖它稳定 */
 export const SPAWNABLE: FishKindId[] = ['clown', 'blue', 'puffer', 'turtle', 'ray', 'shark', 'dragon'];

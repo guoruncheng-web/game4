@@ -12,6 +12,8 @@
 import type { ClientMsg, ServerMsg } from '../sim/protocol';
 
 export type Transport = {
+  /** 单机还是联机。**只许用来决定文案之类的表现**,玩法逻辑不许按它分支 */
+  kind: 'local' | 'ws';
   send(msg: ClientMsg): void;
   /** 挂收消息的回调。传 null 摘掉 */
   listen(handler: ((msg: ServerMsg) => void) | null): void;

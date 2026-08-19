@@ -44,6 +44,7 @@ export function createLocalTransport(): Transport {
   }, TICK_MS);
 
   return {
+    kind: 'local',
     send(msg: ClientMsg) {
       if (msg.t === 'level') {
         room.input(SEAT, msg, Date.now());

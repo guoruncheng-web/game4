@@ -64,7 +64,7 @@ export const GAMES: GameMeta[] = [
   {
     slug: 'fish-hunter',
     title: '深海捕鱼',
-    tagline: '横屏一池鱼 · 最多 4 人同打 · 服务端权威',
+    tagline: '横屏 3D 一池鱼 · 最多 4 人同打 · 服务端权威',
     controls: '按住画面朝鱼开炮 · ↑ ↓ 或 ± 换炮 · 空格连发',
     accent: 'text-cyan-300',
   },
