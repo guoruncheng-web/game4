@@ -13,6 +13,14 @@ export type Role = 'host' | 'guest';
 
 export type NetMessage =
   /** 握手后的时钟对齐,来回 5 次取最短往返(COOP.md §4.4) */
+  /**
+   * 场景已就绪。**开局必须等这条**:两边各自加载各自的,
+   * 先加载完的那个如果直接开打,早期的 wave / spawn 事件对面根本收不到 ——
+   * 那时它还在 Boot 场景里,CoopSession 都还没挂上。
+   */
+  | { t: 'ready' }
+  /** 加载进度 0~1。开局前互相报,让等待的一方看得见对方到哪了 */
+  | { t: 'load'; p: number }
   | { t: 'ping'; id: number }
   | { t: 'pong'; id: number; now: number }
 

@@ -20,6 +20,8 @@ export function startGame(parent: HTMLElement): Phaser.Game {
   });
 
   if (bridge) {
+    // 放进 registry:Boot 也要用它互报加载进度,而 registry 是跨场景共享的
+    game.registry.set('coopBridge', bridge);
     // Boot 装完资源才会有贴图,所以要等它跑完再切场景
     game.events.once('ready', () => {
       game.scene.getScene('NeonBoot')?.events.once('shutdown', () => {

@@ -2,6 +2,7 @@ import * as Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { createTextures } from '../textures';
 import { preloadSfx } from '../sfx';
+import type { CoopBridge } from '../coop/bridge';
 
 /** 图片资源清单:key → 路径 */
 const IMAGES: Array<[string, string]> = [
@@ -31,11 +32,16 @@ export class BootScene extends Phaser.Scene {
   private imageProgress = 0;
   private audioProgress = 0;
   private failed: string[] = [];
+  /** 队友的加载进度。-1 表示不是联机局,或还没收到过 */
+  private peerProgress = -1;
+  private lastSentProgress = -1;
 
   constructor() { super('NeonBoot'); }
 
   preload() {
     this.failed = [];
+    this.peerProgress = -1;
+    this.lastSentProgress = -1;
     this.imageProgress = 0;
     this.audioProgress = 0;
     this.buildUI();
@@ -46,8 +52,22 @@ export class BootScene extends Phaser.Scene {
     this.load.on(Phaser.Loader.Events.PROGRESS, (value: number) => {
       this.imageProgress = value;
       this.status.setText('载入战场素材…');
+      this.reportProgress();
       this.render();
     });
+
+    // 联机时互报进度。第一次加载慢的那个人,对面能看见他到哪了,
+    // 而不是对着一个不动的画面猜是不是卡死了
+    const bridge = this.registry.get('coopBridge') as CoopBridge | undefined;
+    if (bridge) {
+      bridge.listen((data) => {
+        const msg = data as { t?: string; p?: number };
+        if (msg?.t === 'load' && typeof msg.p === 'number') {
+          this.peerProgress = msg.p;
+          this.render();
+        }
+      });
+    }
     this.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, (file: Phaser.Loader.File) => {
       this.failed.push(file.key);
     });
@@ -67,6 +87,7 @@ export class BootScene extends Phaser.Scene {
     // 音效是 WebAudio 合成的,没有文件要下载,这一步只是建 AudioContext 和噪声缓冲
     await preloadSfx((loaded, total) => {
       this.audioProgress = loaded / total;
+      this.reportProgress();
       this.render();
     });
     // 等待期间玩家可能已经离开页面,场景被销毁
@@ -78,8 +99,21 @@ export class BootScene extends Phaser.Scene {
       return;
     }
     this.status.setText('准备就绪');
+    this.reportProgress(true);
     this.render();
+    // 把监听摘掉:接下来是 GameScene 的 CoopSession 接管这条桥
+    (this.registry.get('coopBridge') as CoopBridge | undefined)?.listen(null);
     this.time.delayedCall(140, () => this.scene.start('NeonMenu'));
+  }
+
+  /** 上报自己的进度。节流到每 5% 一次 —— 进度条上看不出差别,却少发几十条消息 */
+  private reportProgress(force = false) {
+    const bridge = this.registry.get('coopBridge') as CoopBridge | undefined;
+    if (!bridge) return;
+    const p = this.imageProgress * 0.7 + this.audioProgress * 0.3;
+    if (!force && p - this.lastSentProgress < 0.05) return;
+    this.lastSentProgress = p;
+    bridge.send({ t: 'load', p });
   }
 
   /** 加载期间场景状态是 LOADING/CREATING,不能用 isActive() 判活,只能排除 SHUTDOWN 之后 */
@@ -130,6 +164,16 @@ export class BootScene extends Phaser.Scene {
       this.bar.fillStyle(0x54ecff, 0.95).fillRect(BAR.x + 1, BAR.y + 1, (BAR.w - 2) * value, BAR.h - 2);
     }
     this.percent.setText(`${Math.round(value * 100)}%`);
+
+    // 联机时把队友的进度画成第二条(暗一档的)。
+    // 自己读完了对方还没好时,这条是唯一能说明"在等什么"的东西
+    if (this.peerProgress >= 0) {
+      this.bar.fillStyle(0xffb46a, 0.55)
+        .fillRect(BAR.x + 1, BAR.y + BAR.h + 5, (BAR.w - 2) * this.peerProgress, 6);
+      this.hint.setText(
+        this.peerProgress >= 1 ? '队友已就绪' : `队友载入中 ${Math.round(this.peerProgress * 100)}%`,
+      );
+    }
   }
 
   private showRetry() {

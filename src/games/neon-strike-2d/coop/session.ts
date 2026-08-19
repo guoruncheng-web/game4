@@ -57,6 +57,10 @@ export type CoopHooks = {
   onTaken(id: number): void;
   /** 对方的状态,给 HUD */
   onPeerState(score: number, lives: number, dead: boolean): void;
+  /** 对方还在加载,p 是 0~1 */
+  onPeerLoad(p: number): void;
+  /** 对方的场景也就绪了 */
+  onPeerReady(): void;
   /** 对方掉线了 */
   onPeerLeft(): void;
 };
@@ -89,6 +93,11 @@ export class CoopSession {
     this.lastPosAt = now;
     // 位置取整:小数点后的精度在屏幕上一个像素都体现不出来,却让每条消息长一截
     this.bridge.send({ t: 'pos', x: Math.round(x), y: Math.round(y) });
+  }
+
+  /** 我这边的场景准备好了。对方收到才知道可以开打 */
+  sendReady() {
+    this.bridge.send({ t: 'ready' });
   }
 
   sendFire(x: number, y: number, weapon: number) {
@@ -160,6 +169,12 @@ export class CoopSession {
   private receive(msg: NetMessage) {
     if (this.disposed) return;
     switch (msg.t) {
+      case 'ready':
+        this.hooks.onPeerReady();
+        break;
+      case 'load':
+        this.hooks.onPeerLoad(msg.p);
+        break;
       case 'pos':
         this.hooks.onPeerPos(msg.x, msg.y);
         break;

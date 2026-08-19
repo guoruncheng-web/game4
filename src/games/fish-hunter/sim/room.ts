@@ -283,16 +283,21 @@ export class FishRoom {
     this.bullets = alive;
   }
 
-  private hitTest(b: Bullet, now: number): FishSpawn | null {
+  /**
+   * 网碰到鱼没有。**判定圈是网的半径 + 鱼的半径**,不是炮弹那个点 ——
+   * 网就是命中判定本身,这也是高等级炮唯一的真实优势(config.netRadius)。
+   */
+  private hitTest(b: Bullet, now: number): boolean {
+    const r = netRadius(b.level);
     for (const f of this.fish) {
       if (now < f.t0) continue; // 成群投放时后几条还没进场
       const p = fishPos(f, now);
-      const r = FISH_KINDS[f.kind].radius;
+      const reach = r + FISH_KINDS[f.kind].radius;
       const dx = p.x - b.x;
       const dy = p.y - b.y;
-      if (dx * dx + dy * dy <= r * r) return f;
+      if (dx * dx + dy * dy <= reach * reach) return true;
     }
-    return null;
+    return false;
   }
 
   /**
@@ -307,21 +312,28 @@ export class FishRoom {
     if (!state) return;
 
     const r = netRadius(b.level);
-    const caught: number[] = [];
+
+    // 先圈出网覆盖到的鱼,再统一判定 —— 概率要按覆盖数分摊(config.catchChance),
+    // 所以必须先知道总共罩住了几条,不能边扫边摇
+    const covered: Array<{ f: FishSpawn; x: number; y: number }> = [];
     for (const f of this.fish) {
       if (now < f.t0) continue;
       const p = fishPos(f, now);
-      const spec = FISH_KINDS[f.kind];
+      const reach = r + FISH_KINDS[f.kind].radius;
       const dx = p.x - b.x;
       const dy = p.y - b.y;
-      const reach = r + spec.radius;
-      if (dx * dx + dy * dy > reach * reach) continue;
-      if (this.rng() >= catchChance(b.level, spec.value)) continue;
+      if (dx * dx + dy * dy <= reach * reach) covered.push({ f, x: p.x, y: p.y });
+    }
+
+    const caught: number[] = [];
+    for (const c of covered) {
+      const spec = FISH_KINDS[c.f.kind];
+      if (this.rng() >= catchChance(spec.value, covered.length)) continue;
 
       const gold = spec.value * b.level;
-      caught.push(f.id);
+      caught.push(c.f.id);
       this.credit(b.seat, state, gold);
-      this.emit(null, { t: 'caught', fish: f.id, seat: b.seat, gold, x: p.x, y: p.y });
+      this.emit(null, { t: 'caught', fish: c.f.id, seat: b.seat, gold, x: c.x, y: c.y });
     }
     if (caught.length) this.fish = this.fish.filter((f) => !caught.includes(f.id));
   }

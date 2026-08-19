@@ -94,6 +94,9 @@ export class GameScene extends Phaser.Scene {
   private lastStateAt = 0;
   /** 对方的分数和命数,给 HUD */
   private peerState = { score: 0, lives: 0, dead: false };
+  /** 对方的场景就绪了没。开局要等它 —— 否则先加载完的那个会自己先打起来 */
+  private peerReady = false;
+  private waitingText?: Phaser.GameObjects.Text;
   private mode: GameMode = 'campaign';
   private difficulty: DifficultyId = 'normal';
   private diff: DifficultySpec = DIFFICULTIES.normal;
@@ -165,7 +168,18 @@ export class GameScene extends Phaser.Scene {
     this.bindPointer();
     this.input.keyboard?.on('keydown-P', () => this.pauseGame());
     this.input.keyboard?.on('keydown-ESC', () => this.pauseGame());
-    this.time.delayedCall(650, () => this.startWave());
+    if (this.coopSession) {
+      // 联机开局要等双方都就绪。**这里不能直接开波** ——
+      // 对面可能还在 Boot 加载贴图,那时它连 CoopSession 都还没挂上,
+      // 早期的 wave / spawn 全会丢,一开局就不同步
+      this.waitingText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT / 2, '等待队友加载…', {
+        fontFamily: 'monospace', fontSize: '22px', color: '#b9faff',
+      }).setOrigin(0.5).setDepth(60);
+      this.coopSession.sendReady();
+      this.tryStartCoop();
+    } else {
+      this.time.delayedCall(650, () => this.startWave());
+    }
     // Clock.now 取的是全局 loop 时间:场景暂停时它不推进,恢复那一帧却会直接跳到当前时间。
     // 于是所有"绝对截止时间"(护盾、无敌帧、俯冲时刻)会把暂停时长白白吃掉,
     // 而 delayedCall 是按 delta 累加的、本来就抗暂停 —— 半套抗、半套不抗,只能手动补偿。
@@ -541,6 +555,17 @@ export class GameScene extends Phaser.Scene {
         if (power?.active) power.disableBody(true, true);
       },
       onPeerState: (score, lives, dead) => { this.peerState = { score, lives, dead }; },
+      onPeerLoad: (p) => {
+        // 自己已经进战场、对方还在加载时,把进度显示出来
+        this.waitingText?.setText(`等待队友加载… ${Math.round(p * 100)}%`);
+      },
+      onPeerReady: () => {
+        this.peerReady = true;
+        // 对方可能比我先就绪 —— 那时我的 ready 还没发出去,它收不到。
+        // 所以收到对方的 ready 之后再回一条,双方谁先谁后都能凑齐
+        this.coopSession?.sendReady();
+        this.tryStartCoop();
+      },
       onPeerLeft: () => this.onPeerLeft(),
     });
   }
@@ -581,6 +606,23 @@ export class GameScene extends Phaser.Scene {
     const hp = Number(enemy.getData('hp')) - damage;
     enemy.setData('hp', hp);
     if (hp <= 0) this.destroyEnemy(enemy, 'guest');
+  }
+
+  /**
+   * 双方都就绪了才开局。
+   *
+   * 只有 host 真正推波次,guest 只是把「等待队友」的字去掉 ——
+   * 它的敌机全部来自 host 的 spawn 事件。
+   */
+  private tryStartCoop() {
+    if (!this.coopSession || !this.peerReady || this.ended) return;
+    if (this.waitingText) {
+      this.waitingText.destroy();
+      this.waitingText = undefined;
+    } else {
+      return; // 已经开过了,别开第二次
+    }
+    if (this.coopSession.isHost) this.time.delayedCall(650, () => this.startWave());
   }
 
   /** Boss 血条。host 打完自己画,guest 靠 boss 消息画 —— 同一段代码两边用 */

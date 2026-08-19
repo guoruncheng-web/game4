@@ -71,22 +71,37 @@ export const MAX_LEVEL = 7;
 export const FIRE_COOLDOWN_MS = 220;
 export const BULLET_SPEED = 880;
 export const BULLET_LIFE_MS = 2200;
-/** 网炸开的半径。等级越高网越大 —— 这是高等级炮除了概率之外的第二个好处 */
+/**
+ * 网的半径。**这是炮等级唯一的真实优势**:
+ * 网同时也是命中判定圈(见 room.stepBullets),网越大越不容易空放。
+ * 概率不随等级变(见 catchChance),所以高等级炮的实际 RTP 更接近 K,
+ * 差的那部分正是空放掉的子弹。
+ */
 export function netRadius(level: number): number {
   return 46 + level * 5;
 }
 
 /**
- * 捕获概率。K=1 时数学期望正好回本,取 0.92 即 92% RTP。
- * **这是唯一的经济总旋钮**,改它之前先读 DESIGN.md §6.3。
+ * 捕获概率。**这是唯一的经济总旋钮**,改它之前先读 DESIGN.md §6.3。
+ *
+ * 公式推导(第一版写错过,无头模拟里跑出 229% 的 RTP,记在这里免得再犯):
+ *
+ *   成本 = level,收益 = value × level,所以要让期望回本必须有
+ *     p × (value × level) = level  →  p = 1/value
+ *   **level 不出现在概率里**。它一旦出现,RTP 就会随炮等级线性膨胀 ——
+ *   开 7 级炮等于开印钞机。
+ *
+ *   再乘一个网内鱼数 covered:一网糊住 n 条鱼时,每条的概率各除以 n。
+ *   不除的话,期望就是 n 倍 —— 密集鱼群会变成第二台印钞机。
+ *   代价是「网住一群反而每条更难捞」有点反直觉,但总期望恒定才是 RTP 的定义,
+ *   而且多捞的爽感靠的是**偶尔一网三条**,不是每网都三条。
  */
 export const RTP_K = 0.92;
-export const CATCH_P_MIN = 0.01;
+/** 概率上限。给便宜鱼封顶,免得 2 块钱的小丑鱼变成必中 */
 export const CATCH_P_MAX = 0.9;
 
-export function catchChance(level: number, value: number): number {
-  const p = (level / value) * RTP_K;
-  return Math.min(CATCH_P_MAX, Math.max(CATCH_P_MIN, p));
+export function catchChance(value: number, covered: number): number {
+  return Math.min(CATCH_P_MAX, RTP_K / (value * Math.max(1, covered)));
 }
 
 // ---------------------------------------------------------------- 钱包

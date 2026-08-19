@@ -23,6 +23,7 @@ import { createServer } from 'node:http';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { WebSocketServer } from 'ws';
 import postgres from 'postgres';
+import { createFishAdapter, FISH_GAME } from './fish-room.mjs';
 
 const PORT = Number(process.env.WS_PORT || 7011);
 const SESSION_COOKIE = 'gb_session';
@@ -81,7 +82,12 @@ async function resolveUser(cookieHeader) {
 
 /** userId → 连接。**同一个人只保留最后一条连接** —— 多开标签页时前面的会被顶掉 */
 const clients = new Map();
-/** roomId → { id, game, hostId, guestId, started } */
+/**
+ * roomId → 房间。两种形态:
+ *   - 普通(霓虹突击):{ id, game, hostId, guestId, started },服务端只转发不解析;
+ *   - 捕鱼:多带一个 `fish` 适配器,服务端跑玩法权威(见 fish-room.mjs)。
+ * 捕鱼房**不用 guestId**,座位在适配器里。
+ */
 const rooms = new Map();
 let nextRoomId = 1;
 
@@ -112,6 +118,16 @@ function broadcastOnline() {
 }
 
 function roomView(room) {
+  if (room.fish) {
+    // 捕鱼房没有 host/guest 之分,只有座位。hostId 保留只是为了"谁建的房"
+    return {
+      id: room.id,
+      game: room.game,
+      hostId: room.hostId,
+      started: true, // 捕鱼没有"开局"这一刻:房建好鱼就在游,人随进随打
+      players: room.fish.seatViews().map((s) => ({ id: s.id, username: s.username, host: s.id === room.hostId, seat: s.seat })),
+    };
+  }
   const host = clients.get(room.hostId);
   const guest = room.guestId ? clients.get(room.guestId) : null;
   return {
@@ -128,22 +144,73 @@ function roomView(room) {
 
 function pushRoom(room) {
   const view = roomView(room);
-  sendTo(room.hostId, { t: 'room', room: view });
-  if (room.guestId) sendTo(room.guestId, { t: 'room', room: view });
+  for (const id of memberIds(room)) sendTo(id, { t: 'room', room: view });
+}
+
+/** 房间里现在有哪些人 */
+function memberIds(room) {
+  if (room.fish) return room.fish.seatViews().map((s) => s.id);
+  return [room.hostId, room.guestId].filter(Boolean);
+}
+
+/** 可加入的捕鱼房。大厅列表(DESIGN §4.2:开放房列表,不是定向邀请) */
+function fishRoomList() {
+  const out = [];
+  for (const room of rooms.values()) {
+    if (room.game !== FISH_GAME || !room.fish) continue;
+    const players = room.fish.seatViews();
+    out.push({
+      id: room.id,
+      count: players.length,
+      max: 4,
+      names: players.map((p) => p.username),
+    });
+  }
+  return out.slice(0, 30);
+}
+
+/** 房列表变了就推给所有没在房里的人 */
+function broadcastFishRooms() {
+  const list = fishRoomList();
+  for (const c of clients.values()) if (!c.roomId) send(c.ws, { t: 'rooms', game: FISH_GAME, rooms: list });
+}
+
+/**
+ * 离开捕鱼房。**不是「一个人走全房散」** —— 这是它和霓虹突击最大的区别:
+ * 走的人腾出座位,剩下的人继续打,房间只在座位全空时销毁。
+ */
+function leaveFishRoom(room, userId) {
+  room.fish.leave(userId);
+  const client = clients.get(userId);
+  if (client && client.roomId === room.id) client.roomId = null;
+  sendTo(userId, { t: 'roomClosed', reason: 'left' });
+
+  if (room.fish.size === 0) {
+    room.fish.destroy();
+    rooms.delete(room.id);
+  } else {
+    // 建房的人走了就把"房主"转给还在的第一个人,免得列表里显示一个不存在的人
+    if (room.hostId === userId) room.hostId = room.fish.seatViews()[0].id;
+    pushRoom(room);
+  }
+  broadcastOnline();
+  broadcastFishRooms();
 }
 
 /** 解散房间。**必须两边都通知到**,否则留在匹配页的那个人会一直等一个不会来的人 */
 function closeRoom(roomId, reason) {
   const room = rooms.get(roomId);
   if (!room) return;
+  if (room.fish) room.fish.destroy();
   rooms.delete(roomId);
-  for (const id of [room.hostId, room.guestId]) {
+  for (const id of memberIds(room)) {
     if (!id) continue;
     const c = clients.get(id);
     if (c && c.roomId === roomId) c.roomId = null;
     sendTo(id, { t: 'roomClosed', reason });
   }
   broadcastOnline();
+  broadcastFishRooms();
 }
 
 /**
