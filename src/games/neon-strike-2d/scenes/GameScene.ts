@@ -1,4 +1,5 @@
 import * as Phaser from 'phaser';
+import { CoopSession, type CoopHandoff, type SpawnPayload } from '../coop/session';
 import {
   CAMPAIGN_WAVES, COLORS, DIFFICULTIES, GAME_HEIGHT, GAME_WIDTH, TUNING,
   type DifficultyId, type DifficultySpec, type GameMode,
@@ -69,6 +70,21 @@ export class GameScene extends Phaser.Scene {
   private bossBar!: Phaser.GameObjects.Rectangle;
   private bossBarBack!: Phaser.GameObjects.Rectangle;
 
+  /**
+   * 联机握手的产物。**单人时是 undefined,所有联机分支都靠它短路** ——
+   * 单人模式必须一行不改地照常跑,这是 COOP.md §7 的第一条验收。
+   */
+  private coop?: CoopHandoff;
+  /** 联机会话。单人时是 undefined,所有联机分支都靠它短路 */
+  private coopSession?: CoopSession;
+  /** 对方的飞机。纯表现:不参与任何碰撞,它的伤害判定在对方那一端 */
+  private peer?: Phaser.GameObjects.Image;
+  /** 对方的子弹。同样纯表现,碰到敌机只是消失 + 冒个火花,不扣血 */
+  private peerShots!: Phaser.Physics.Arcade.Group;
+  /** netId → 敌机,给 host 的裁决和 guest 的死亡事件用 */
+  private readonly netEnemies = new Map<number, BodyImage>();
+  /** 单人模式下的敌机编号。联机时编号由 host 统一发放 */
+  private localEnemyId = 0;
   private mode: GameMode = 'campaign';
   private difficulty: DifficultyId = 'normal';
   private diff: DifficultySpec = DIFFICULTIES.normal;
@@ -96,10 +112,11 @@ export class GameScene extends Phaser.Scene {
 
   constructor() { super('NeonGame'); }
 
-  init(data: { mode?: GameMode; difficulty?: DifficultyId }) {
+  init(data: { mode?: GameMode; difficulty?: DifficultyId; coop?: CoopHandoff }) {
     this.mode = data?.mode ?? 'campaign';
     this.difficulty = data?.difficulty && DIFFICULTIES[data.difficulty] ? data.difficulty : 'normal';
     this.diff = DIFFICULTIES[this.difficulty];
+    this.coop = data?.coop;
   }
 
   create() {
@@ -132,6 +149,7 @@ export class GameScene extends Phaser.Scene {
     this.cursors = this.input.keyboard?.createCursorKeys();
     this.createHud();
     this.physics.add.overlap(this.shots, this.enemies, this.hitEnemy as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, undefined, this);
+    this.setupCoop();
     this.physics.add.overlap(this.player, this.enemies, this.hitPlayer as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, undefined, this);
     this.physics.add.overlap(this.player, this.enemyShots, this.hitPlayer as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, undefined, this);
     this.physics.add.overlap(this.player, this.powers, this.takePower as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback, undefined, this);
@@ -148,6 +166,20 @@ export class GameScene extends Phaser.Scene {
     // 这条路比按暂停更常见,Phaser 正好把隐藏时长放在 RESUME 的参数里。
     const onGameResume = (pauseDuration: number) => this.shiftDeadlines(pauseDuration);
     this.game.events.on(Phaser.Core.Events.RESUME, onGameResume);
+    // 离开场景一定要收掉连接。漏了的话 PeerConnection 会一直挂着,
+    // 而且服务端房间停在 connected —— 双方谁也邀请不了谁
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      if (this.coop) {
+        // 走 session 而不是直接关 net:它会先给对方发一条 bye,
+        // 对方就能立刻知道是「退出」而不是「网络断了」,文案不一样
+        this.coopSession?.dispose('quit');
+        this.coop.net.close('quit');
+        void fetch('/api/coop/leave', { method: 'POST' }).catch(() => {});
+        this.coopSession = undefined;
+        this.coop = undefined;
+        this.netEnemies.clear();
+      }
+    });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.input.removeAllListeners();
       this.input.keyboard?.removeAllListeners();
@@ -177,6 +209,8 @@ export class GameScene extends Phaser.Scene {
     const down = this.cursors?.down.isDown ? 1 : 0;
     if (!this.dragging) this.player.setVelocity((right - left) * TUNING.playerSpeed, (down - up) * TUNING.playerSpeed);
     else this.player.setVelocity(0);
+    // 自己的位置按 20Hz 节流发出去,节流在 CoopSession 里做
+    this.coopSession?.tick(this.time.now, this.player.x, this.player.y);
     if (time - this.lastShot >= TUNING.fireDelay) this.fire(time);
     if (time - this.lastKill > TUNING.comboWindow) this.combo = 1;
     this.player.setAlpha(time < this.invulnerableUntil && Math.floor(time / 80) % 2 ? 0.25 : 1);
@@ -438,12 +472,103 @@ export class GameScene extends Phaser.Scene {
       shot.setVelocity(Math.sin(lane.angle) * TUNING.bulletSpeed, -Math.cos(lane.angle) * TUNING.bulletSpeed);
       shot.setRotation(lane.angle);
     }
+    this.coopSession?.sendFire(this.player.x, y, this.weapon);
     sfx.shoot();
+  }
+
+  // ---------------------------------------------------------------- 联机
+
+  /**
+   * 建立联机会话。**单人时整个方法直接返回**,后面所有联机分支都靠
+   * `this.coopSession` 为 undefined 短路 —— 单人模式必须一行不改地照常跑。
+   */
+  private setupCoop() {
+    // peerShots 无论单双人都要建:hitPeerShot 的碰撞注册要用到它,
+    // 单人时它永远是空的,不产生任何开销
+    this.peerShots = this.physics.add.group({ defaultKey: 'ns-shot', maxSize: 64 });
+    if (!this.coop) return;
+
+    // 对方的飞机换个色相区分。**不加物理体** —— 它纯粹是表现,
+    // 对方的碰撞和受伤都在对方那一端判,这边多一份判定只会打架
+    this.peer = this.add.image(GAME_WIDTH / 2, 810, 'ns-player')
+      .setDisplaySize(PLAYER.w, PLAYER.h).setTint(0xffb46a).setAlpha(0.95).setDepth(9);
+
+    // 对方的子弹碰到敌机只消失 + 冒火花,不扣血:伤害由对方那端上报给 host
+    this.physics.add.overlap(
+      this.peerShots, this.enemies,
+      ((shotObject: Phaser.GameObjects.GameObject) => {
+        const shot = shotObject as BodyImage;
+        this.showLaserImpact(shot.x, shot.y, false);
+        shot.disableBody(true, true);
+      }) as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
+      undefined, this,
+    );
+
+    this.coopSession = new CoopSession(this.coop.net, this.coop.room, {
+      onPeerPos: (x, y) => { this.peer?.setPosition(x, y); },
+      onPeerFire: (x, y, weapon) => this.spawnPeerShots(x, y, weapon),
+      onWave: (index) => this.followWave(index),
+      onSpawn: (payload) => this.applySpawn(payload),
+      onEnemyDead: (id) => {
+        const enemy = this.netEnemies.get(id);
+        if (enemy?.active) this.destroyEnemy(enemy);
+      },
+      onHitReport: (id, damage) => this.applyRemoteHit(id, damage),
+      onPeerLeft: () => this.onPeerLeft(),
+    });
+  }
+
+  /** 对方开火:本地生成纯表现的子弹。弹道和自己的完全一致,所以两端看到的一样 */
+  private spawnPeerShots(x: number, y: number, weapon: number) {
+    const lanes = weapon <= 1 ? [{ dx: 0, angle: 0 }]
+      : weapon === 2 ? [{ dx: -17, angle: 0 }, { dx: 17, angle: 0 }]
+        : [{ dx: -24, angle: -0.16 }, { dx: 0, angle: 0 }, { dx: 24, angle: 0.16 }];
+    for (const lane of lanes) {
+      const shot = this.peerShots.get(x + lane.dx, y, 'ns-shot') as BodyImage | null;
+      if (!shot) continue;
+      shot.enableBody(true, x + lane.dx, y, true, true);
+      shot.setVelocity(Math.sin(lane.angle) * TUNING.bulletSpeed, -Math.cos(lane.angle) * TUNING.bulletSpeed);
+      shot.setRotation(lane.angle);
+      shot.setTint(0xffb46a);
+    }
+  }
+
+  /** guest 跟随 host 的波次。只做表现,不再自己排生成 —— 敌机由 spawn 事件送来 */
+  private followWave(index: number) {
+    this.wave = index;
+    const boss = this.wave % TUNING.bossEvery === 0;
+    const finale = this.mode === 'campaign' && this.wave === CAMPAIGN_WAVES;
+    const title = finale ? '⚠ 最终核心' : boss ? '⚠ 核心战舰来袭' : `WAVE ${this.wave}`;
+    const banner = this.add.text(GAME_WIDTH / 2, 430, title, {
+      fontFamily: 'Arial Black, system-ui', fontSize: boss ? '34px' : '42px',
+      color: boss ? '#ff779f' : '#b9faff', stroke: '#201044', strokeThickness: 8,
+    }).setOrigin(0.5).setDepth(40).setAlpha(0);
+    this.tweens.add({ targets: banner, alpha: 1, y: 410, duration: 220, yoyo: true, hold: 550, onComplete: () => banner.destroy() });
+    if (boss) sfx.boss();
+  }
+
+  /** host 收到 guest 的命中上报,扣血并在死亡时广播 —— 这一杀记在 guest 名下 */
+  private applyRemoteHit(id: number, damage: number) {
+    const enemy = this.netEnemies.get(id);
+    if (!enemy?.active) return;
+    const hp = Number(enemy.getData('hp')) - damage;
+    enemy.setData('hp', hp);
+    if (hp <= 0) this.destroyEnemy(enemy, 'guest');
+  }
+
+  private onPeerLeft() {
+    if (this.ended) return;
+    this.floatText(GAME_WIDTH / 2, GAME_HEIGHT - 250, '队友掉线了');
+    this.peer?.setAlpha(0.25);
+    this.coopSession = undefined;
   }
 
   private startWave() {
     if (this.ended) return;
+    // guest 不自己推波次,等 host 的 wave 事件(否则两边的波次会各走各的)
+    if (this.coopSession && !this.coopSession.isHost) return;
     this.wave++;
+    this.coopSession?.broadcastWave(this.wave);
     const boss = this.wave % TUNING.bossEvery === 0;
     const count = boss ? 9 : Math.min(4 + this.wave, 11);
     this.remaining = count;
@@ -480,28 +605,64 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
-  private spawnEnemy(index: number, kind: EnemyKind = 'grunt') {
-    if (this.ended) return;
+  /**
+   * 摇一架敌机的全部随机参数。**只有 host 会调。**
+   *
+   * 拆出这一步是联机的地基:Phaser.Math 用的是 Math.random(),两端各自摇必然对不上。
+   * 参数集中在这里摇好、随生成事件发过去,两端造出来的才是同一架敌机(COOP.md §2)。
+   */
+  private rollSpawn(index: number, kind: EnemyKind): SpawnPayload {
     const spec = ENEMY_SPEC[kind];
-    const x = 65 + (index % 5) * 102 + Phaser.Math.Between(-18, 18);
-    const enemy = this.enemies.create(x, -70, 'ns-enemy') as BodyImage;
+    const chance = Math.min(0.12 + this.wave * 0.025, 0.4) * spec.fire * this.diff.fireChance;
+    const willFire = spec.fire > 0 && Phaser.Math.FloatBetween(0, 1) < chance;
+    return {
+      id: this.coopSession ? this.coopSession.allocEnemyId() : ++this.localEnemyId,
+      kind,
+      x: 65 + (index % 5) * 102 + Phaser.Math.Between(-18, 18),
+      hp: spec.hp + Math.floor(this.wave / this.diff.hpStep) + this.diff.hpFlat,
+      phase: Phaser.Math.Between(0, 2000),
+      // 相对延迟而不是绝对时刻 —— 免疫两端的时钟差异
+      diveIn: Phaser.Math.Between(900, 1500),
+      vx: kind === 'weaver' ? 0 : Phaser.Math.Between(-24, 24),
+      vy: (82 + this.wave * 7) * spec.speed * this.diff.enemySpeed,
+      fireIn: willFire ? 950 + index * 80 : null,
+      gunner: kind === 'gunner',
+    };
+  }
+
+  /** 按参数生成敌机。两端跑的是同一段代码,参数一致产出就一致 */
+  private applySpawn(p: SpawnPayload) {
+    if (this.ended) return;
+    const kind = p.kind as EnemyKind;
+    const spec = ENEMY_SPEC[kind];
+    const enemy = this.enemies.create(p.x, -70, 'ns-enemy') as BodyImage;
     enemy.setDisplaySize(54 * spec.scale, 81 * spec.scale).setBlendMode(Phaser.BlendModes.NORMAL);
     enemy.setTint(spec.tint);
-    const hp = spec.hp + Math.floor(this.wave / this.diff.hpStep) + this.diff.hpFlat;
     enemy.setData({
-      kind, hp, boss: false, score: spec.score,
-      phase: Phaser.Math.Between(0, 2000),
-      diveAt: this.time.now + Phaser.Math.Between(900, 1500),
+      kind, hp: p.hp, boss: false, score: spec.score,
+      phase: p.phase,
+      diveAt: this.time.now + p.diveIn,
       dived: false,
+      netId: p.id,
     });
-    const fall = (82 + this.wave * 7) * spec.speed * this.diff.enemySpeed;
-    enemy.setVelocity(kind === 'weaver' ? 0 : Phaser.Math.Between(-24, 24), fall);
+    enemy.setVelocity(p.vx, p.vy);
     enemy.body.setSize(enemy.width * 0.66, enemy.height * 0.68, true);
-    const chance = Math.min(0.12 + this.wave * 0.025, 0.4) * spec.fire * this.diff.fireChance;
-    if (spec.fire > 0 && Phaser.Math.FloatBetween(0, 1) < chance) {
-      this.time.delayedCall(950 + index * 80, () => this.enemyFire(enemy, kind === 'gunner'));
+    if (this.coopSession) this.netEnemies.set(p.id, enemy);
+    // 敌机开火由 host 一家驱动 —— guest 也本地放的话就是双份弹幕
+    if (p.fireIn !== null && (!this.coopSession || this.coopSession.isHost)) {
+      this.time.delayedCall(p.fireIn, () => this.enemyFire(enemy, p.gunner));
     }
   }
+
+  private spawnEnemy(index: number, kind: EnemyKind = 'grunt') {
+    if (this.ended) return;
+    // guest 不自己生成敌机,只等 host 的 spawn 事件
+    if (this.coopSession && !this.coopSession.isHost) return;
+    const params = this.rollSpawn(index, kind);
+    this.applySpawn(params);
+    this.coopSession?.broadcastSpawn(params);
+  }
+
 
   private bossIndex() {
     return Math.max(1, Math.ceil(this.wave / TUNING.bossEvery));
@@ -610,6 +771,13 @@ export class GameScene extends Phaser.Scene {
     const shot = shotObject as BodyImage, enemy = enemyObject as BodyImage;
     const impactX = shot.x, impactY = shot.y;
     shot.disableBody(true, true);
+    // guest 只上报命中,**不本地扣血**。生死由 host 裁决后广播回来 ——
+    // 两端各自扣血必然出现「我打爆的敌机在你屏幕上还活着」
+    if (this.coopSession && !this.coopSession.isHost) {
+      this.showLaserImpact(enemy.x, enemy.y, enemy.getData('boss') === true);
+      this.coopSession.reportHit(Number(enemy.getData('netId')) || 0);
+      return;
+    }
     const hp = Number(enemy.getData('hp')) - 1;
     const boss = enemy.getData('boss') === true;
     enemy.setData('hp', hp);
@@ -634,7 +802,12 @@ export class GameScene extends Phaser.Scene {
     if (hp <= 0) this.destroyEnemy(enemy);
   }
 
-  private destroyEnemy(enemy: BodyImage) {
+  private destroyEnemy(enemy: BodyImage, by: 'host' | 'guest' = 'host') {
+    const netId = Number(enemy.getData('netId')) || 0;
+    if (netId) {
+      this.netEnemies.delete(netId);
+      this.coopSession?.broadcastDead(netId, by);
+    }
     const boss = enemy.getData('boss') === true;
     const base = Number(enemy.getData('score')) || 100;
     const x = enemy.x, y = enemy.y;
