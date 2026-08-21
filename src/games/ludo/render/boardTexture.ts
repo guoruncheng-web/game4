@@ -1,13 +1,15 @@
 /**
- * 棋盘底图的绘制。**纯 canvas 2D,不依赖任何渲染引擎。**
+ * 棋盘底图。**纯 canvas 2D,不依赖任何渲染引擎。**
  *
- * 从 Three.js 版本原样搬过来的 —— 换引擎时这一层不该重写:
- * 它画的是"这张盘长什么样",而那和用什么渲染没关系。
- * Three 那边把它包成 CanvasTexture,Phaser 这边走 `textures.addCanvas`,
- * 除此之外一个像素都没变。
+ * 画的是"这张盘长什么样",和用什么渲染无关 —— 换引擎时这一层不该重写。
+ * 图**从 `sim/layout.ts` 的数据画出来**:换棋盘尺寸、挪安全格、改终点道长度,
+ * 画面自动跟着变,不可能和几何对不上。
  *
- * 图仍然是**从 `sim/layout.ts` 的数据画出来的**:换棋盘尺寸、挪安全格、
- * 改终点道长度,画面自动跟着变,不可能和几何对不上。
+ * 风格对齐 `image/gameplay-competitor-layout-concept-v2.png`:**扁平、清晰、细描边**。
+ * 早先那版是"金色厚框 + 糖果塑料光泽 + 基地内白色圆角框 + 槽位圈",两处不对:
+ *   1. 厚金框吃掉可视面积,而手机上格子本来就小;
+ *   2. 基地里现在要放头像、名字、分数条和一排待出场的棋子(GameScene.buildBasePanels),
+ *      白色内框和槽位圈会和它们互相打架 —— 稿子里的基地就是**一整块纯阵营色**。
  */
 
 import { SEATS } from '../config';
@@ -15,7 +17,7 @@ import { ENTRY, SAFE, cellTint } from '../sim/board';
 import type { Cell } from '../sim/layout';
 import { CENTER, GRID, HOME_PATH, RING } from '../sim/layout';
 
-/** 四家的颜色。座位序与规则一致:红(左下)、绿(左上)、黄(右上)、蓝(右下)。 */
+/** 四家的颜色。座位序与规则一致:红(左下)、绿(左上)、黄(右上)、蓝(右下) */
 export const SEAT_HEX = [0xe83b32, 0x20aa3e, 0xf6c514, 0x1671cf];
 const SEAT_CSS = SEAT_HEX.map((c) => `#${c.toString(16).padStart(6, '0')}`);
 
@@ -23,80 +25,40 @@ const SEAT_CSS = SEAT_HEX.map((c) => `#${c.toString(16).padStart(6, '0')}`);
 export const CELL_PX = 64;
 export const BOARD_PX = GRID * CELL_PX;
 
-const CREAM = '#f6efe0';
-const LINE = '#c9bda4';
+/** 路径格的米白与描边。稿子里格线很细,靠明度差而不是粗线区分 */
+const CREAM = '#f4ecd8';
+const LINE = 'rgba(60,44,20,.34)';
+const FRAME = '#3b2a12';
 
 /**
- * 竞品参考图的基地把头像和分数放在上半部，四颗棋子横排在下半部。
- * 这里只改变 Three.js 表现锚点，不改变 sim 的棋局规则和路径坐标。
+ * 基地里棋子的停放位。**上半部让给头像和分数条,棋子横排在下半部** ——
+ * 这是稿子的排法,也是 GameScene 摆头像/名字/分数条时的锚点。
  */
 export const VIEW_BASE_SLOTS: Cell[][] = [
-  [[12.1, 1.15], [12.1, 2.35], [12.1, 3.65], [12.1, 4.85]], // 红:左下（给骰子操作区留出完整空间）
+  [[12.1, 1.15], [12.1, 2.35], [12.1, 3.65], [12.1, 4.85]], // 红:左下
   [[3.55, 1.15], [3.55, 2.35], [3.55, 3.65], [3.55, 4.85]], // 绿:左上
   [[3.55, 10.15], [3.55, 11.35], [3.55, 12.65], [3.55, 13.85]], // 黄:右上
   [[12.55, 10.15], [12.55, 11.35], [12.55, 12.65], [12.55, 13.85]], // 蓝:右下
 ];
 
-function roundedRect(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  radius: number,
-): void {
-  ctx.beginPath();
-  ctx.roundRect(x, y, w, h, radius);
-}
-
-function glossyFill(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string): void {
-  const g = ctx.createLinearGradient(x, y, x, y + h);
-  g.addColorStop(0, '#ffffff');
-  g.addColorStop(0.08, color);
-  g.addColorStop(0.72, color);
-  g.addColorStop(1, '#000000');
-  ctx.save();
-  roundedRect(ctx, x, y, w, h, Math.min(9, w * 0.12));
-  ctx.fillStyle = g;
-  ctx.globalAlpha = 0.18;
-  ctx.fill();
-  ctx.restore();
-}
-
 function cellRect(ctx: CanvasRenderingContext2D, cell: Cell, fill: string): void {
   const [row, col] = cell;
-  const x = col * CELL_PX + 2;
-  const y = row * CELL_PX + 2;
-  const size = CELL_PX - 4;
-  const gradient = ctx.createLinearGradient(x, y, x, y + size);
-  gradient.addColorStop(0, fill === CREAM ? '#fffdf4' : fill);
-  gradient.addColorStop(0.72, fill);
-  gradient.addColorStop(1, fill === CREAM ? '#e8dcc4' : fill);
-  ctx.save();
-  ctx.shadowColor = 'rgba(37,25,8,.35)';
-  ctx.shadowBlur = 3;
-  ctx.shadowOffsetY = 2;
-  roundedRect(ctx, x, y, size, size, 6);
-  ctx.fillStyle = gradient;
-  ctx.fill();
-  ctx.shadowColor = 'transparent';
-  ctx.strokeStyle = fill === CREAM ? LINE : 'rgba(70,35,10,.48)';
+  const x = col * CELL_PX;
+  const y = row * CELL_PX;
+  ctx.fillStyle = fill;
+  ctx.fillRect(x, y, CELL_PX, CELL_PX);
+  ctx.strokeStyle = LINE;
   ctx.lineWidth = 2;
-  ctx.stroke();
-  ctx.strokeStyle = 'rgba(255,255,255,.55)';
-  ctx.lineWidth = 1.5;
-  roundedRect(ctx, x + 3, y + 3, size - 6, size - 6, 4);
-  ctx.stroke();
-  ctx.restore();
+  ctx.strokeRect(x + 1, y + 1, CELL_PX - 2, CELL_PX - 2);
 }
 
-/** ★ 安全格标记 */
+/** ★ 安全格。灰色实心,不抢路径格的注意力 */
 function star(ctx: CanvasRenderingContext2D, cell: Cell): void {
   const [row, col] = cell;
   const cx = (col + 0.5) * CELL_PX;
   const cy = (row + 0.5) * CELL_PX;
   const outer = CELL_PX * 0.3;
-  const inner = outer * 0.45;
+  const inner = outer * 0.44;
   ctx.beginPath();
   for (let i = 0; i < 10; i += 1) {
     const r = i % 2 === 0 ? outer : inner;
@@ -106,28 +68,25 @@ function star(ctx: CanvasRenderingContext2D, cell: Cell): void {
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   }
   ctx.closePath();
-  ctx.fillStyle = 'rgba(120,120,120,0.45)';
+  ctx.fillStyle = 'rgba(96,88,74,.55)';
   ctx.fill();
 }
 
-/** 入场格上的前进方向箭头 —— 新手全靠它知道往哪边走 */
-function arrow(ctx: CanvasRenderingContext2D, cell: Cell, next: Cell, color: string): void {
+/** 入场格上的前进箭头。**新手全靠它知道自己往哪边走** */
+function arrow(ctx: CanvasRenderingContext2D, cell: Cell, next: Cell): void {
   const [row, col] = cell;
   const cx = (col + 0.5) * CELL_PX;
   const cy = (row + 0.5) * CELL_PX;
-  const dx = next[1] - col;
-  const dy = next[0] - row;
-  const len = CELL_PX * 0.28;
+  const len = CELL_PX * 0.26;
   ctx.save();
   ctx.translate(cx, cy);
-  ctx.rotate(Math.atan2(dy, dx));
+  ctx.rotate(Math.atan2(next[0] - row, next[1] - col));
   ctx.beginPath();
   ctx.moveTo(len, 0);
-  ctx.lineTo(-len * 0.6, -len * 0.7);
-  ctx.lineTo(-len * 0.6, len * 0.7);
+  ctx.lineTo(-len * 0.55, -len * 0.72);
+  ctx.lineTo(-len * 0.55, len * 0.72);
   ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.globalAlpha = 0.9;
+  ctx.fillStyle = '#ffffff';
   ctx.fill();
   ctx.restore();
 }
@@ -138,94 +97,53 @@ export function drawBoardCanvas(): HTMLCanvasElement {
   canvas.height = BOARD_PX;
   const ctx = canvas.getContext('2d')!;
 
-  // 金色厚框底，让棋盘与设计稿的糖果塑料 UI 属于同一套材质。
-  const frame = ctx.createLinearGradient(0, 0, BOARD_PX, BOARD_PX);
-  frame.addColorStop(0, '#fff19a');
-  frame.addColorStop(0.12, '#d98a11');
-  frame.addColorStop(0.5, '#ffce43');
-  frame.addColorStop(0.88, '#b76508');
-  frame.addColorStop(1, '#ffe77c');
-  ctx.fillStyle = frame;
+  // 底:米白。十字臂里没有被格子覆盖的地方也是这个色
+  ctx.fillStyle = CREAM;
   ctx.fillRect(0, 0, BOARD_PX, BOARD_PX);
-  ctx.strokeStyle = '#6f3505';
-  ctx.lineWidth = 12;
-  ctx.strokeRect(6, 6, BOARD_PX - 12, BOARD_PX - 12);
 
+  // 四个基地:**一整块纯阵营色**,不加内框、不加槽位圈
   const corners: Array<[number, number, number]> = [
-    [9, 0, 0], // 红:左下(row 起点, col 起点, 座位)
+    [9, 0, 0], // 红:左下
     [0, 0, 1], // 绿:左上
     [0, 9, 2], // 黄:右上
     [9, 9, 3], // 蓝:右下
   ];
   for (const [r0, c0, seat] of corners) {
-    const x = c0 * CELL_PX + 3;
-    const y = r0 * CELL_PX + 3;
-    const side = 6 * CELL_PX - 6;
-    const baseGradient = ctx.createLinearGradient(x, y, x + side, y + side);
-    baseGradient.addColorStop(0, SEAT_CSS[seat]);
-    baseGradient.addColorStop(0.55, SEAT_CSS[seat]);
-    baseGradient.addColorStop(1, SEAT_CSS[seat]);
-    ctx.save();
-    roundedRect(ctx, x, y, side, side, 12);
-    ctx.fillStyle = baseGradient;
-    ctx.fill();
-    glossyFill(ctx, x, y, side, side, SEAT_CSS[seat]);
-    ctx.strokeStyle = 'rgba(69,34,3,.65)';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    // 基地保持整块阵营色：头像、名字和分数由 HUD 叠在上半部，棋子在下半部横排。
-    ctx.strokeStyle = 'rgba(255,255,255,.28)';
-    ctx.lineWidth = 3;
-    roundedRect(ctx, x + 8, y + 8, side - 16, side - 16, 10);
-    ctx.stroke();
-    ctx.restore();
-  }
-  // 基地槽位圈
-  for (let seat = 0; seat < SEATS; seat += 1) {
-    for (const cell of VIEW_BASE_SLOTS[seat]) {
-      const [row, col] = cell;
-      ctx.beginPath();
-      ctx.arc((col + 0.5) * CELL_PX, (row + 0.5) * CELL_PX, CELL_PX * 0.36, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(5,14,30,.32)';
-      ctx.globalAlpha = 1;
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,.28)';
-      ctx.lineWidth = 3;
-      ctx.stroke();
-    }
+    ctx.fillStyle = SEAT_CSS[seat];
+    ctx.fillRect(c0 * CELL_PX, r0 * CELL_PX, 6 * CELL_PX, 6 * CELL_PX);
   }
 
-  // 外圈:默认米白,入场格上各家的颜色
+  // 外圈:默认米白,入场格是各家的颜色
   RING.forEach((cell, i) => {
     const owner = cellTint(i);
     cellRect(ctx, cell, owner >= 0 ? SEAT_CSS[owner] : CREAM);
   });
-  // 安全格 ★
-  for (const index of SAFE) star(ctx, RING[index]);
-  // 入场格上的前进箭头。新手全靠它知道自己该往哪边走
-  for (let seat = 0; seat < SEATS; seat += 1) {
-    const at = ENTRY[seat];
-    arrow(ctx, RING[at], RING[(at + 1) % RING.length], 'rgba(255,255,255,0.95)');
-  }
 
   // 终点道
   for (let seat = 0; seat < SEATS; seat += 1) {
     for (const cell of HOME_PATH[seat]) cellRect(ctx, cell, SEAT_CSS[seat]);
   }
 
-  // 中心终点:四个三角
-  const c0 = (CENTER[1]) * CELL_PX;
-  const r0 = (CENTER[0]) * CELL_PX;
-  const cx = c0 + CELL_PX / 2;
-  const cy = r0 + CELL_PX / 2;
+  // ★ 安全格
+  for (const index of SAFE) star(ctx, RING[index]);
+
+  // 入场箭头
+  for (let seat = 0; seat < SEATS; seat += 1) {
+    const at = ENTRY[seat];
+    arrow(ctx, RING[at], RING[(at + 1) % RING.length]);
+  }
+
+  // 中央终点:四个三角,颜色对着各家的终点道
+  const cx = (CENTER[1] + 0.5) * CELL_PX;
+  const cy = (CENTER[0] + 0.5) * CELL_PX;
   const half = CELL_PX * 1.5;
-  const quad: Array<[number, number, number, number, number]> = [
+  const quads: Array<[number, number, number, number, number]> = [
     [cx - half, cy + half, cx + half, cy + half, 0], // 下 红
     [cx - half, cy - half, cx - half, cy + half, 1], // 左 绿
     [cx - half, cy - half, cx + half, cy - half, 2], // 上 黄
     [cx + half, cy - half, cx + half, cy + half, 3], // 右 蓝
   ];
-  for (const [x1, y1, x2, y2, seat] of quad) {
+  for (const [x1, y1, x2, y2, seat] of quads) {
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.lineTo(x1, y1);
@@ -234,17 +152,14 @@ export function drawBoardCanvas(): HTMLCanvasElement {
     ctx.fillStyle = SEAT_CSS[seat];
     ctx.fill();
   }
+  ctx.strokeStyle = LINE;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(cx - half, cy - half, half * 2, half * 2);
 
-  // 最后压一圈金色包边，避免角区和边缘格把外框盖掉。
-  ctx.save();
-  ctx.strokeStyle = '#6f3505';
-  ctx.lineWidth = 14;
-  ctx.strokeRect(7, 7, BOARD_PX - 14, BOARD_PX - 14);
-  ctx.strokeStyle = '#ffd759';
-  ctx.lineWidth = 6;
-  ctx.strokeRect(15, 15, BOARD_PX - 30, BOARD_PX - 30);
-  ctx.restore();
+  // 外框:细的深色描边,不做厚金框
+  ctx.strokeStyle = FRAME;
+  ctx.lineWidth = 10;
+  ctx.strokeRect(5, 5, BOARD_PX - 10, BOARD_PX - 10);
 
   return canvas;
 }
-
