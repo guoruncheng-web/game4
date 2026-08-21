@@ -15,14 +15,15 @@ import {
   DEFAULT_DURATION, MAX_ROUNDS, PIECES_PER_SEAT, SEATS, TURN_TIMEOUT_MS,
 } from '../config';
 import {
-  createGame, currentMoves, pass, play, roll, scores, timeLeft,
+  createGame, currentMoves, diceCount, pass, play, roll, scores, timeLeft,
 } from '../sim/game';
 import type { GameState } from '../sim/game';
 import type { Move } from '../sim/rules';
 import { BASE } from '../sim/rules';
 import type { Cell } from '../sim/layout';
 import { GRID, cellOfStep } from '../sim/layout';
-import { VIEW_BASE_SLOTS } from '../render/boardTexture';
+import { BASE_ORIGIN, PANEL, VIEW_BASE_SLOTS } from '../render/boardTexture';
+import { LUDO_IMAGES } from '../assets';
 import { TEX, buildTextures } from './textures';
 
 export const GAME_WIDTH = 720;
@@ -61,10 +62,15 @@ export class GameScene extends Phaser.Scene {
     super('LudoGame');
   }
 
-  /** 头像走素材文件(public/ludo/avatars),不是画出来的 */
+  /**
+   * 头像走素材文件。**文件名从资源清单里取,不要在这里手写** ——
+   * 之前写死成 `player-0N.png`,素材改名成 `player-0N-square-v2.png` 之后就静默 404,
+   * 画面上是一圈黑色占位块,而控制台只有一条不起眼的加载失败。
+   */
   preload(): void {
     for (let seat = 0; seat < SEATS; seat += 1) {
-      this.load.image(`ludo-face-${seat}`, `/ludo/avatars/player-0${seat + 1}.png`);
+      const url = LUDO_IMAGES.find((f) => f.includes(`/avatars/player-0${seat + 1}`));
+      if (url) this.load.image(`ludo-face-${seat}`, url);
     }
   }
 
@@ -276,17 +282,17 @@ export class GameScene extends Phaser.Scene {
    */
   private buildBasePanels(): void {
     for (let seat = 0; seat < SEATS; seat += 1) {
-      const piecesRow = VIEW_BASE_SLOTS[seat][0][0];
-      const col0 = VIEW_BASE_SLOTS[seat][0][1] - 0.65;
-      const centerCol = col0 + 2.35;
+      const [r0, c0] = BASE_ORIGIN[seat];
+      const centerCol = c0 + PANEL.centerCol;
 
       // 高亮底:轮到谁,谁的面板亮起来
       const glow = this.add.graphics().setDepth(4);
       this.panelGlows.push(glow);
 
-      const face = this.toScreen([piecesRow - 2.15, centerCol]);
+      const face = this.toScreen([r0 + PANEL.avatarRow, centerCol]);
+      const hasFace = this.textures.exists(`ludo-face-${seat}`);
       const avatar = this.add
-        .image(face.x, face.y, `ludo-face-${seat}`)
+        .image(face.x, face.y, hasFace ? `ludo-face-${seat}` : TEX.pawn(seat))
         .setDisplaySize(CELL * 1.7, CELL * 1.7)
         .setDepth(5);
       // 圆形裁切 + 白边,和稿子里的头像一致
@@ -297,13 +303,14 @@ export class GameScene extends Phaser.Scene {
       ring.lineStyle(4, 0xffffff, 0.92);
       ring.strokeCircle(face.x, face.y, CELL * 0.85);
 
-      const name = this.toScreen([piecesRow - 1.2, centerCol]);
+      const name = this.toScreen([r0 + PANEL.nameRow, centerCol]);
       this.add.text(name.x, name.y, seat === this.seat ? '你' : ['红', '绿', '黄', '蓝'][seat], {
-        fontFamily: 'system-ui, sans-serif', fontSize: '26px', color: '#ffffff', fontStyle: 'bold',
+        fontFamily: 'system-ui, sans-serif', fontSize: '22px', color: '#ffffff', fontStyle: 'bold',
+        stroke: '#00000066', strokeThickness: 3,
       }).setOrigin(0.5).setDepth(6);
 
       // 分数条
-      const bar = this.toScreen([piecesRow - 0.72, centerCol]);
+      const bar = this.toScreen([r0 + PANEL.scoreRow, centerCol]);
       const barW = CELL * 4.3;
       const barH = CELL * 0.62;
       const g = this.add.graphics().setDepth(5);
@@ -334,10 +341,10 @@ export class GameScene extends Phaser.Scene {
 
     // 骰子放在**自己基地内**(对局稿就是这么摆的),不在棋盘下方。
     // 好处是"轮到我了"和"我的骰子"在同一块区域,不用来回看
-    const seatRow = VIEW_BASE_SLOTS[this.seat][0][0] + 1.45;
-    const seatCol = VIEW_BASE_SLOTS[this.seat][0][1] + 1.6;
+    const seatRow = BASE_ORIGIN[this.seat][0] + PANEL.diceRow;
+    const seatCol = BASE_ORIGIN[this.seat][1] + PANEL.centerCol;
     for (let i = 0; i < 3; i += 1) {
-      const at = this.toScreen([seatRow, seatCol + i * 1.25]);
+      const at = this.toScreen([seatRow, seatCol + (i - 1) * 1.25]);
       const die = this.add
         .image(at.x, at.y, TEX.die(1))
         .setDisplaySize(CELL * 1.05, CELL * 1.05)
@@ -376,16 +383,19 @@ export class GameScene extends Phaser.Scene {
     this.scoreTexts.forEach((t, seat) => t.setText(String(s[seat])));
     this.roundText.setText(`Round ${Math.min(this.state.round, MAX_ROUNDS)}/${MAX_ROUNDS}`);
 
+    // **骰子常驻**:没掷之前也摆在那儿(暗一点),掷完才亮起来。
+    // 整个消失的话,轮到自己时画面上会凭空冒出两颗骰子,而且新玩家不知道该点哪儿
     const dice = this.state.dice;
+    const count = dice.length || diceCount(this.state, this.seat);
     this.diceImages.forEach((die, i) => {
-      const face = dice[i];
-      die.setVisible(Boolean(face));
-      if (face) die.setTexture(TEX.die(face));
+      die.setVisible(i < count);
+      if (dice[i]) die.setTexture(TEX.die(dice[i])).setAlpha(1);
+      else die.setAlpha(0.78);
     });
     // 骰子数会变(被撞过是三颗),在基地内居中排布
-    const shown = dice.length || 0;
-    const row = VIEW_BASE_SLOTS[this.seat][0][0] + 1.45;
-    const col = VIEW_BASE_SLOTS[this.seat][0][1] + 1.6;
+    const shown = count;
+    const row = BASE_ORIGIN[this.seat][0] + PANEL.diceRow;
+    const col = BASE_ORIGIN[this.seat][1] + PANEL.centerCol;
     this.diceImages.forEach((die, i) => {
       const at = this.toScreen([row, col + (i - (shown - 1) / 2) * 1.25]);
       die.setPosition(at.x, at.y);

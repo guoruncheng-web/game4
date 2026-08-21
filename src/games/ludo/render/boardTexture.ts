@@ -31,15 +31,34 @@ const LINE = 'rgba(60,44,20,.34)';
 const FRAME = '#3b2a12';
 
 /**
- * 基地里棋子的停放位。**上半部让给头像和分数条,棋子横排在下半部** ——
- * 这是稿子的排法,也是 GameScene 摆头像/名字/分数条时的锚点。
+ * 四个基地方块的左上角(行, 列)。6×6 一块。
+ * 座位序:红(左下) 绿(左上) 黄(右上) 蓝(右下)
  */
-export const VIEW_BASE_SLOTS: Cell[][] = [
-  [[12.1, 1.15], [12.1, 2.35], [12.1, 3.65], [12.1, 4.85]], // 红:左下
-  [[3.55, 1.15], [3.55, 2.35], [3.55, 3.65], [3.55, 4.85]], // 绿:左上
-  [[3.55, 10.15], [3.55, 11.35], [3.55, 12.65], [3.55, 13.85]], // 黄:右上
-  [[12.55, 10.15], [12.55, 11.35], [12.55, 12.65], [12.55, 13.85]], // 蓝:右下
-];
+export const BASE_ORIGIN: Cell[] = [[9, 0], [0, 0], [0, 9], [9, 9]];
+
+/**
+ * 基地内部的版式。**全部按基地方块的左上角推算,四家共用同一套行距。**
+ *
+ * 早先是"棋子行写死坐标,其余各行往上推"—— 结果红方为了给骰子让位比别家高 0.45 格,
+ * 分数条就压到了棋子上(截图里棋子那排正贴着分数条底边)。
+ * 从方块本身推算之后,四家必然一致,加一行也只用改这一处。
+ *
+ * 6 格的高度这样分:头像 1.2 / 名字 2.3 / 分数条 3.0 / 棋子 4.1 / 骰子 5.25
+ */
+export const PANEL = {
+  avatarRow: 1.2,
+  nameRow: 2.3,
+  scoreRow: 3.0,
+  piecesRow: 4.1,
+  diceRow: 5.25,
+  centerCol: 3.0,
+  /** 四颗棋子在基地里的横向位置(相对左上角的列偏移) */
+  pieceCols: [1.15, 2.35, 3.65, 4.85],
+} as const;
+
+/** 基地里棋子的停放位。由 BASE_ORIGIN + PANEL 算出来,不再手写 */
+export const VIEW_BASE_SLOTS: Cell[][] = BASE_ORIGIN.map(([r0, c0]) =>
+  PANEL.pieceCols.map((dc) => [r0 + PANEL.piecesRow, c0 + dc] as Cell));
 
 function cellRect(ctx: CanvasRenderingContext2D, cell: Cell, fill: string): void {
   const [row, col] = cell;
@@ -102,15 +121,26 @@ export function drawBoardCanvas(): HTMLCanvasElement {
   ctx.fillRect(0, 0, BOARD_PX, BOARD_PX);
 
   // 四个基地:**一整块纯阵营色**,不加内框、不加槽位圈
-  const corners: Array<[number, number, number]> = [
-    [9, 0, 0], // 红:左下
-    [0, 0, 1], // 绿:左上
-    [0, 9, 2], // 黄:右上
-    [9, 9, 3], // 蓝:右下
-  ];
-  for (const [r0, c0, seat] of corners) {
+  BASE_ORIGIN.forEach(([r0, c0], seat) => {
     ctx.fillStyle = SEAT_CSS[seat];
     ctx.fillRect(c0 * CELL_PX, r0 * CELL_PX, 6 * CELL_PX, 6 * CELL_PX);
+  });
+
+  // 基地里的棋子槽。**棋子出场之后槽还在** —— 稿子就是这样,
+  // 空槽让人一眼看出"这家还有几颗没出来",而不是一片纯色什么都读不到
+  for (let seat = 0; seat < SEATS; seat += 1) {
+    const [r0, c0] = BASE_ORIGIN[seat];
+    for (const dc of PANEL.pieceCols) {
+      const x = (c0 + dc + 0.5) * CELL_PX;
+      const y = (r0 + PANEL.piecesRow + 0.5) * CELL_PX;
+      ctx.beginPath();
+      ctx.arc(x, y, CELL_PX * 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,0,0,.26)';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.28)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
   }
 
   // 外圈:默认米白,入场格是各家的颜色

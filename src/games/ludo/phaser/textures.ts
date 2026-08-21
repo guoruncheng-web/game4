@@ -41,23 +41,36 @@ function buildPawn(scene: Phaser.Scene, seat: number): void {
   if (scene.textures.exists(key)) return;
 
   const base = Phaser.Display.Color.IntegerToColor(SEAT_HEX[seat]);
-  const dark = base.clone().darken(38).color;
-  const light = base.clone().lighten(28).color;
+  const dark = base.clone().darken(42).color;
+  const mid = base.clone().darken(14).color;
+  const light = base.clone().lighten(34).color;
   const g = scene.make.graphics({ x: 0, y: 0 }, false);
   const c = PAWN_PX / 2;
 
-  // 落地阴影,让棋子看着是"放在"格子上而不是"贴在"上面
-  g.fillStyle(0x000000, 0.28);
-  g.fillEllipse(c, c + PAWN_PX * 0.06, PAWN_PX * 0.78, PAWN_PX * 0.7);
+  // 落地阴影
+  g.fillStyle(0x000000, 0.32);
+  g.fillEllipse(c, c + PAWN_PX * 0.3, PAWN_PX * 0.62, PAWN_PX * 0.2);
+
+  // **底座 + 圆头的立体棋子,不是扁圆片。**
+  // 稿子里的棋子是有高度的:俯视偏 3/4,能看到头和底座两截。
+  // 画成一个扁圆片的话,它在同色基地上就只是一个色斑,读不出"这是一颗棋子"
+  g.fillStyle(0xffffff, 0.95);
+  g.fillEllipse(c, c + PAWN_PX * 0.24, PAWN_PX * 0.56, PAWN_PX * 0.24); // 底座白边
   g.fillStyle(dark, 1);
-  g.fillCircle(c, c, PAWN_PX * 0.42);
+  g.fillEllipse(c, c + PAWN_PX * 0.24, PAWN_PX * 0.48, PAWN_PX * 0.18);
+  g.fillStyle(mid, 1);
+  g.fillRect(c - PAWN_PX * 0.13, c - PAWN_PX * 0.02, PAWN_PX * 0.26, PAWN_PX * 0.26); // 腰
+
+  g.fillStyle(0xffffff, 0.95);
+  g.fillCircle(c, c - PAWN_PX * 0.08, PAWN_PX * 0.29); // 头的白边
+  g.fillStyle(dark, 1);
+  g.fillCircle(c, c - PAWN_PX * 0.08, PAWN_PX * 0.26);
   g.fillStyle(base.color, 1);
-  g.fillCircle(c, c, PAWN_PX * 0.35);
-  // 高光偏左上,和棋盘那套糖果塑料材质对齐
-  g.fillStyle(light, 0.85);
-  g.fillEllipse(c - PAWN_PX * 0.09, c - PAWN_PX * 0.11, PAWN_PX * 0.26, PAWN_PX * 0.18);
-  g.fillStyle(0xffffff, 0.55);
-  g.fillCircle(c - PAWN_PX * 0.1, c - PAWN_PX * 0.12, PAWN_PX * 0.05);
+  g.fillCircle(c, c - PAWN_PX * 0.08, PAWN_PX * 0.22);
+  g.fillStyle(light, 0.9);
+  g.fillEllipse(c - PAWN_PX * 0.07, c - PAWN_PX * 0.15, PAWN_PX * 0.16, PAWN_PX * 0.11);
+  g.fillStyle(0xffffff, 0.7);
+  g.fillCircle(c - PAWN_PX * 0.08, c - PAWN_PX * 0.16, PAWN_PX * 0.035);
 
   g.generateTexture(key, PAWN_PX, PAWN_PX);
   g.destroy();

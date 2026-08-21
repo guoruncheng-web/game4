@@ -57,7 +57,8 @@ export const LUDO_IMAGES: string[] = [
   "/ludo/ui/icons/robot.png",
   "/ludo/ui/icons/send.png",
   "/ludo/ui/icons/settings.png",
-  "/ludo/ui/lobby-logo.png"
+  "/ludo/ui/lobby-logo.png",
+  "/ludo/ui/top-info-panel-bg.png"
 ];
 
 /** 模型、音频与 Effekseer 运行时:fetch 一遍进 HTTP 缓存,解码交给各自的运行时 */
@@ -98,4 +99,4 @@ export const LUDO_BLOBS: string[] = [
   "/ludo/models/pawn.glb"
 ];
 
-export const LUDO_ASSET_COUNT = 87;
+export const LUDO_ASSET_COUNT = 88;
