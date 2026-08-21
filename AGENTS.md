@@ -4,13 +4,15 @@
 
 ## 自定义 Agent
 
-项目在 `.codex/agents/` 提供三个 Codex 自定义 Agent：
+项目在 `.codex/agents/` 提供五个 Codex 自定义 Agent：
 
 - `game_producer`：玩法与产品规格。新游戏立项、核心循环、难度与 `DESIGN.md` 使用。
 - `game_artist`：美术、素材、动效与音效。视觉方向、`ART.md`、`textures.ts`、`sfx.ts` 使用。
+- `game_vfx_designer`：特效专项。粒子、转场、Effekseer、Three.js/Phaser 动效、关键帧同步与性能使用。
+- `game_audio_designer`：音效专项。SFX、WebAudio、rFXGen、生成式音频、分层混音与 `SOUND.md` 使用。
 - `playtest_critic`：只读玩法审查。玩法实现或调整后用于静态防回归，只报告不修复。
 
-用户明确要求多 Agent、子 Agent 或并行协作时，按任务边界调用对应角色。写密集型任务不要并行编辑同一文件；试玩批评应在实现完成后运行。
+用户明确要求多 Agent、子 Agent 或并行协作时，按任务边界调用对应角色。`game_artist` 负责总体视觉语言，`game_vfx_designer` 与 `game_audio_designer` 分别负责特效和声音专项；写密集型任务不要并行编辑同一文件，试玩批评应在实现完成后运行。
 
 ## 验证
 
@@ -58,3 +60,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 
 # nodel_modules 目录安装依赖只能我在mac上面自己安装,不用你在linux帮我安装
+
+# 图片生成约定
+1. 游戏里面的所有需要用到的按钮统一生成按钮图片
+2. 需要为每一个游戏设计一个统一的弹窗背景
+3. 所有模块的背景统一生成图片替换
+4. 所有需要用到的图标统一用图片不用用emoj
+5. 每次生成一个图片需要记录一下这个图片的用处
+6. 素材生成需要参考概念图不要自己随意生成

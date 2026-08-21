@@ -18,7 +18,7 @@
  * 装个桌面图标就替用户吃掉这么多流量是不礼貌的。
  */
 
-const VERSION = 'v11';
+const VERSION = 'v21';
 const SHELL_CACHE = `game-box-shell-${VERSION}`;
 const STATIC_CACHE = `game-box-static-${VERSION}`;
 const ASSET_CACHE = `game-box-assets-${VERSION}`;
@@ -28,7 +28,7 @@ const KEEP = [SHELL_CACHE, STATIC_CACHE, ASSET_CACHE];
 const PRECACHE = ['/offline', '/icons/icon-192.png', '/icons/icon-512.png'];
 
 /** 游戏素材的判定:这些目录下的位图、模型、音频 */
-const ASSET_DIRS = ['/neon-strike/', '/neon-strike-2d/', '/fruit-slasher/', '/eight-ball/', '/triple-pile/', '/fish-hunter/', '/assets/', '/icons/', '/concepts/'];
+const ASSET_DIRS = ['/neon-strike/', '/neon-strike-2d/', '/fruit-slasher/', '/eight-ball/', '/triple-pile/', '/fish-hunter/', '/ludo/', '/assets/', '/icons/', '/concepts/'];
 const ASSET_EXT = /\.(png|jpe?g|webp|avif|gif|svg|glb|gltf|bin|ktx2|hdr|wav|mp3|ogg|woff2?)$/i;
 
 self.addEventListener('install', (event) => {

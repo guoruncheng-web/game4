@@ -27,6 +27,9 @@ export class FishActor {
   private swimTime = 0;
   private readonly meshes: THREE.Mesh[] = [];
   private flashUntil = 0;
+  /** 默认的微光(assets.ts 里设的 0x66d9ff / 0.12)。flash 结束要恢复它,不能清零 */
+  private readonly glowColor = 0x66d9ff;
+  private readonly glowIntensity = 0.12;
 
   constructor(asset: FishAsset, spec: FishKind, seed: number) {
     const { object, mixer, action } = instantiateFish(asset);
@@ -94,7 +97,8 @@ export class FishActor {
 
     if (this.flashUntil && performance.now() > this.flashUntil) {
       this.flashUntil = 0;
-      this.setEmissive(0x000000, 0);
+      // 恢复到默认微光而不是清零:清零会把深海水族的自发光一起抹掉
+      this.setEmissive(this.glowColor, this.glowIntensity);
     }
   }
 

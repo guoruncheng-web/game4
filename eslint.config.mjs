@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // 官方 EffekseerForWebGL 压缩运行时,不是项目源码。
+    "public/ludo/effekseer/runtime/**",
   ]),
 ]);
 

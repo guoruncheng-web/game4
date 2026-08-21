@@ -157,11 +157,11 @@ function ensureStyles(): void {
 .${CLASS}-cannon-visual.is-left, .${CLASS}-cannon-visual.is-right { transform:translateX(-50%); }
 .${CLASS}-cannon-base { position:absolute; left:50%; bottom:10px; z-index:1; width:158px; height:128px;
   transform:translateX(-50%); background:url('/fish-hunter/ui/cannon-base.png') center/contain no-repeat; }
-.${CLASS}-cannon-barrel { position:absolute; left:50%; bottom:64px; z-index:2; width:64px; height:171px;
-  transform:translateX(-50%); transform-origin:50% 88%;
+.${CLASS}-cannon-barrel { position:absolute; left:50%; bottom:calc(24px + 5dvh); z-index:2; width:64px; height:17.25dvh;
+  transform:translateX(-50%); transform-origin:50% 100%;
   filter:drop-shadow(0 0 7px var(--fh-seat)); }
 .${CLASS}-cannon-barrel-sprite { position:absolute; inset:0;
-  background:url('/fish-hunter/ui/cannon-barrel.png') center/contain no-repeat; transform-origin:50% 88%; }
+  background:url('/fish-hunter/ui/cannon-barrel.png') 50% 0/cover no-repeat; transform-origin:50% 100%; }
 @media (max-height:500px), (max-width:680px) {
   .${CLASS}-bar { width:206px; height:56px; bottom:max(3px,env(safe-area-inset-bottom)); }
   .${CLASS}-wallet { grid-template-columns:42px 1fr 42px; padding:3px 6px; }
@@ -173,7 +173,9 @@ function ensureStyles(): void {
   .${CLASS}-hint { bottom:72px; padding:0 12px; font-size:14px; }
   .${CLASS}-cannon-visual { width:136px; height:168px; bottom:-22px; }
   .${CLASS}-cannon-base { bottom:7px; width:130px; height:105px; }
-  .${CLASS}-cannon-barrel { bottom:52px; width:52px; height:139px; }
+  /* 炮管尺寸交给主规则里的 dvh —— 它按逻辑坐标换算,任何视口都精确;
+     这里只收窄炮管宽度,适配小屏 */
+  .${CLASS}-cannon-barrel { width:52px; }
 }
 `;
   document.head.append(style);

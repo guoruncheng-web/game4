@@ -55,6 +55,15 @@ export async function loadAssets(): Promise<Assets> {
       mat.transparent = false;
       mat.depthWrite = true;
       mat.side = THREE.FrontSide;
+      // 环境贴图下给一点光泽:插画贴图全哑光会"塑料",roughness 0.6 才有水润的鱼鳞感
+      mat.roughness = 0.6;
+      mat.metalness = 0.08;
+      // 深海生物自发光:极弱的冷色微光,让鱼身的暗部不死黑。
+      // 它是"鱼从背景里浮出来"的一层,和 fish.ts 的 flash 共用 emissive 通道
+      mat.emissive = new THREE.Color(0x66d9ff);
+      mat.emissiveIntensity = 0.12;
+      // 鱼影是"泡在水里"的关键 —— 没有阴影,鱼就是贴在玻璃上的画
+      mesh.castShadow = true;
       if (mat.map) {
         mat.map.magFilter = THREE.LinearFilter;
         mat.map.minFilter = THREE.LinearMipmapLinearFilter;
