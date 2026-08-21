@@ -22,7 +22,7 @@ import type { Move } from '../sim/rules';
 import { BASE } from '../sim/rules';
 import type { Cell } from '../sim/layout';
 import { GRID, cellOfStep } from '../sim/layout';
-import { SEAT_HEX, VIEW_BASE_SLOTS } from '../render/boardTexture';
+import { VIEW_BASE_SLOTS } from '../render/boardTexture';
 import { TEX, buildTextures } from './textures';
 
 export const GAME_WIDTH = 720;
@@ -46,6 +46,7 @@ export class GameScene extends Phaser.Scene {
   private moves: Move[] = [];
   private pieces: PieceView[][] = [];
   private seat = 0;
+  private duration = DEFAULT_DURATION;
 
   private clockText!: Phaser.GameObjects.Text;
   private roundText!: Phaser.GameObjects.Text;
@@ -69,10 +70,15 @@ export class GameScene extends Phaser.Scene {
 
   init(data: { seat?: number; duration?: number }): void {
     this.seat = data?.seat ?? 0;
-    this.state = createGame(this.time.now, data?.duration ?? DEFAULT_DURATION);
+    this.duration = data?.duration ?? DEFAULT_DURATION;
   }
 
   create(): void {
+    // **局面必须在这里建,不能在 init 里。**
+    // init 跑的时候场景的时钟系统还没起来,`this.time.now` 是 0 ——
+    // 于是 endsAt 被算成"0 + 5 分钟",而 update 里的 time.now 早就超过它了,
+    // 表现就是时钟从一开始就显示 00:00。
+    this.state = createGame(this.time.now, this.duration);
     buildTextures(this);
     this.add.image(BOARD_CX, BOARD_CY, TEX.board).setDisplaySize(BOARD_SIZE, BOARD_SIZE);
 
@@ -322,34 +328,25 @@ export class GameScene extends Phaser.Scene {
       ...font, fontSize: '22px', color: '#9fc6ff',
     }).setOrigin(0.5);
 
-    // 四家的分数贴在各自基地外侧
-    const anchors = [
-      { x: 150, y: BOARD_CY + BOARD_SIZE / 2 + 34 },
-      { x: 150, y: BOARD_CY - BOARD_SIZE / 2 - 34 },
-      { x: GAME_WIDTH - 150, y: BOARD_CY - BOARD_SIZE / 2 - 34 },
-      { x: GAME_WIDTH - 150, y: BOARD_CY + BOARD_SIZE / 2 + 34 },
-    ];
-    anchors.forEach((a, seat) => {
-      this.scoreTexts.push(this.add.text(a.x, a.y, '0', {
-        ...font, fontSize: '30px', fontStyle: 'bold',
-        color: `#${SEAT_HEX[seat].toString(16).padStart(6, '0')}`,
-      }).setOrigin(0.5));
-    });
-
     this.hintText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT - 210, '', {
       ...font, fontSize: '24px', color: '#cfe9f7',
     }).setOrigin(0.5);
 
-    // 骰子:平时两颗,刚被撞过三颗
+    // 骰子放在**自己基地内**(对局稿就是这么摆的),不在棋盘下方。
+    // 好处是"轮到我了"和"我的骰子"在同一块区域,不用来回看
+    const seatRow = VIEW_BASE_SLOTS[this.seat][0][0] + 1.45;
+    const seatCol = VIEW_BASE_SLOTS[this.seat][0][1] + 1.6;
     for (let i = 0; i < 3; i += 1) {
+      const at = this.toScreen([seatRow, seatCol + i * 1.25]);
       const die = this.add
-        .image(GAME_WIDTH / 2 - 90 + i * 90, GAME_HEIGHT - 140, TEX.die(1))
-        .setDisplaySize(76, 76)
+        .image(at.x, at.y, TEX.die(1))
+        .setDisplaySize(CELL * 1.05, CELL * 1.05)
+        .setDepth(12)
         .setVisible(false);
       this.diceImages.push(die);
     }
 
-    this.rollButton = this.makeButton(GAME_WIDTH / 2, GAME_HEIGHT - 54, '掷骰子', () => this.rollDice());
+    this.rollButton = this.makeButton(GAME_WIDTH / 2, GAME_HEIGHT - 84, '掷骰子', () => this.rollDice());
   }
 
   private makeButton(x: number, y: number, label: string, onClick: () => void): Phaser.GameObjects.Container {
@@ -385,10 +382,13 @@ export class GameScene extends Phaser.Scene {
       die.setVisible(Boolean(face));
       if (face) die.setTexture(TEX.die(face));
     });
-    // 骰子数会变(被撞过是三颗),居中排布
+    // 骰子数会变(被撞过是三颗),在基地内居中排布
     const shown = dice.length || 0;
+    const row = VIEW_BASE_SLOTS[this.seat][0][0] + 1.45;
+    const col = VIEW_BASE_SLOTS[this.seat][0][1] + 1.6;
     this.diceImages.forEach((die, i) => {
-      die.x = GAME_WIDTH / 2 + (i - (shown - 1) / 2) * 90;
+      const at = this.toScreen([row, col + (i - (shown - 1) / 2) * 1.25]);
+      die.setPosition(at.x, at.y);
     });
   }
 
