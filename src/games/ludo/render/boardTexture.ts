@@ -1,29 +1,27 @@
 /**
- * 棋盘底图。
+ * 棋盘底图的绘制。**纯 canvas 2D,不依赖任何渲染引擎。**
  *
- * **贴图是从 `sim/layout.ts` 的数据画出来的,不是一张事先做好的图。**
- * 这一条是刻意的:画面和几何一旦分成两份维护,迟早对不上 ——
- * 而"棋子看着在格子外面"这种错,查起来极其费劲。数据画图之后,
- * 换棋盘尺寸、挪安全格、改终点道长度,画面自动跟着变,不可能不一致。
+ * 从 Three.js 版本原样搬过来的 —— 换引擎时这一层不该重写:
+ * 它画的是"这张盘长什么样",而那和用什么渲染没关系。
+ * Three 那边把它包成 CanvasTexture,Phaser 这边走 `textures.addCanvas`,
+ * 除此之外一个像素都没变。
  *
- * 运行时必须一直使用这张由几何数据生成的贴图。概念图可以决定材质和配色，
- * 但不能作为棋盘纹理直接覆盖，否则基地孔、路径格和棋子锚点会各用一套坐标。
+ * 图仍然是**从 `sim/layout.ts` 的数据画出来的**:换棋盘尺寸、挪安全格、
+ * 改终点道长度,画面自动跟着变,不可能和几何对不上。
  */
 
-import * as THREE from 'three';
-import { HOME_LEN, SEATS } from '../config';
+import { SEATS } from '../config';
 import { ENTRY, SAFE, cellTint } from '../sim/board';
 import type { Cell } from '../sim/layout';
-import { CENTER, GRID, HOME_PATH, RING, toWorld } from '../sim/layout';
-import { LAYER } from './stage';
+import { CENTER, GRID, HOME_PATH, RING } from '../sim/layout';
 
 /** 四家的颜色。座位序与规则一致:红(左下)、绿(左上)、黄(右上)、蓝(右下)。 */
 export const SEAT_HEX = [0xe83b32, 0x20aa3e, 0xf6c514, 0x1671cf];
 const SEAT_CSS = SEAT_HEX.map((c) => `#${c.toString(16).padStart(6, '0')}`);
 
-/** 一格在贴图里的像素边长。15 格 × 64 = 960,手机上绰绰有余 */
-const CELL_PX = 64;
-const SIZE = GRID * CELL_PX;
+/** 贴图里一格的像素边长。15 格 × 64 = 960,渲染层按自己的显示尺寸再缩放 */
+export const CELL_PX = 64;
+export const BOARD_PX = GRID * CELL_PX;
 
 const CREAM = '#f6efe0';
 const LINE = '#c9bda4';
@@ -134,24 +132,24 @@ function arrow(ctx: CanvasRenderingContext2D, cell: Cell, next: Cell, color: str
   ctx.restore();
 }
 
-function makeTexture(): THREE.CanvasTexture {
+export function drawBoardCanvas(): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
-  canvas.width = SIZE;
-  canvas.height = SIZE;
+  canvas.width = BOARD_PX;
+  canvas.height = BOARD_PX;
   const ctx = canvas.getContext('2d')!;
 
   // 金色厚框底，让棋盘与设计稿的糖果塑料 UI 属于同一套材质。
-  const frame = ctx.createLinearGradient(0, 0, SIZE, SIZE);
+  const frame = ctx.createLinearGradient(0, 0, BOARD_PX, BOARD_PX);
   frame.addColorStop(0, '#fff19a');
   frame.addColorStop(0.12, '#d98a11');
   frame.addColorStop(0.5, '#ffce43');
   frame.addColorStop(0.88, '#b76508');
   frame.addColorStop(1, '#ffe77c');
   ctx.fillStyle = frame;
-  ctx.fillRect(0, 0, SIZE, SIZE);
+  ctx.fillRect(0, 0, BOARD_PX, BOARD_PX);
   ctx.strokeStyle = '#6f3505';
   ctx.lineWidth = 12;
-  ctx.strokeRect(6, 6, SIZE - 12, SIZE - 12);
+  ctx.strokeRect(6, 6, BOARD_PX - 12, BOARD_PX - 12);
 
   const corners: Array<[number, number, number]> = [
     [9, 0, 0], // 红:左下(row 起点, col 起点, 座位)
@@ -241,83 +239,12 @@ function makeTexture(): THREE.CanvasTexture {
   ctx.save();
   ctx.strokeStyle = '#6f3505';
   ctx.lineWidth = 14;
-  ctx.strokeRect(7, 7, SIZE - 14, SIZE - 14);
+  ctx.strokeRect(7, 7, BOARD_PX - 14, BOARD_PX - 14);
   ctx.strokeStyle = '#ffd759';
   ctx.lineWidth = 6;
-  ctx.strokeRect(15, 15, SIZE - 30, SIZE - 30);
+  ctx.strokeRect(15, 15, BOARD_PX - 30, BOARD_PX - 30);
   ctx.restore();
 
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 8;
-  return texture;
+  return canvas;
 }
 
-/** 只裁掉棋盘四个外角；不能按白色抠图，否则米白路径格也会被误删。 */
-function makeRoundedAlpha(): THREE.CanvasTexture {
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = 256;
-  const ctx = canvas.getContext('2d')!;
-  ctx.fillStyle = '#fff';
-  ctx.beginPath();
-  ctx.roundRect(1, 1, 254, 254, 22);
-  ctx.fill();
-  return new THREE.CanvasTexture(canvas);
-}
-
-export class BoardView {
-  readonly mesh: THREE.Mesh;
-  private readonly frame: THREE.Mesh;
-
-  constructor(scene: THREE.Scene) {
-    const material = new THREE.MeshBasicMaterial({
-      map: makeTexture(),
-      alphaMap: makeRoundedAlpha(),
-      transparent: true,
-      alphaTest: 0.01,
-    });
-    this.mesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(GRID, GRID),
-      material,
-    );
-    this.mesh.position.set(0, 0, LAYER.board);
-    const outline = new THREE.Shape();
-    const half = (GRID + 0.34) / 2;
-    const radius = 0.8;
-    outline.moveTo(-half + radius, -half);
-    outline.lineTo(half - radius, -half);
-    outline.quadraticCurveTo(half, -half, half, -half + radius);
-    outline.lineTo(half, half - radius);
-    outline.quadraticCurveTo(half, half, half - radius, half);
-    outline.lineTo(-half + radius, half);
-    outline.quadraticCurveTo(-half, half, -half, half - radius);
-    outline.lineTo(-half, -half + radius);
-    outline.quadraticCurveTo(-half, -half, -half + radius, -half);
-    this.frame = new THREE.Mesh(
-      new THREE.ShapeGeometry(outline),
-      new THREE.MeshStandardMaterial({ color: 0xf5b822, roughness: 0.24, metalness: 0.42 }),
-    );
-    this.frame.position.set(0, 0, -0.04);
-    scene.add(this.frame);
-    scene.add(this.mesh);
-  }
-
-  dispose(): void {
-    this.mesh.removeFromParent();
-    this.frame.removeFromParent();
-    this.mesh.geometry.dispose();
-    const mat = this.mesh.material as THREE.MeshBasicMaterial;
-    mat.map?.dispose();
-    mat.alphaMap?.dispose();
-    mat.dispose();
-    this.frame.geometry.dispose();
-    (this.frame.material as THREE.Material).dispose();
-  }
-}
-
-/** 一格的世界坐标,给棋子层用 */
-export function worldOf(cell: Cell): { x: number; y: number } {
-  return toWorld(cell, 1);
-}
-
-export { HOME_LEN };

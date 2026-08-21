@@ -1,57 +1,29 @@
-import { DEFAULT_DURATION } from './config';
-import { Stage } from './three/stage';
-import { World } from './world';
-import { createHud } from './ui/hud';
-import type { GameState } from './sim/game';
-
-export type GameHandle = { destroy(): void };
+import * as Phaser from 'phaser';
+import { GAME_HEIGHT, GAME_WIDTH, GameScene } from './phaser/GameScene';
 
 /**
- * Ludo 棋盘。**只在房主点「开始」之后才挂载**(DESIGN §2 的第 ⑤ 步)。
+ * Ludo 棋盘(Phaser 3)。**只在房主点「开始」并放完开局动画之后才挂载**(DESIGN §2 ⑤)。
  *
- * 分层和霓虹突击 3D 版一致:Stage 管渲染、World 管接线、ui/ 管 DOM 覆盖层,
- * 这里只把三者串起来 + 跑主循环。
+ * **从 Three.js 改造过来时,`sim/` 四个文件一行没动。**
+ * 换掉的只有渲染层 —— 判定早就和画面分开了,44 项无头用例原样继续跑着当保险。
+ * 这就是当初把 `sim/` 做成纯函数的回报:换引擎是一次局部替换,不是重写。
  *
- * 现在是本地对局(自己 + 3 个机器人)。接服务端时替换的是 World 里 roll/play 的
- * 调用方式,这一层不用动。
+ * 2D 在这一款反而更顺手:棋盘本来就是正俯视的格子网,`layout.ts` 给的 (行, 列)
+ * 直接就是屏幕坐标 —— 不用翻 y 轴、不用发射线做点击命中,也不会出现
+ * "棋子立着、棋盘躺着"的视角打架。
+ *
+ * 按仓库约定:**必须 `import * as Phaser`**(phaser 的 ESM 产物没有 default export,
+ * 默认导入会让 Turbopack 构建直接失败),而且这个模块只能由 PhaserCanvas 动态 import 进来。
  */
-export function startGame(parent: HTMLElement, options: { seat?: number; duration?: number } = {}): GameHandle {
-  if (getComputedStyle(parent).position === 'static') parent.style.position = 'relative';
-
-  const stage = new Stage(parent);
-  const hud = createHud(parent);
-
-  let raf = 0;
-  let autoRollTimer = 0;
-  let last = performance.now();
-
-  const world = new World(stage, {
-    onState: (state: GameState, scores: number[]) => hud.update(state, scores),
-    onYourTurn: () => {
-      window.clearTimeout(autoRollTimer);
-      autoRollTimer = window.setTimeout(() => world.rollDice(), 320);
-    },
-    onOver: (state: GameState) => hud.showResult(state),
-  }, options.seat ?? 0, options.duration ?? DEFAULT_DURATION);
-
-  const loop = () => {
-    raf = requestAnimationFrame(loop);
-    const now = performance.now();
-    const dt = now - last;
-    last = now;
-    world.update(dt);
-    hud.tick(world.snapshot);
-    stage.render();
-  };
-  loop();
-
-  return {
-    destroy() {
-      cancelAnimationFrame(raf);
-      window.clearTimeout(autoRollTimer);
-      world.destroy();
-      hud.destroy();
-      stage.destroy();
-    },
-  };
+export function startGame(parent: HTMLElement): Phaser.Game {
+  return new Phaser.Game({
+    type: Phaser.AUTO,
+    parent,
+    width: GAME_WIDTH,
+    height: GAME_HEIGHT,
+    backgroundColor: '#06184c',
+    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+    // 没有物理:棋子走的是离散格子,靠 tween 推进,arcade 世界在这里没有任何用处
+    scene: [GameScene],
+  });
 }

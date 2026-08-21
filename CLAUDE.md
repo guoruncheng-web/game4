@@ -90,7 +90,7 @@ registry 现在只服务于 `manifest.ts` 的快捷方式(取前 4 条)和各游
 
 | slug | 引擎 | 容器 | 契约 |
 | --- | --- | --- | --- |
-| `star-runner`、`fruit-slasher`、`neon-strike-2d` | Phaser 3 | `PhaserCanvas` | `GameModule`,`startGame` 返回 `Phaser.Game` |
+| `star-runner`、`fruit-slasher`、`neon-strike-2d`、`ludo` | Phaser 3 | `PhaserCanvas` | `GameModule`,`startGame` 返回 `Phaser.Game` |
 | `neon-strike`、`eight-ball`、`triple-pile`、`fish-hunter` | Three.js | `ThreeCanvas` | `ThreeGameModule`,`startGame` 返回 `{ destroy() }` |
 
 `neon-strike` 已重写为 Three.js 版(`three/` 渲染 + `world.ts` 玩法 + `ui/` DOM 覆盖层),
@@ -203,6 +203,10 @@ Codex 使用 `.codex/agents/*.toml`;Claude Code 兼容副本保留在 `.claude/a
   产出 `src/games/<slug>/DESIGN.md`。
 - **`game_artist`(游戏视听:美术 + 音效)** —— 视觉风格、配色、画面可读性、动效与音效表现规格、素材产出路线。
   产出 `src/games/<slug>/ART.md`,并可直接实现 `textures.ts`、`sfx.ts` 和配色常量。
+- **`game_vfx_designer`(游戏特效)** —— 粒子、拖尾、爆发、转场、Effekseer、Three.js/Phaser 动效、关键帧同步与移动端性能。
+  可实现纯表现特效组件与参数并维护 `ART.md`,不修改玩法规则。
+- **`game_audio_designer`(游戏音效)** —— SFX、WebAudio 时间轴、rFXGen/本地生成式音频、分层混音、响度检查与 `SOUND.md`。
+  可实现音频调度、生成脚本和音频资源,不修改玩法规则。
 - **`playtest_critic`(试玩批评)** —— 静态推演找「build 通过但游戏是错的」那类问题:
   参数实际生效值与声明不符、永远触发不到的判定、状态组合卡死、退化打法、重启泄漏。
   **玩法改动后跑一遍防回归。** 它只报告,不改代码。
@@ -239,5 +243,46 @@ Codex 使用 `.codex/agents/*.toml`;Claude Code 兼容副本保留在 `.claude/a
 - 对于threejs开发的游戏可以使用 three-nebula 生成素材
 - 对于threejs开发的游戏可以使用 Phaser3-Particle-Editor 生成素材
 
+
+## cocos-mcp(控制 Cocos Creator 的 MCP)
+
+**和这个游戏盒子没有关系,是一套独立工具** —— 盒子里的游戏是 Phaser 3 / Three.js,
+这个 MCP 管的是 Cocos Creator 项目。记在这里只是因为它在同一台机器上、同一批会话里做的。
+
+| 位置 | 路径 |
+| --- | --- |
+| 仓库(Linux) | `/home/jojo/work/cocos-mcp` |
+| 仓库(Mac) | `/Users/mac/projects/cocos-mcp` —— **和上面是同一份**,两边共享文件系统 |
+| 桥扩展 | `extension/`,要拷到**每个 Cocos 项目**的 `extensions/cocos-mcp-bridge` |
+| 说明书 | 仓库里的 `README.md`,踩过的坑都记在那儿 |
+| 对接说明 | `src/games/ludo/COCOS.md` —— 注册到 Codex、操作纪律、已知的坑,以及 Ludo 的 Cocos 版交接 |
+
+注册(Claude Code 在 Linux、Cocos 在 Mac,所以用 ssh 转发 stdio):
+
+```bash
+claude mcp add cocos -- ssh -o BatchMode=yes mac@192.168.64.1 \
+  '/opt/homebrew/bin/node /Users/mac/projects/cocos-mcp/src/index.mjs'
+```
+
+39 个工具,分三组:
+
+- **项目与构建**(不需要编辑器):列引擎/项目、建项目、构建、读编辑器日志、项目设置。
+- **场景**(要编辑器开着):节点树、增删改节点、组件、属性、数组属性、预制体、新建场景、
+  `run_game`(headless 跑起来抓运行时异常)。
+- **资源库**(要编辑器开着):路径↔uuid 互查、建脚本、导入图片/音频/模型、刷新。
+
+已经验证跑通的完整链路:**写脚本 → 建场景节点 → 设资产引用 → 存预制体 →
+Tween 动画 → run_game 验证 → 构建 → 产物在独立服务器上真的跑起来**。
+
+用之前必须知道的几条(全是实测踩出来的,详情看它的 README):
+
+- **桥扩展必须装在项目的 `extensions/` 下**,放 `~/.CocosCreator/extensions` 全局目录不会被加载。
+- **改动只在编辑器内存里,不调 `save_scene` 就不落盘。**
+- **「没报错」不等于「功能对」。** 用 `run_game` 的断言表达式去验证功能真的生效 ——
+  踩过最狠的一次是手写 `.anim`:文件建了、导入了、`playing` 也是 true,节点纹丝不动。
+  (程序化做动画请用 Tween 脚本,不要生成 `.anim`。)
+- **发布前一定给 `build_project` 指定 `startScene`**,否则启动场景跟着"编辑器最后打开的那个"走。
+- 编辑器弹对话框时**所有场景工具都会超时,而 `scene_status` 仍说就绪** ——
+  这时用 `check_dialog` 看一眼。
 
 # nodel_modules 目录安装依赖只能我在mac上面自己安装,不用你在linux帮我安装

@@ -13,10 +13,10 @@ import { playIntroAudio, preloadIntroAudio, unlockIntroAudio } from '@/games/lud
 const meta = getGame('ludo')!;
 
 // 棋盘只在开局后才挂载(DESIGN §2 的第 ⑤ 步)。
-// dynamic + ssr:false 是硬性的 —— Three 在模块顶层就会碰 window
-const ThreeCanvas = dynamic(() => import('@/components/ThreeCanvas'), {
+// dynamic + ssr:false 是硬性的 —— Phaser 在模块顶层就会碰 window
+const PhaserCanvas = dynamic(() => import('@/components/PhaserCanvas'), {
   ssr: false,
-  loading: () => <div className="grid h-dvh place-items-center bg-[#0a1f5c] text-sky-200">棋盘加载中…</div>,
+  loading: () => <div className="grid h-dvh place-items-center bg-[#06184c] text-sky-200">棋盘加载中…</div>,
 });
 
 const EffekseerVs = dynamic(() => import('@/games/ludo/ui/EffekseerVs'), { ssr: false });
@@ -440,7 +440,7 @@ export default function LudoRoomPage() {
   if (playing) {
     return (
       <main className="relative mx-auto h-dvh w-full max-w-[480px] overflow-hidden bg-[#102b59] before:absolute before:inset-0 before:bg-[linear-gradient(135deg,rgba(255,255,255,.025)_25%,transparent_25%,transparent_75%,rgba(255,255,255,.025)_75%)] before:bg-[length:160px_160px] before:content-['']">
-        <ThreeCanvas load={() => import('@/games/ludo')} />
+        <PhaserCanvas load={() => import('@/games/ludo')} orientation="portrait" fullscreen />
         <button
           type="button"
           onClick={() => setPlaying(false)}
