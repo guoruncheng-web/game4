@@ -23,12 +23,21 @@ const SEAT_CSS = SEAT_HEX.map((c) => `#${c.toString(16).padStart(6, '0')}`);
 
 /** 贴图里一格的像素边长。15 格 × 64 = 960,渲染层按自己的显示尺寸再缩放 */
 export const CELL_PX = 64;
-export const BOARD_PX = GRID * CELL_PX;
+/**
+ * 金框的厚度。**棋盘要为它留出画布,不能画在格子上** ——
+ * 上一版把框直接描在贴图边界上,结果最外圈的路径格被压掉了一截。
+ */
+export const FRAME_PX = Math.round(CELL_PX * 0.34);
+/** 贴图总边长 = 格子区 + 两侧金框 */
+export const BOARD_PX = GRID * CELL_PX + FRAME_PX * 2;
 
 /** 路径格的米白与描边。稿子里格线很细,靠明度差而不是粗线区分 */
-const CREAM = '#f4ecd8';
-const LINE = 'rgba(60,44,20,.34)';
-const FRAME = '#3b2a12';
+const CREAM = '#f7f0dd';
+const LINE = 'rgba(150,120,60,.42)';
+/** 金色描边体系 —— UI 的"质感"主要来自它:基地卡片、棋盘外框、安全星都用这一套 */
+const GOLD_LIGHT = '#ffe9a3';
+const GOLD = '#d9a327';
+const GOLD_DARK = '#8a5f12';
 
 /**
  * 四个基地方块的左上角(行, 列)。6×6 一块。
@@ -60,10 +69,21 @@ export const PANEL = {
 export const VIEW_BASE_SLOTS: Cell[][] = BASE_ORIGIN.map(([r0, c0]) =>
   PANEL.pieceCols.map((dc) => [r0 + PANEL.piecesRow, c0 + dc] as Cell));
 
+/** '#rrggbb' → [r,g,b] */
+function Phaser2Color(css: string): [number, number, number] {
+  return [1, 3, 5].map((i) => parseInt(css.slice(i, i + 2), 16)) as [number, number, number];
+}
+
+/** 按比例加亮(>1)或压暗(<1) */
+function shade([r, g, b]: [number, number, number], k: number): string {
+  const f = (v: number) => Math.max(0, Math.min(255, Math.round(v * k)));
+  return `rgb(${f(r)},${f(g)},${f(b)})`;
+}
+
 function cellRect(ctx: CanvasRenderingContext2D, cell: Cell, fill: string): void {
   const [row, col] = cell;
-  const x = col * CELL_PX;
-  const y = row * CELL_PX;
+  const x = col * CELL_PX + FRAME_PX;
+  const y = row * CELL_PX + FRAME_PX;
   ctx.fillStyle = fill;
   ctx.fillRect(x, y, CELL_PX, CELL_PX);
   ctx.strokeStyle = LINE;
@@ -74,8 +94,8 @@ function cellRect(ctx: CanvasRenderingContext2D, cell: Cell, fill: string): void
 /** ★ 安全格。灰色实心,不抢路径格的注意力 */
 function star(ctx: CanvasRenderingContext2D, cell: Cell): void {
   const [row, col] = cell;
-  const cx = (col + 0.5) * CELL_PX;
-  const cy = (row + 0.5) * CELL_PX;
+  const cx = (col + 0.5) * CELL_PX + FRAME_PX;
+  const cy = (row + 0.5) * CELL_PX + FRAME_PX;
   const outer = CELL_PX * 0.3;
   const inner = outer * 0.44;
   ctx.beginPath();
@@ -87,16 +107,19 @@ function star(ctx: CanvasRenderingContext2D, cell: Cell): void {
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   }
   ctx.closePath();
-  ctx.fillStyle = 'rgba(96,88,74,.55)';
+  ctx.fillStyle = GOLD;
   ctx.fill();
+  ctx.strokeStyle = GOLD_DARK;
+  ctx.lineWidth = 2;
+  ctx.stroke();
 }
 
 /** 入场格上的前进箭头。**新手全靠它知道自己往哪边走** */
-function arrow(ctx: CanvasRenderingContext2D, cell: Cell, next: Cell): void {
+function arrow(ctx: CanvasRenderingContext2D, cell: Cell, next: Cell, color: string): void {
   const [row, col] = cell;
-  const cx = (col + 0.5) * CELL_PX;
-  const cy = (row + 0.5) * CELL_PX;
-  const len = CELL_PX * 0.26;
+  const cx = (col + 0.5) * CELL_PX + FRAME_PX;
+  const cy = (row + 0.5) * CELL_PX + FRAME_PX;
+  const len = CELL_PX * 0.32;
   ctx.save();
   ctx.translate(cx, cy);
   ctx.rotate(Math.atan2(next[0] - row, next[1] - col));
@@ -105,8 +128,11 @@ function arrow(ctx: CanvasRenderingContext2D, cell: Cell, next: Cell): void {
   ctx.lineTo(-len * 0.55, -len * 0.72);
   ctx.lineTo(-len * 0.55, len * 0.72);
   ctx.closePath();
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = color;
   ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = 'rgba(255,255,255,.85)';
+  ctx.stroke();
   ctx.restore();
 }
 
@@ -121,9 +147,35 @@ export function drawBoardCanvas(): HTMLCanvasElement {
   ctx.fillRect(0, 0, BOARD_PX, BOARD_PX);
 
   // 四个基地:**一整块纯阵营色**,不加内框、不加槽位圈
+  // 基地做成**圆角卡片 + 金色描边**,四周留一点缝露出米白。
+  // 齐边的纯色方块看着像色块拼图,而卡片 + 金边是这套 UI 质感的主要来源
   BASE_ORIGIN.forEach(([r0, c0], seat) => {
-    ctx.fillStyle = SEAT_CSS[seat];
-    ctx.fillRect(c0 * CELL_PX, r0 * CELL_PX, 6 * CELL_PX, 6 * CELL_PX);
+    const pad = CELL_PX * 0.16;
+    const x = c0 * CELL_PX + pad + FRAME_PX;
+    const y = r0 * CELL_PX + pad + FRAME_PX;
+    const side = 6 * CELL_PX - pad * 2;
+    const radius = CELL_PX * 0.42;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(x, y, side, side, radius);
+    // 顶部略亮、底部略暗的竖向渐变,给一点体积
+    const fill = ctx.createLinearGradient(x, y, x, y + side);
+    const c = Phaser2Color(SEAT_CSS[seat]);
+    fill.addColorStop(0, shade(c, 1.14));
+    fill.addColorStop(0.45, SEAT_CSS[seat]);
+    fill.addColorStop(1, shade(c, 0.84));
+    ctx.fillStyle = fill;
+    ctx.fill();
+
+    const rim = ctx.createLinearGradient(x, y, x + side, y + side);
+    rim.addColorStop(0, GOLD_LIGHT);
+    rim.addColorStop(0.5, GOLD);
+    rim.addColorStop(1, GOLD_DARK);
+    ctx.strokeStyle = rim;
+    ctx.lineWidth = CELL_PX * 0.14;
+    ctx.stroke();
+    ctx.restore();
   });
 
   // 基地里的棋子槽。**棋子出场之后槽还在** —— 稿子就是这样,
@@ -131,15 +183,12 @@ export function drawBoardCanvas(): HTMLCanvasElement {
   for (let seat = 0; seat < SEATS; seat += 1) {
     const [r0, c0] = BASE_ORIGIN[seat];
     for (const dc of PANEL.pieceCols) {
-      const x = (c0 + dc + 0.5) * CELL_PX;
-      const y = (r0 + PANEL.piecesRow + 0.5) * CELL_PX;
+      const x = (c0 + dc + 0.5) * CELL_PX + FRAME_PX;
+      const y = (r0 + PANEL.piecesRow + 0.5) * CELL_PX + FRAME_PX;
       ctx.beginPath();
       ctx.arc(x, y, CELL_PX * 0.4, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(0,0,0,.26)';
+      ctx.fillStyle = 'rgba(0,0,0,.3)';
       ctx.fill();
-      ctx.strokeStyle = 'rgba(255,255,255,.28)';
-      ctx.lineWidth = 3;
-      ctx.stroke();
     }
   }
 
@@ -160,12 +209,12 @@ export function drawBoardCanvas(): HTMLCanvasElement {
   // 入场箭头
   for (let seat = 0; seat < SEATS; seat += 1) {
     const at = ENTRY[seat];
-    arrow(ctx, RING[at], RING[(at + 1) % RING.length]);
+    arrow(ctx, RING[at], RING[(at + 1) % RING.length], shade(Phaser2Color(SEAT_CSS[seat]), 0.72));
   }
 
   // 中央终点:四个三角,颜色对着各家的终点道
-  const cx = (CENTER[1] + 0.5) * CELL_PX;
-  const cy = (CENTER[0] + 0.5) * CELL_PX;
+  const cx = (CENTER[1] + 0.5) * CELL_PX + FRAME_PX;
+  const cy = (CENTER[0] + 0.5) * CELL_PX + FRAME_PX;
   const half = CELL_PX * 1.5;
   const quads: Array<[number, number, number, number, number]> = [
     [cx - half, cy + half, cx + half, cy + half, 0], // 下 红
@@ -186,10 +235,19 @@ export function drawBoardCanvas(): HTMLCanvasElement {
   ctx.lineWidth = 2;
   ctx.strokeRect(cx - half, cy - half, half * 2, half * 2);
 
-  // 外框:细的深色描边,不做厚金框
-  ctx.strokeStyle = FRAME;
-  ctx.lineWidth = 10;
-  ctx.strokeRect(5, 5, BOARD_PX - 10, BOARD_PX - 10);
+  // 外框:金色圆角厚框。上一版改成细深色边,结果整张盘"没质感" ——
+  // 这套 UI 的立体感就是靠金边撑起来的,不能省
+  const w = FRAME_PX;
+  const rim = ctx.createLinearGradient(0, 0, BOARD_PX, BOARD_PX);
+  rim.addColorStop(0, GOLD_LIGHT);
+  rim.addColorStop(0.25, GOLD);
+  rim.addColorStop(0.6, GOLD_LIGHT);
+  rim.addColorStop(1, GOLD_DARK);
+  ctx.strokeStyle = rim;
+  ctx.lineWidth = w;
+  ctx.beginPath();
+  ctx.roundRect(w / 2, w / 2, BOARD_PX - w, BOARD_PX - w, CELL_PX * 0.5);
+  ctx.stroke();
 
   return canvas;
 }

@@ -41,36 +41,54 @@ function buildPawn(scene: Phaser.Scene, seat: number): void {
   if (scene.textures.exists(key)) return;
 
   const base = Phaser.Display.Color.IntegerToColor(SEAT_HEX[seat]);
-  const dark = base.clone().darken(42).color;
-  const mid = base.clone().darken(14).color;
-  const light = base.clone().lighten(34).color;
+  const rim = base.clone().darken(52).color;
+  const body = base.color;
+  const lit = base.clone().lighten(40).color;
+  const shade = base.clone().darken(24).color;
   const g = scene.make.graphics({ x: 0, y: 0 }, false);
   const c = PAWN_PX / 2;
 
   // 落地阴影
-  g.fillStyle(0x000000, 0.32);
-  g.fillEllipse(c, c + PAWN_PX * 0.3, PAWN_PX * 0.62, PAWN_PX * 0.2);
+  g.fillStyle(0x000000, 0.34);
+  g.fillEllipse(c, c + PAWN_PX * 0.33, PAWN_PX * 0.6, PAWN_PX * 0.17);
 
-  // **底座 + 圆头的立体棋子,不是扁圆片。**
-  // 稿子里的棋子是有高度的:俯视偏 3/4,能看到头和底座两截。
-  // 画成一个扁圆片的话,它在同色基地上就只是一个色斑,读不出"这是一颗棋子"
-  g.fillStyle(0xffffff, 0.95);
-  g.fillEllipse(c, c + PAWN_PX * 0.24, PAWN_PX * 0.56, PAWN_PX * 0.24); // 底座白边
-  g.fillStyle(dark, 1);
-  g.fillEllipse(c, c + PAWN_PX * 0.24, PAWN_PX * 0.48, PAWN_PX * 0.18);
-  g.fillStyle(mid, 1);
-  g.fillRect(c - PAWN_PX * 0.13, c - PAWN_PX * 0.02, PAWN_PX * 0.26, PAWN_PX * 0.26); // 腰
+  /**
+   * **真正的立体棋子:底座 → 收腰 → 圆头。**
+   * 早先画成"圆片 + 一小截底座",在同色基地上读不出这是一颗棋子,整盘看着像色斑。
+   * 参考 UI 里的棋子有明确的三段轮廓和深色描边,那正是"有质感"的来源。
+   */
+  // 底座
+  g.fillStyle(rim, 1);
+  g.fillEllipse(c, c + PAWN_PX * 0.28, PAWN_PX * 0.56, PAWN_PX * 0.2);
+  g.fillStyle(shade, 1);
+  g.fillEllipse(c, c + PAWN_PX * 0.26, PAWN_PX * 0.48, PAWN_PX * 0.16);
 
-  g.fillStyle(0xffffff, 0.95);
-  g.fillCircle(c, c - PAWN_PX * 0.08, PAWN_PX * 0.29); // 头的白边
-  g.fillStyle(dark, 1);
-  g.fillCircle(c, c - PAWN_PX * 0.08, PAWN_PX * 0.26);
-  g.fillStyle(base.color, 1);
-  g.fillCircle(c, c - PAWN_PX * 0.08, PAWN_PX * 0.22);
-  g.fillStyle(light, 0.9);
-  g.fillEllipse(c - PAWN_PX * 0.07, c - PAWN_PX * 0.15, PAWN_PX * 0.16, PAWN_PX * 0.11);
-  g.fillStyle(0xffffff, 0.7);
-  g.fillCircle(c - PAWN_PX * 0.08, c - PAWN_PX * 0.16, PAWN_PX * 0.035);
+  // 收腰:上窄下宽的梯形
+  g.fillStyle(rim, 1);
+  g.fillPoints([
+    new Phaser.Geom.Point(c - PAWN_PX * 0.11, c - PAWN_PX * 0.02),
+    new Phaser.Geom.Point(c + PAWN_PX * 0.11, c - PAWN_PX * 0.02),
+    new Phaser.Geom.Point(c + PAWN_PX * 0.2, c + PAWN_PX * 0.26),
+    new Phaser.Geom.Point(c - PAWN_PX * 0.2, c + PAWN_PX * 0.26),
+  ], true);
+  g.fillStyle(body, 1);
+  g.fillPoints([
+    new Phaser.Geom.Point(c - PAWN_PX * 0.085, c - PAWN_PX * 0.02),
+    new Phaser.Geom.Point(c + PAWN_PX * 0.085, c - PAWN_PX * 0.02),
+    new Phaser.Geom.Point(c + PAWN_PX * 0.17, c + PAWN_PX * 0.23),
+    new Phaser.Geom.Point(c - PAWN_PX * 0.17, c + PAWN_PX * 0.23),
+  ], true);
+
+  // 圆头
+  g.fillStyle(rim, 1);
+  g.fillCircle(c, c - PAWN_PX * 0.12, PAWN_PX * 0.235);
+  g.fillStyle(body, 1);
+  g.fillCircle(c, c - PAWN_PX * 0.12, PAWN_PX * 0.2);
+  // 高光偏左上,和棋盘的金边受光方向一致
+  g.fillStyle(lit, 0.92);
+  g.fillEllipse(c - PAWN_PX * 0.06, c - PAWN_PX * 0.18, PAWN_PX * 0.15, PAWN_PX * 0.1);
+  g.fillStyle(0xffffff, 0.8);
+  g.fillCircle(c - PAWN_PX * 0.07, c - PAWN_PX * 0.19, PAWN_PX * 0.032);
 
   g.generateTexture(key, PAWN_PX, PAWN_PX);
   g.destroy();

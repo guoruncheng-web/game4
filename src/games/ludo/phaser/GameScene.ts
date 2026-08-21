@@ -21,19 +21,30 @@ import type { GameState } from '../sim/game';
 import type { Move } from '../sim/rules';
 import { BASE } from '../sim/rules';
 import type { Cell } from '../sim/layout';
-import { GRID, cellOfStep } from '../sim/layout';
-import { BASE_ORIGIN, PANEL, VIEW_BASE_SLOTS } from '../render/boardTexture';
+import { cellOfStep } from '../sim/layout';
+import { BASE_ORIGIN, BOARD_PX, CELL_PX, FRAME_PX, PANEL, VIEW_BASE_SLOTS } from '../render/boardTexture';
 import { LUDO_IMAGES } from '../assets';
 import { TEX, buildTextures } from './textures';
 
-export const GAME_WIDTH = 720;
-export const GAME_HEIGHT = 1280;
+/**
+ * 画布的逻辑分辨率。**1080 而不是 720。**
+ * 720 在 2 倍 DPR 的手机上要被放大到 ~860 物理像素,棋盘贴图(960)因此被重采样,
+ * 表现是整张盘发虚 —— 截图放大之后特别明显。1080 之后基本是 1:1。
+ */
+export const GAME_WIDTH = 1080;
+export const GAME_HEIGHT = 1920;
 
 /** 棋盘在画布上的显示边长与中心。上面留给时钟,下面留给骰子 */
-const BOARD_SIZE = 690;
+const BOARD_SIZE = 1035;
 const BOARD_CX = GAME_WIDTH / 2;
-const BOARD_CY = 600;
-const CELL = BOARD_SIZE / GRID;
+const BOARD_CY = 900;
+/**
+ * 屏幕上一格的边长。**要扣掉金框** —— 贴图里格子区只占 `BOARD_PX - 2×FRAME_PX`,
+ * 直接拿 BOARD_SIZE/15 会让所有棋子整体偏移半个框的距离。
+ */
+const SCALE = BOARD_SIZE / BOARD_PX;
+const CELL = CELL_PX * SCALE;
+const BOARD_ORIGIN = -BOARD_SIZE / 2 + FRAME_PX * SCALE;
 
 /** 棋子走一格的时长。慢到能数清,快到不烦 */
 const STEP_MS = 130;
@@ -102,8 +113,8 @@ export class GameScene extends Phaser.Scene {
   private toScreen(cell: Cell): { x: number; y: number } {
     const [row, col] = cell;
     return {
-      x: BOARD_CX + (col + 0.5 - GRID / 2) * CELL,
-      y: BOARD_CY + (row + 0.5 - GRID / 2) * CELL,
+      x: BOARD_CX + BOARD_ORIGIN + (col + 0.5) * CELL,
+      y: BOARD_CY + BOARD_ORIGIN + (row + 0.5) * CELL,
     };
   }
 
@@ -119,7 +130,7 @@ export class GameScene extends Phaser.Scene {
       for (let i = 0; i < PIECES_PER_SEAT; i += 1) {
         const sprite = this.add
           .image(0, 0, TEX.pawn(seat))
-          .setDisplaySize(CELL * 0.86, CELL * 0.86)
+          .setDisplaySize(CELL * 1.02, CELL * 1.02)
           .setDepth(10);
         // 点棋子就是选一条走法。Phaser 自带命中,不用像 3D 那样自己发射线
         sprite.setInteractive({ useHandCursor: true });
@@ -289,35 +300,42 @@ export class GameScene extends Phaser.Scene {
       const glow = this.add.graphics().setDepth(4);
       this.panelGlows.push(glow);
 
-      const face = this.toScreen([r0 + PANEL.avatarRow, centerCol]);
+      // 头像在**左上角**,名字在它右侧 —— 参考 UI 的排法。
+      // 居中摆放会把名字挤到下面一行,基地里本来就只有 6 格高,行数越少越清楚
+      const face = this.toScreen([r0 + PANEL.avatarRow, c0 + 1.5]);
       const hasFace = this.textures.exists(`ludo-face-${seat}`);
       const avatar = this.add
         .image(face.x, face.y, hasFace ? `ludo-face-${seat}` : TEX.pawn(seat))
-        .setDisplaySize(CELL * 1.7, CELL * 1.7)
+        .setDisplaySize(CELL * 2.0, CELL * 2.0)
         .setDepth(5);
-      // 圆形裁切 + 白边,和稿子里的头像一致
       const mask = this.make.graphics({ x: 0, y: 0 }, false);
-      mask.fillCircle(face.x, face.y, CELL * 0.85);
+      mask.fillCircle(face.x, face.y, CELL * 0.98);
       avatar.setMask(mask.createGeometryMask());
+      // 金色双层圆环,和棋盘的金边成一套
       const ring = this.add.graphics().setDepth(5);
-      ring.lineStyle(4, 0xffffff, 0.92);
-      ring.strokeCircle(face.x, face.y, CELL * 0.85);
+      ring.lineStyle(CELL * 0.16, 0xd9a327, 1);
+      ring.strokeCircle(face.x, face.y, CELL * 1.02);
+      ring.lineStyle(CELL * 0.06, 0x8a5f12, 0.9);
+      ring.strokeCircle(face.x, face.y, CELL * 1.1);
 
-      const name = this.toScreen([r0 + PANEL.nameRow, centerCol]);
+      const name = this.toScreen([r0 + PANEL.avatarRow, c0 + 3.9]);
       this.add.text(name.x, name.y, seat === this.seat ? '你' : ['红', '绿', '黄', '蓝'][seat], {
-        fontFamily: 'system-ui, sans-serif', fontSize: '22px', color: '#ffffff', fontStyle: 'bold',
-        stroke: '#00000066', strokeThickness: 3,
+        fontFamily: 'system-ui, sans-serif', fontSize: `${Math.round(CELL * 0.58)}px`,
+        color: '#ffffff', fontStyle: 'bold', stroke: '#00000055', strokeThickness: 4,
       }).setOrigin(0.5).setDepth(6);
 
-      // 分数条
+      // 分数条:**明显比底色深**。同色暗一档会糊成一片,参考 UI 用的是近黑的同色
       const bar = this.toScreen([r0 + PANEL.scoreRow, centerCol]);
-      const barW = CELL * 4.3;
-      const barH = CELL * 0.62;
+      const barW = CELL * 4.5;
+      const barH = CELL * 0.92;
       const g = this.add.graphics().setDepth(5);
-      g.fillStyle(0x000000, 0.34);
+      g.fillStyle(0x000000, 0.46);
       g.fillRoundedRect(bar.x - barW / 2, bar.y - barH / 2, barW, barH, barH / 2);
+      g.lineStyle(3, 0x000000, 0.3);
+      g.strokeRoundedRect(bar.x - barW / 2, bar.y - barH / 2, barW, barH, barH / 2);
       const score = this.add.text(bar.x, bar.y, '0', {
-        fontFamily: 'system-ui, sans-serif', fontSize: '30px', color: '#ffffff', fontStyle: 'bold',
+        fontFamily: 'system-ui, sans-serif', fontSize: `${Math.round(CELL * 0.78)}px`,
+        color: '#ffffff', fontStyle: 'bold',
       }).setOrigin(0.5).setDepth(6);
       this.scoreTexts.push(score);
     }
