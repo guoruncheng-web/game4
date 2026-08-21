@@ -51,7 +51,13 @@ const STEP_MS = 130;
 /** 机器人思考时间:秒回像没在想,太慢让人等 */
 const botThink = () => 600 + Math.random() * 600;
 
-type PieceView = { sprite: Phaser.GameObjects.Image; seat: number; index: number };
+type PieceView = {
+  sprite: Phaser.GameObjects.Image;
+  /** 落地阴影。**留在地面**,棋子跳起时它只缩小不跟着走 */
+  shadow: Phaser.GameObjects.Image;
+  seat: number;
+  index: number;
+};
 
 export class GameScene extends Phaser.Scene {
   private state!: GameState;
@@ -128,6 +134,10 @@ export class GameScene extends Phaser.Scene {
     for (let seat = 0; seat < SEATS; seat += 1) {
       const row: PieceView[] = [];
       for (let i = 0; i < PIECES_PER_SEAT; i += 1) {
+        const shadow = this.add
+          .image(0, 0, TEX.shadow)
+          .setDisplaySize(CELL * 0.78, CELL * 0.34)
+          .setDepth(9);
         const sprite = this.add
           .image(0, 0, TEX.pawn(seat))
           // **按高度缩放,并把锚点放在底座**(origin y = 0.82)。
@@ -139,7 +149,7 @@ export class GameScene extends Phaser.Scene {
         // 点棋子就是选一条走法。Phaser 自带命中,不用像 3D 那样自己发射线
         sprite.setInteractive({ useHandCursor: true });
         sprite.on('pointerdown', () => this.tapPiece(seat, i));
-        row.push({ sprite, seat, index: i });
+        row.push({ sprite, shadow, seat, index: i });
       }
       this.pieces.push(row);
     }
@@ -152,7 +162,11 @@ export class GameScene extends Phaser.Scene {
         const step = this.state.board.pieces[seat][i];
         const cell = step === BASE ? VIEW_BASE_SLOTS[seat][i] : cellOfStep(seat, step);
         const { x, y } = this.toScreen(cell);
-        this.pieces[seat][i].sprite.setPosition(x, y);
+        const view = this.pieces[seat][i];
+        view.sprite.setPosition(x, y);
+        // 地面高度单独记着:棋子会被 tween 抬起来,阴影不能跟着抬
+        view.sprite.setData('groundY', y);
+        view.shadow.setPosition(x, y);
       }
     }
   }
@@ -252,6 +266,7 @@ export class GameScene extends Phaser.Scene {
         duration: STEP_MS,
         ease: 'Sine.out',
         onComplete: () => {
+          sprite.setData('groundY', t.y);
           i += 1;
           if (i < targets.length) step();
           else done();
@@ -281,6 +296,7 @@ export class GameScene extends Phaser.Scene {
       y: home.y,
       duration: 420,
       ease: 'Back.in',
+      onUpdate: () => sprite.setData('groundY', sprite.y),
     });
   }
 
@@ -448,7 +464,23 @@ export class GameScene extends Phaser.Scene {
     for (const row of this.pieces) {
       for (const p of row) this.tweens.killTweensOf(p.sprite);
     }
+    // syncPieces 会把 groundY 一并重置 —— 高亮的浮动是"离地",不是换格子,
+    // 停掉之后必须回到真实位置,否则阴影会停在半空
     this.syncPieces();
+  }
+
+  /** 阴影跟着棋子的 x 走,但留在地面;离地越高越小越淡 —— 这就是"跳起来"的观感来源 */
+  private syncShadows(): void {
+    for (const row of this.pieces) {
+      for (const { sprite, shadow } of row) {
+        const ground = (sprite.getData('groundY') as number | undefined) ?? sprite.y;
+        const lift = Math.max(0, ground - sprite.y);
+        const k = Math.max(0.55, 1 - lift / (CELL * 1.2));
+        shadow.setPosition(sprite.x, ground);
+        shadow.setDisplaySize(CELL * 0.78 * k, CELL * 0.34 * k);
+        shadow.setAlpha(0.35 + 0.45 * k);
+      }
+    }
   }
 
   private showResult(): void {
@@ -462,6 +494,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(): void {
+    this.syncShadows();
     if (this.state.over) return;
     this.clockText.setText(mmss(timeLeft(this.state, this.time.now)));
     // 回合超时:自动走最保守的一步,免得四个人一起卡在某人身上

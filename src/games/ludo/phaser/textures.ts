@@ -14,6 +14,7 @@ import { BOARD_PX, SEAT_HEX, drawBoardCanvas } from '../render/boardTexture';
 
 export const TEX = {
   board: 'ludo-board',
+  shadow: 'ludo-shadow',
   pawn: (seat: number) => `ludo-pawn-${seat}`,
   die: (face: number) => `ludo-die-${face}`,
 } as const;
@@ -33,6 +34,7 @@ export function buildTextures(scene: Phaser.Scene): void {
   if (!scene.textures.exists(TEX.board)) {
     scene.textures.addCanvas(TEX.board, drawBoardCanvas());
   }
+  buildShadow(scene);
   for (let seat = 0; seat < SEATS; seat += 1) buildPawn(scene, seat);
   for (let face = 1; face <= 6; face += 1) buildDie(scene, face);
 }
@@ -43,6 +45,27 @@ export function buildTextures(scene: Phaser.Scene): void {
  * **不画成侧视的塔形。** 棋盘是正俯视的,侧视棋子会和棋盘的视角打架 ——
  * 那正是 3D 版里最别扭的一点:棋子立着、棋盘躺着。
  */
+/**
+ * 棋子的落地阴影。**独立一张贴图,不画进棋子里。**
+ *
+ * 棋子的锚点在底座、身子往上伸,阴影若画在棋子贴图内会被裁掉大半;
+ * 更重要的是:棋子跳起来的时候**阴影应该留在地面并缩小**,而不是跟着一起飞。
+ * 分开之后这两件事都成立,立体感也是从这儿来的。
+ */
+function buildShadow(scene: Phaser.Scene): void {
+  if (scene.textures.exists(TEX.shadow)) return;
+  const g = scene.make.graphics({ x: 0, y: 0 }, false);
+  const w = 128;
+  const h = 64;
+  // 由内到外逐层变淡,近似一圈软阴影 —— Graphics 没有径向渐变填充
+  for (let i = 10; i >= 1; i -= 1) {
+    g.fillStyle(0x000000, 0.055);
+    g.fillEllipse(w / 2, h / 2, (w * 0.92 * i) / 10, (h * 0.92 * i) / 10);
+  }
+  g.generateTexture(TEX.shadow, w, h);
+  g.destroy();
+}
+
 function buildPawn(scene: Phaser.Scene, seat: number): void {
   const key = TEX.pawn(seat);
   if (scene.textures.exists(key)) return;
@@ -61,10 +84,6 @@ function buildPawn(scene: Phaser.Scene, seat: number): void {
   const baseY = PAWN_H * 0.86;
   const baseRx = PAWN_W * 0.44;
   const baseRy = PAWN_H * 0.10;
-
-  // 落地阴影
-  g.fillStyle(0x000000, 0.3);
-  g.fillEllipse(cx, baseY + baseRy * 0.55, baseRx * 1.9, baseRy * 1.15);
 
   /**
    * **侧视的立体棋子:圆头 → 收腰 → 底座。**
