@@ -279,6 +279,18 @@ export default function Home() {
               </div>
               <span className="grid size-11 place-items-center rounded-2xl bg-cyan-300/10 text-cyan-300"><Play size={21} className="fill-current" /></span>
             </GameLink>
+            <GameLink
+              href="/ludo"
+              className="flex items-center gap-4 rounded-3xl border border-white bg-[#0d2a63] p-2.5 shadow-[0_8px_24px_rgba(30,80,180,0.28)] transition active:scale-[0.99]"
+            >
+              <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_50%_35%,#4f8bff,#0b2154_72%)] text-5xl shadow-inner">✈️</div>
+              <div className="min-w-0 flex-1">
+                <p className="text-lg font-black text-sky-300">Ludo</p>
+                <p className="mt-0.5 text-sm font-bold text-sky-100/90">四人开房，掷二选一</p>
+                <p className="mt-2 text-xs font-bold text-amber-300">建房邀请好友 · 人不够可加机器人</p>
+              </div>
+              <span className="grid size-11 place-items-center rounded-2xl bg-sky-300/10 text-sky-300"><Play size={21} className="fill-current" /></span>
+            </GameLink>
             {upcomingGames.map((game) => (
               <article
                 key={game.image}

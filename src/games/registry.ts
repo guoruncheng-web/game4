@@ -68,6 +68,13 @@ export const GAMES: GameMeta[] = [
     controls: '按住画面朝鱼开炮 · ↑ ↓ 或 ± 换炮 · 空格连发',
     accent: 'text-cyan-300',
   },
+  {
+    slug: 'ludo',
+    title: 'Ludo',
+    tagline: '四人回合制棋盘竞速 · 掷二选一 · 可加机器人',
+    controls: '创建或用游戏 ID 加入 · 点骰子掷 · 点棋子走',
+    accent: 'text-sky-300',
+  },
 ];
 
 export function getGame(slug: string): GameMeta | undefined {
