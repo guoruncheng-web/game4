@@ -325,21 +325,21 @@ export class GameScene extends Phaser.Scene {
 
       // 头像在**左上角**,名字在它右侧 —— 参考 UI 的排法。
       // 居中摆放会把名字挤到下面一行,基地里本来就只有 6 格高,行数越少越清楚
-      const face = this.toScreen([r0 + PANEL.avatarRow, c0 + 1.5]);
+      const face = this.toScreen([r0 + PANEL.avatarRow, c0 + 1.3]);
       const hasFace = this.textures.exists(`ludo-face-${seat}`);
       const avatar = this.add
         .image(face.x, face.y, hasFace ? `ludo-face-${seat}` : TEX.pawn(seat))
-        .setDisplaySize(CELL * 2.0, CELL * 2.0)
+        .setDisplaySize(CELL * PANEL.avatarSize, CELL * PANEL.avatarSize)
         .setDepth(5);
       const mask = this.make.graphics({ x: 0, y: 0 }, false);
-      mask.fillCircle(face.x, face.y, CELL * 0.98);
+      mask.fillCircle(face.x, face.y, CELL * PANEL.avatarSize * 0.5);
       avatar.setMask(mask.createGeometryMask());
       // 金色双层圆环,和棋盘的金边成一套
       const ring = this.add.graphics().setDepth(5);
       ring.lineStyle(CELL * 0.16, 0xd9a327, 1);
-      ring.strokeCircle(face.x, face.y, CELL * 1.02);
+      ring.strokeCircle(face.x, face.y, CELL * PANEL.avatarSize * 0.52);
       ring.lineStyle(CELL * 0.06, 0x8a5f12, 0.9);
-      ring.strokeCircle(face.x, face.y, CELL * 1.1);
+      ring.strokeCircle(face.x, face.y, CELL * PANEL.avatarSize * 0.58);
 
       const name = this.toScreen([r0 + PANEL.avatarRow, c0 + 3.9]);
       this.add.text(name.x, name.y, seat === this.seat ? '你' : ['红', '绿', '黄', '蓝'][seat], {
@@ -350,7 +350,7 @@ export class GameScene extends Phaser.Scene {
       // 分数条:**明显比底色深**。同色暗一档会糊成一片,参考 UI 用的是近黑的同色
       const bar = this.toScreen([r0 + PANEL.scoreRow, centerCol]);
       const barW = CELL * 4.5;
-      const barH = CELL * 0.92;
+      const barH = CELL * PANEL.scoreHeight;
       const g = this.add.graphics().setDepth(5);
       g.fillStyle(0x000000, 0.46);
       g.fillRoundedRect(bar.x - barW / 2, bar.y - barH / 2, barW, barH, barH / 2);
@@ -385,10 +385,10 @@ export class GameScene extends Phaser.Scene {
     const seatRow = BASE_ORIGIN[this.seat][0] + PANEL.diceRow;
     const seatCol = BASE_ORIGIN[this.seat][1] + PANEL.centerCol;
     for (let i = 0; i < 3; i += 1) {
-      const at = this.toScreen([seatRow, seatCol + (i - 1) * 1.25]);
+      const at = this.toScreen([seatRow, seatCol + (i - 1) * (PANEL.diceSize + 0.22)]);
       const die = this.add
         .image(at.x, at.y, TEX.die(1))
-        .setDisplaySize(CELL * 1.05, CELL * 1.05)
+        .setDisplaySize(CELL * PANEL.diceSize, CELL * PANEL.diceSize)
         .setDepth(12)
         .setVisible(false);
       this.diceImages.push(die);
@@ -438,7 +438,7 @@ export class GameScene extends Phaser.Scene {
     const row = BASE_ORIGIN[this.seat][0] + PANEL.diceRow;
     const col = BASE_ORIGIN[this.seat][1] + PANEL.centerCol;
     this.diceImages.forEach((die, i) => {
-      const at = this.toScreen([row, col + (i - (shown - 1) / 2) * 1.25]);
+      const at = this.toScreen([row, col + (i - (shown - 1) / 2) * (PANEL.diceSize + 0.22)]);
       die.setPosition(at.x, at.y);
     });
   }
