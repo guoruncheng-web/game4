@@ -18,8 +18,15 @@ export const TEX = {
   die: (face: number) => `ludo-die-${face}`,
 } as const;
 
-/** 棋子贴图的像素边长。够 2 倍屏用 */
-const PAWN_PX = 96;
+/**
+ * 棋子贴图的尺寸。**竖长,不是正方形。**
+ *
+ * UI 里的棋子是侧视的立体棋子:底座落在格子中心,头伸到格子上方 ——
+ * 高度大约是宽度的 1.4 倍。画成正方形贴图里居中的俯视圆片,它就只是一个色斑,
+ * 既显得小又看不出是棋子(实测截图里就是这个问题)。
+ */
+const PAWN_W = 96;
+const PAWN_H = 134;
 const DIE_PX = 128;
 
 export function buildTextures(scene: Phaser.Scene): void {
@@ -41,56 +48,58 @@ function buildPawn(scene: Phaser.Scene, seat: number): void {
   if (scene.textures.exists(key)) return;
 
   const base = Phaser.Display.Color.IntegerToColor(SEAT_HEX[seat]);
-  const rim = base.clone().darken(52).color;
+  const rim = base.clone().darken(56).color;
   const body = base.color;
-  const lit = base.clone().lighten(40).color;
-  const shade = base.clone().darken(24).color;
+  const lit = base.clone().lighten(42).color;
+  const shade = base.clone().darken(26).color;
   const g = scene.make.graphics({ x: 0, y: 0 }, false);
-  const c = PAWN_PX / 2;
+
+  const cx = PAWN_W / 2;
+  // 各部件的纵向位置(从贴图顶部往下算)
+  const headR = PAWN_W * 0.30;
+  const headY = headR + PAWN_H * 0.06;
+  const baseY = PAWN_H * 0.86;
+  const baseRx = PAWN_W * 0.44;
+  const baseRy = PAWN_H * 0.10;
 
   // 落地阴影
-  g.fillStyle(0x000000, 0.34);
-  g.fillEllipse(c, c + PAWN_PX * 0.33, PAWN_PX * 0.6, PAWN_PX * 0.17);
+  g.fillStyle(0x000000, 0.3);
+  g.fillEllipse(cx, baseY + baseRy * 0.55, baseRx * 1.9, baseRy * 1.15);
 
   /**
-   * **真正的立体棋子:底座 → 收腰 → 圆头。**
-   * 早先画成"圆片 + 一小截底座",在同色基地上读不出这是一颗棋子,整盘看着像色斑。
-   * 参考 UI 里的棋子有明确的三段轮廓和深色描边,那正是"有质感"的来源。
+   * **侧视的立体棋子:圆头 → 收腰 → 底座。**
+   * 深色描边是必需的 —— 待出场的棋子停在自己那块同色基地上,
+   * 没有描边就是"红棋子放在红底上",整块基地看着只有几个色斑。
    */
-  // 底座
-  g.fillStyle(rim, 1);
-  g.fillEllipse(c, c + PAWN_PX * 0.28, PAWN_PX * 0.56, PAWN_PX * 0.2);
-  g.fillStyle(shade, 1);
-  g.fillEllipse(c, c + PAWN_PX * 0.26, PAWN_PX * 0.48, PAWN_PX * 0.16);
+  // 描边层:整体先画一遍深色,再在里面画小一圈本色,得到均匀的轮廓线
+  const outline = (inset: number, color: number) => {
+    g.fillStyle(color, 1);
+    // 底座
+    g.fillEllipse(cx, baseY, (baseRx - inset) * 2, (baseRy - inset * 0.5) * 2);
+    // 腰:上窄下宽
+    g.fillPoints([
+      new Phaser.Geom.Point(cx - PAWN_W * 0.13 + inset, headY + headR * 0.5),
+      new Phaser.Geom.Point(cx + PAWN_W * 0.13 - inset, headY + headR * 0.5),
+      new Phaser.Geom.Point(cx + baseRx - inset, baseY),
+      new Phaser.Geom.Point(cx - baseRx + inset, baseY),
+    ], true);
+    // 头
+    g.fillCircle(cx, headY, headR - inset);
+  };
+  outline(0, rim);
+  outline(PAWN_W * 0.055, body);
 
-  // 收腰:上窄下宽的梯形
-  g.fillStyle(rim, 1);
-  g.fillPoints([
-    new Phaser.Geom.Point(c - PAWN_PX * 0.11, c - PAWN_PX * 0.02),
-    new Phaser.Geom.Point(c + PAWN_PX * 0.11, c - PAWN_PX * 0.02),
-    new Phaser.Geom.Point(c + PAWN_PX * 0.2, c + PAWN_PX * 0.26),
-    new Phaser.Geom.Point(c - PAWN_PX * 0.2, c + PAWN_PX * 0.26),
-  ], true);
-  g.fillStyle(body, 1);
-  g.fillPoints([
-    new Phaser.Geom.Point(c - PAWN_PX * 0.085, c - PAWN_PX * 0.02),
-    new Phaser.Geom.Point(c + PAWN_PX * 0.085, c - PAWN_PX * 0.02),
-    new Phaser.Geom.Point(c + PAWN_PX * 0.17, c + PAWN_PX * 0.23),
-    new Phaser.Geom.Point(c - PAWN_PX * 0.17, c + PAWN_PX * 0.23),
-  ], true);
+  // 腰部往下压一点暗色,分出底座和身体
+  g.fillStyle(shade, 0.55);
+  g.fillEllipse(cx, baseY - baseRy * 0.35, (baseRx - PAWN_W * 0.055) * 1.7, baseRy * 0.9);
 
-  // 圆头
-  g.fillStyle(rim, 1);
-  g.fillCircle(c, c - PAWN_PX * 0.12, PAWN_PX * 0.235);
-  g.fillStyle(body, 1);
-  g.fillCircle(c, c - PAWN_PX * 0.12, PAWN_PX * 0.2);
-  // 高光偏左上,和棋盘的金边受光方向一致
-  g.fillStyle(lit, 0.92);
-  g.fillEllipse(c - PAWN_PX * 0.06, c - PAWN_PX * 0.18, PAWN_PX * 0.15, PAWN_PX * 0.1);
-  g.fillStyle(0xffffff, 0.8);
-  g.fillCircle(c - PAWN_PX * 0.07, c - PAWN_PX * 0.19, PAWN_PX * 0.032);
+  // 高光偏左上,和棋盘金边的受光方向一致
+  g.fillStyle(lit, 0.9);
+  g.fillEllipse(cx - headR * 0.3, headY - headR * 0.34, headR * 0.78, headR * 0.5);
+  g.fillStyle(0xffffff, 0.85);
+  g.fillCircle(cx - headR * 0.34, headY - headR * 0.4, headR * 0.17);
 
-  g.generateTexture(key, PAWN_PX, PAWN_PX);
+  g.generateTexture(key, PAWN_W, PAWN_H);
   g.destroy();
 }
 

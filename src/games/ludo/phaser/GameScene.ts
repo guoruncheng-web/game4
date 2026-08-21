@@ -130,7 +130,11 @@ export class GameScene extends Phaser.Scene {
       for (let i = 0; i < PIECES_PER_SEAT; i += 1) {
         const sprite = this.add
           .image(0, 0, TEX.pawn(seat))
-          .setDisplaySize(CELL * 1.02, CELL * 1.02)
+          // **按高度缩放,并把锚点放在底座**(origin y = 0.82)。
+          // 这样棋子是"站在格子上"、头伸到格外,和 UI 一致;
+          // 用居中锚点的话棋子会陷进格子里,看着又小又扁
+          .setOrigin(0.5, 0.82)
+          .setDisplaySize(CELL * 0.94, CELL * 1.31)
           .setDepth(10);
         // 点棋子就是选一条走法。Phaser 自带命中,不用像 3D 那样自己发射线
         sprite.setInteractive({ useHandCursor: true });
@@ -253,12 +257,15 @@ export class GameScene extends Phaser.Scene {
           else done();
         },
       });
-      // 一点抬起感,不然像在地上滑
+      // 一点抬起感,不然像在地上滑。
+      // **不能动 scale** —— 棋子贴图是竖长的(宽高比不等),`scale` 会同时改 x/y,
+      // 把棋子压变形。抬 y 既安全又更像"跳过去"
       this.tweens.add({
         targets: sprite,
-        scale: sprite.scale * 1.12,
+        y: t.y - CELL * 0.22,
         duration: STEP_MS / 2,
         yoyo: true,
+        ease: 'Sine.out',
       });
     };
     step();
@@ -428,7 +435,7 @@ export class GameScene extends Phaser.Scene {
       // 可走的棋子上下浮动 —— 比描边更容易在小屏上看见
       this.tweens.add({
         targets: sprite,
-        y: sprite.y - 8,
+        y: sprite.y - CELL * 0.18,
         duration: 420,
         yoyo: true,
         repeat: -1,
