@@ -11,6 +11,7 @@
 import * as Phaser from 'phaser';
 import { PIECES_PER_SEAT, SEATS } from '../config';
 import { BOARD_PX, SEAT_HEX, drawBoardCanvas } from '../render/boardTexture';
+import { drawDieCanvas } from '../render/diceTexture';
 
 export const TEX = {
   board: 'ludo-board',
@@ -28,7 +29,6 @@ export const TEX = {
  */
 const PAWN_W = 96;
 const PAWN_H = 134;
-const DIE_PX = 128;
 
 export function buildTextures(scene: Phaser.Scene): void {
   if (!scene.textures.exists(TEX.board)) {
@@ -122,34 +122,14 @@ function buildPawn(scene: Phaser.Scene, seat: number): void {
   g.destroy();
 }
 
-/** 骰子的六个面。白底圆角 + 黑点 */
+/**
+ * 骰子的六个面。**走 canvas 2D**(render/diceTexture),不用 Graphics ——
+ * Graphics 没有渐变填充,画出来的骰子是"白方块 + 黑圆点",怎么调都是平的。
+ */
 function buildDie(scene: Phaser.Scene, face: number): void {
   const key = TEX.die(face);
   if (scene.textures.exists(key)) return;
-
-  const g = scene.make.graphics({ x: 0, y: 0 }, false);
-  g.fillStyle(0xffffff, 1);
-  g.fillRoundedRect(4, 4, DIE_PX - 8, DIE_PX - 8, 22);
-  g.lineStyle(4, 0xd8dde8, 1);
-  g.strokeRoundedRect(4, 4, DIE_PX - 8, DIE_PX - 8, 22);
-
-  // 点位:三行三列的九宫格,每个点数取其中几个位置
-  const a = DIE_PX * 0.3;
-  const b = DIE_PX * 0.5;
-  const c = DIE_PX * 0.7;
-  const spots: Record<number, Array<[number, number]>> = {
-    1: [[b, b]],
-    2: [[a, a], [c, c]],
-    3: [[a, a], [b, b], [c, c]],
-    4: [[a, a], [c, a], [a, c], [c, c]],
-    5: [[a, a], [c, a], [b, b], [a, c], [c, c]],
-    6: [[a, a], [c, a], [a, b], [c, b], [a, c], [c, c]],
-  };
-  g.fillStyle(0x24304a, 1);
-  for (const [x, y] of spots[face]) g.fillCircle(x, y, DIE_PX * 0.085);
-
-  g.generateTexture(key, DIE_PX, DIE_PX);
-  g.destroy();
+  scene.textures.addCanvas(key, drawDieCanvas(face));
 }
 
 export { BOARD_PX, PIECES_PER_SEAT, SEAT_HEX };
