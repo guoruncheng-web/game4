@@ -72,8 +72,9 @@ export class GameScene extends Phaser.Scene {
   private scoreTexts: Phaser.GameObjects.Text[] = [];
   private panelGlows: Phaser.GameObjects.Graphics[] = [];
   private diceImages: Phaser.GameObjects.Image[] = [];
-  private rollButton!: Phaser.GameObjects.Container;
   private busy = false;
+  /** 正在播摇骰子动画。这期间 refreshHud 不能覆盖骰子的贴图 */
+  private rolling = false;
 
   constructor() {
     super('LudoGame');
@@ -188,10 +189,57 @@ export class GameScene extends Phaser.Scene {
   }
 
   private rollDice(): void {
-    if (this.busy || this.state.over || this.state.turn !== this.seat || this.state.dice.length) return;
+    if (this.busy || this.rolling || this.state.over || this.state.turn !== this.seat || this.state.dice.length) return;
+    // **结果先定,再反推动画。** 骰子是服务端摇的(现在是本地 sim),
+    // 客户端只负责把已经定下来的点数演出来 —— 不能让动画去决定点数
     this.state = roll(this.state, Math.random, this.time.now);
-    this.moves = currentMoves(this.state);
     this.setRollable(false);
+    this.shakeDice(() => this.afterRoll());
+  }
+
+  /** 原地摇:快速换点数 + 抖动,最后落在真实结果上 */
+  private shakeDice(done: () => void): void {
+    this.rolling = true;
+    const faces = this.state.dice;
+    const shown = faces.length;
+    this.diceImages.forEach((die, i) => {
+      die.setVisible(i < shown).setAlpha(1);
+    });
+
+    const timer = this.time.addEvent({
+      delay: 55,
+      repeat: 11,
+      callback: () => {
+        this.diceImages.forEach((die, i) => {
+          if (i >= shown) return;
+          die.setTexture(TEX.die(1 + Math.floor(Math.random() * 6)));
+          die.setAngle(Phaser.Math.Between(-14, 14));
+        });
+        if (timer.repeatCount === 0) {
+          // 收尾:落在真实点数上,回正,弹一下
+          this.diceImages.forEach((die, i) => {
+            if (i >= shown) return;
+            die.setTexture(TEX.die(faces[i])).setAngle(0);
+            die.setDisplaySize(CELL * PANEL.diceSize, CELL * PANEL.diceSize);
+            this.tweens.add({
+              targets: die,
+              scaleX: die.scaleX * 1.18,
+              scaleY: die.scaleY * 1.18,
+              duration: 110,
+              yoyo: true,
+              ease: 'Quad.out',
+            });
+          });
+          this.rolling = false;
+          this.time.delayedCall(160, done);
+        }
+      },
+    });
+  }
+
+  /** 摇完之后:算走法、给提示 */
+  private afterRoll(): void {
+    this.moves = currentMoves(this.state);
     this.refreshHud();
 
     if (!this.moves.length) {
@@ -391,32 +439,33 @@ export class GameScene extends Phaser.Scene {
         .setDisplaySize(CELL * PANEL.diceSize, CELL * PANEL.diceSize)
         .setDepth(12)
         .setVisible(false);
+      // **点骰子就是掷骰子**,不再另放一个按钮。
+      // 骰子本身就是这一步的操作对象,让人去点别处等于多一次视线转移
+      die.setInteractive({ useHandCursor: true });
+      die.on('pointerdown', () => this.rollDice());
       this.diceImages.push(die);
     }
-
-    this.rollButton = this.makeButton(GAME_WIDTH / 2, GAME_HEIGHT - 84, '掷骰子', () => this.rollDice());
   }
 
-  private makeButton(x: number, y: number, label: string, onClick: () => void): Phaser.GameObjects.Container {
-    const bg = this.add.graphics();
-    bg.fillStyle(0x22b455, 1);
-    bg.fillRoundedRect(-120, -34, 240, 68, 20);
-    bg.fillStyle(0x4ade80, 1);
-    bg.fillRoundedRect(-116, -30, 232, 52, 18);
-    const text = this.add.text(0, -4, label, {
-      fontFamily: 'system-ui, sans-serif', fontSize: '30px', color: '#06301a', fontStyle: 'bold',
-    }).setOrigin(0.5);
-    const container = this.add.container(x, y, [bg, text]);
-    container.setSize(240, 68);
-    container.setInteractive(new Phaser.Geom.Rectangle(-120, -34, 240, 68), Phaser.Geom.Rectangle.Contains);
-    container.on('pointerdown', onClick);
-    return container;
-  }
-
+  /**
+   * 轮到自己且还没掷时,骰子轻轻呼吸一下 —— 这是"该你点这里"的唯一提示。
+   * 去掉底部按钮之后,没有这个提示新玩家会不知道从哪儿开始。
+   */
   private setRollable(on: boolean): void {
-    this.rollButton.setAlpha(on ? 1 : 0.4);
-    if (on) this.rollButton.setInteractive();
-    else this.rollButton.disableInteractive();
+    this.tweens.killTweensOf(this.diceImages);
+    // **必须显式复位到基准尺寸。** 用当前 scale 去"重置"是无效的 ——
+    // 呼吸动画被打断时骰子可能正停在 1.1 倍上,那样它会一直大着
+    this.diceImages.forEach((die) => die.setDisplaySize(CELL * PANEL.diceSize, CELL * PANEL.diceSize));
+    if (!on) return;
+    this.tweens.add({
+      targets: this.diceImages,
+      scaleX: (t: Phaser.GameObjects.Image) => t.scaleX * 1.1,
+      scaleY: (t: Phaser.GameObjects.Image) => t.scaleY * 1.1,
+      duration: 620,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.inOut',
+    });
   }
 
   private refreshHud(): void {
@@ -424,6 +473,8 @@ export class GameScene extends Phaser.Scene {
     this.scoreTexts.forEach((t, seat) => t.setText(String(s[seat])));
     this.roundText.setText(`Round ${Math.min(this.state.round, MAX_ROUNDS)}/${MAX_ROUNDS}`);
 
+    // 摇动画期间由 shakeDice 全权控制骰子,这里不要插手
+    if (this.rolling) return;
     // **骰子常驻**:没掷之前也摆在那儿(暗一点),掷完才亮起来。
     // 整个消失的话,轮到自己时画面上会凭空冒出两颗骰子,而且新玩家不知道该点哪儿
     const dice = this.state.dice;
