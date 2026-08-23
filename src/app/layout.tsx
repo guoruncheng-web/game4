@@ -37,7 +37,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#32b85d",
+  themeColor: "#0b2032",
   // 装到桌面后是全屏窗口,刘海区域要自己接管
   viewportFit: "cover",
   // 游戏靠触屏操作,双指缩放只会误触
@@ -50,7 +50,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="zh-CN"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-[#0b2032]">
         {/* 登录状态全站一份:头部按钮和首页卡片都要看它,各自 fetch 会互相打架 */}
         <AuthProvider>
           {/* 联机连接挂在全站:邀请必须在任何页面都能收到,包括首页 */}

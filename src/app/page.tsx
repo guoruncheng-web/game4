@@ -4,19 +4,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {
   Gamepad2,
-  Hand,
   Hourglass,
   MessageCircle,
   Play,
-  Sparkles,
-  Star,
+  Puzzle,
+  RadioTower,
   UserRound,
-  UsersRound,
   Volume2,
   VolumeX,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import AuthPanel from '@/components/AuthPanel';
 import { useAuth } from '@/components/AuthProvider';
 import ChatPanel from '@/components/ChatPanel';
 import ProfilePanel from '@/components/ProfilePanel';
@@ -148,25 +145,25 @@ export default function Home() {
 
   return (
     <main className="game-box-bg min-h-dvh text-[#23304a]">
-      <div className="mx-auto min-h-dvh w-full max-w-[480px] pb-[calc(6.5rem+env(safe-area-inset-bottom))] shadow-[0_0_80px_rgba(64,197,154,0.12)]">
-        <header className="flex items-center justify-between px-5 pb-5 pt-[calc(1.1rem+env(safe-area-inset-top))]">
+      <div className="game-box-shell mx-auto min-h-dvh w-full max-w-[480px] pb-[calc(7.25rem+env(safe-area-inset-bottom))]">
+        <header className="game-box-header relative z-10 flex items-center justify-between px-5 pb-5 pt-[calc(1rem+env(safe-area-inset-top))]">
           <Link href="/" className="flex items-center gap-2.5" aria-label="游戏盒子首页">
-            <span className="grid size-11 place-items-center rounded-2xl border-2 border-white bg-gradient-to-br from-lime-300 to-emerald-500 text-white shadow-[0_8px_20px_rgba(50,201,107,0.3)]">
+            <span className="grid size-11 place-items-center rounded-2xl border border-emerald-200/30 bg-gradient-to-br from-[#5ff0a6] to-[#20b96e] text-[#08271a] shadow-[0_0_24px_rgba(67,216,117,0.35)]">
               <Gamepad2 size={25} strokeWidth={2.7} aria-hidden="true" />
             </span>
-            <span className="text-xl font-black tracking-[-0.04em] text-[#173366]">
-              GAME <span className="text-[#32b85d]">BOX</span>
+            <span>
+              <span className="block text-[10px] font-black tracking-[0.24em] text-emerald-300/70">PLAY ANYWHERE</span>
+              <span className="block text-xl font-black tracking-[-0.04em] text-white">GAME <span className="text-[#5ff0a6]">BOX</span></span>
             </span>
           </Link>
 
           <div className="flex items-center gap-2">
-            <AuthPanel />
             <button
               type="button"
               onClick={toggleSound}
               aria-label={silent ? '打开音效' : '关闭音效'}
               aria-pressed={silent}
-              className="grid size-11 place-items-center rounded-full border border-white/90 bg-white/75 text-emerald-600 shadow-sm backdrop-blur transition active:scale-95"
+              className="grid size-11 place-items-center rounded-2xl border border-white/15 bg-white/10 text-emerald-300 shadow-sm backdrop-blur transition active:scale-95"
             >
               {silent ? <VolumeX size={22} /> : <Volume2 size={22} />}
             </button>
@@ -174,70 +171,40 @@ export default function Home() {
         </header>
 
         <div className={activeTab === 'games' ? '' : 'hidden'}>
-        <section className="px-5 pb-5 pt-1">
-          <p className="text-[1.75rem] font-black tracking-[-0.04em] text-[#173366]">
-            今晚玩点什么？
+        <section className="px-5 pb-6 pt-2 text-white">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1.5 text-[11px] font-black tracking-[0.12em] text-emerald-200">
+            <span className="size-1.5 rounded-full bg-emerald-300 shadow-[0_0_8px_#5ff0a6]" /> 随时开局
+          </div>
+          <p className="text-[2rem] font-black leading-[1.08] tracking-[-0.055em]">
+            你的掌上游戏厅
           </p>
-          <p className="mt-1 text-sm font-semibold text-emerald-600">
-            {user ? '即开即玩 · 无需下载' : '登录后即玩 · 无需下载 · 一键开号'}
+          <p className="mt-2 text-sm font-semibold text-slate-300">
+            {user ? '继续挑战记录，或者叫上好友来一局' : '一次登录，收藏你的成绩与好友'}
           </p>
         </section>
 
-        <section className="px-4" aria-labelledby="featured-game">
-          <article className="overflow-hidden rounded-[2rem] border-4 border-white bg-[#fffdf7] shadow-[0_16px_45px_rgba(63,156,125,0.18)] ring-1 ring-sky-200/70">
-            <div className="relative aspect-[16/9] overflow-hidden bg-sky-300">
-              <Image
-                src="/assets/game-box/star-runner-cover.png"
-                alt="绿色小方块跳过草地平台收集星星"
-                fill
-                priority
-                sizes="(max-width: 480px) 100vw, 480px"
-                className="object-cover"
-              />
-              <span className="absolute left-4 top-4 inline-flex items-center gap-1 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold text-emerald-700 shadow-sm backdrop-blur">
-                <Sparkles size={14} /> 精选游戏
-              </span>
-            </div>
-
-            <div className="p-5">
-              <h1 id="featured-game" className="text-2xl font-black tracking-tight text-[#173366]">
-                STAR RUNNER
-              </h1>
-              <p className="mt-1 text-sm font-medium text-slate-500">收集星星，躲开炸弹</p>
-
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Tag icon={<Gamepad2 size={15} />} label="平台跳跃" color="violet" />
-                <Tag icon={<UsersRound size={15} />} label="单人" color="sky" />
-                <Tag icon={<Hand size={15} />} label="支持触屏" color="green" />
-              </div>
-
-              <div className="my-5 flex items-center gap-2 border-y border-dashed border-slate-200 py-4">
-                <Star className="fill-amber-300 text-amber-400" size={25} strokeWidth={2.5} />
-                <span className="text-sm font-semibold text-slate-600">最高分</span>
-                <strong className="ml-1 text-2xl font-black tabular-nums text-emerald-600">
-                  {bestScore.toLocaleString('zh-CN')}
-                </strong>
-              </div>
-
-              <GameLink
-                href="/star-runner"
-                className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-b from-[#43d875] to-[#2cbe60] px-5 text-lg font-black text-white shadow-[0_8px_0_#22994b,0_12px_24px_rgba(50,201,107,0.28)] transition active:translate-y-1 active:shadow-[0_4px_0_#22994b]"
-              >
-                <Play size={22} className="fill-current" />
-                立即开始
-              </GameLink>
-            </div>
-          </article>
-        </section>
-
-        <section className="px-4 pb-5 pt-8" aria-labelledby="more-games">
+        <section className="px-4 pb-5 pt-2" aria-labelledby="more-games">
           <div className="mb-3 flex items-center gap-2 px-1">
             <Gamepad2 className="text-emerald-600" size={22} />
-            <h2 id="more-games" className="text-xl font-black text-[#173366]">更多游戏</h2>
+            <h2 id="more-games" className="text-xl font-black text-[#173366]">动作街机</h2>
             <span className="h-px flex-1 bg-gradient-to-r from-sky-200 to-transparent" />
           </div>
 
           <div className="space-y-3">
+            <GameLink
+              href="/star-runner"
+              className="flex items-center gap-4 rounded-3xl border border-white bg-white/90 p-2.5 shadow-[0_10px_28px_rgba(23,88,82,0.14)] backdrop-blur transition active:scale-[0.99]"
+            >
+              <div className="relative size-24 shrink-0 overflow-hidden rounded-2xl bg-sky-300">
+                <Image src="/assets/game-box/star-runner-cover.png" alt="绿色小方块跳过草地平台收集星星" fill priority sizes="96px" className="object-cover" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-lg font-black text-[#173366]">STAR RUNNER</p>
+                <p className="mt-0.5 text-sm font-bold text-slate-600">收集星星，躲开炸弹</p>
+                <p className="mt-2 text-xs font-black text-emerald-600">最高分 {bestScore.toLocaleString('zh-CN')}</p>
+              </div>
+              <span className="grid size-11 place-items-center rounded-2xl bg-emerald-50 text-emerald-500"><Play size={21} className="fill-current" /></span>
+            </GameLink>
             <GameLink
               href="/neon-strike"
               className="flex items-center gap-4 rounded-3xl border border-white bg-[#0c1235] p-2.5 shadow-[0_8px_24px_rgba(70,66,190,0.24)] transition active:scale-[0.99]"
@@ -292,6 +259,12 @@ export default function Home() {
                 <Play size={21} className="fill-current" />
               </span>
             </GameLink>
+
+            <div className="flex items-center gap-2 px-1 pb-0 pt-5">
+              <span className="grid size-8 place-items-center rounded-xl bg-violet-100 text-violet-600" aria-hidden="true"><Puzzle size={17} /></span>
+              <h2 className="text-xl font-black text-[#173366]">桌游益智</h2>
+              <span className="h-px flex-1 bg-gradient-to-r from-violet-200 to-transparent" />
+            </div>
             <GameLink
               href="/eight-ball"
               className="flex items-center gap-4 rounded-3xl border border-white bg-[#123322] p-2.5 shadow-[0_8px_24px_rgba(31,122,82,0.24)] transition active:scale-[0.99]"
@@ -316,6 +289,12 @@ export default function Home() {
               </div>
               <span className="grid size-11 place-items-center rounded-2xl bg-amber-300/10 text-amber-300"><Play size={21} className="fill-current" /></span>
             </GameLink>
+
+            <div className="flex items-center gap-2 px-1 pb-0 pt-5">
+              <span className="grid size-8 place-items-center rounded-xl bg-cyan-100 text-cyan-600" aria-hidden="true"><RadioTower size={17} /></span>
+              <h2 className="text-xl font-black text-[#173366]">多人联机</h2>
+              <span className="h-px flex-1 bg-gradient-to-r from-cyan-200 to-transparent" />
+            </div>
             <GameLink
               href="/fish-hunter"
               className="flex items-center gap-4 rounded-3xl border border-white bg-[#062435] p-2.5 shadow-[0_8px_24px_rgba(30,120,160,0.26)] transition active:scale-[0.99]"
@@ -364,12 +343,16 @@ export default function Home() {
         {activeTab === 'messages' && <ChatPanel />}
         {activeTab === 'profile' && <ProfilePanel />}
 
-        <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto flex w-full max-w-[480px] border-t border-white/90 bg-white/90 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_28px_rgba(47,104,97,0.1)] backdrop-blur-xl" aria-label="主导航">
+        <nav
+          className="game-box-dock fixed bottom-[calc(0.65rem+env(safe-area-inset-bottom))] left-1/2 z-20 flex max-w-[456px] -translate-x-1/2 rounded-[1.7rem] border border-white/10 bg-[#0b2032]/95 px-1.5 py-1.5 backdrop-blur-xl"
+          style={{ width: 'calc(100% - 1.5rem)' }}
+          aria-label="主导航"
+        >
           <button
             type="button"
             onClick={() => setActiveTab('games')}
             aria-current={activeTab === 'games' ? 'page' : undefined}
-            className={`flex min-h-20 flex-1 flex-col items-center justify-center gap-1 font-bold transition active:scale-95 ${activeTab === 'games' ? 'text-emerald-600' : 'text-slate-400'}`}
+            className={`flex min-h-16 flex-1 flex-col items-center justify-center gap-1 rounded-[1.25rem] font-bold transition active:scale-95 ${activeTab === 'games' ? 'bg-emerald-400/15 text-emerald-300' : 'text-slate-400'}`}
           >
             <Gamepad2 size={24} strokeWidth={2.5} />
             <span className="text-xs">游戏</span>
@@ -378,12 +361,12 @@ export default function Home() {
             type="button"
             onClick={() => setActiveTab('messages')}
             aria-current={activeTab === 'messages' ? 'page' : undefined}
-            className={`flex min-h-20 flex-1 flex-col items-center justify-center gap-1 font-bold transition active:scale-95 ${activeTab === 'messages' ? 'text-emerald-600' : 'text-slate-400'}`}
+            className={`flex min-h-16 flex-1 flex-col items-center justify-center gap-1 rounded-[1.25rem] font-bold transition active:scale-95 ${activeTab === 'messages' ? 'bg-emerald-400/15 text-emerald-300' : 'text-slate-400'}`}
           >
             <span className="relative">
               <MessageCircle size={24} />
               {unreadMessages > 0 && (
-                <span className="absolute -right-1.5 -top-1.5 size-2.5 rounded-full border-2 border-white bg-rose-500" aria-label={`${unreadMessages} 条未读消息`} />
+                <span className="absolute -right-1.5 -top-1.5 size-2.5 rounded-full border-2 border-[#0b2032] bg-rose-500" aria-label={`${unreadMessages} 条未读消息`} />
               )}
             </span>
             <span className="text-xs">消息</span>
@@ -392,7 +375,7 @@ export default function Home() {
             type="button"
             onClick={() => setActiveTab('profile')}
             aria-current={activeTab === 'profile' ? 'page' : undefined}
-            className={`flex min-h-20 flex-1 flex-col items-center justify-center gap-1 font-bold transition active:scale-95 ${activeTab === 'profile' ? 'text-emerald-600' : 'text-slate-400'}`}
+            className={`flex min-h-16 flex-1 flex-col items-center justify-center gap-1 rounded-[1.25rem] font-bold transition active:scale-95 ${activeTab === 'profile' ? 'bg-emerald-400/15 text-emerald-300' : 'text-slate-400'}`}
             aria-label="我的个人资料"
           >
             {user ? (
@@ -430,26 +413,5 @@ function GameLink({ href, className, children }: { href: string; className: stri
     >
       {children}
     </button>
-  );
-}
-
-type TagProps = {
-  icon: ReactNode;
-  label: string;
-  color: 'violet' | 'sky' | 'green';
-};
-
-const tagColors = {
-  violet: 'border-violet-200 bg-violet-50 text-violet-600',
-  sky: 'border-sky-200 bg-sky-50 text-sky-600',
-  green: 'border-emerald-200 bg-emerald-50 text-emerald-600',
-};
-
-function Tag({ icon, label, color }: TagProps) {
-  return (
-    <span className={`inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-bold ${tagColors[color]}`}>
-      {icon}
-      {label}
-    </span>
   );
 }

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0b2032;
+  --foreground: #203148;
 }
 
 @theme inline {
@@ -12,26 +12,70 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  min-height: 100%;
+  background: #0b2032;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  overscroll-behavior-y: none;
 }
 
 .game-box-bg {
+  position: relative;
+  isolation: isolate;
   background:
-    radial-gradient(circle at 8% 8%, rgb(255 216 77 / 30%) 0 4px, transparent 5px),
-    radial-gradient(circle at 91% 14%, rgb(169 154 244 / 35%) 0 5px, transparent 6px),
-    radial-gradient(circle at 78% 4%, rgb(255 255 255 / 92%) 0 42px, transparent 43px),
-    linear-gradient(180deg, #d9f5ff 0%, #f5fff8 45%, #edfff7 100%);
+    radial-gradient(circle at 15% 2%, rgb(61 232 159 / 22%), transparent 25rem),
+    radial-gradient(circle at 92% 10%, rgb(79 165 255 / 20%), transparent 22rem),
+    linear-gradient(180deg, #0b2032 0 15rem, #dff8ef 25rem, #f4fbf8 42rem, #eef9f4 100%);
   background-attachment: fixed;
+}
+
+.game-box-bg::before {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  opacity: 0.28;
+  background-image:
+    linear-gradient(rgb(255 255 255 / 7%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 7%) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, black, transparent 32rem);
+}
+
+.game-box-shell {
+  position: relative;
+}
+
+.game-box-shell::after {
+  position: absolute;
+  z-index: -1;
+  top: 12rem;
+  right: 1rem;
+  left: 1rem;
+  height: 8rem;
+  border-radius: 3rem;
+  background: rgb(255 255 255 / 25%);
+  filter: blur(35px);
+  content: "";
+}
+
+.game-box-header {
+  background: linear-gradient(180deg, rgb(11 32 50 / 97%), rgb(11 32 50 / 76%) 72%, transparent);
+}
+
+.game-box-feature-card {
+  box-shadow: 0 22px 55px rgb(13 52 60 / 24%), 0 3px 0 rgb(255 255 255 / 80%) inset;
+}
+
+.game-box-dock {
+  box-shadow: 0 14px 42px rgb(5 24 35 / 30%), 0 1px 0 rgb(255 255 255 / 14%) inset;
 }
 
 button,

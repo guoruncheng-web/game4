@@ -21,8 +21,8 @@ export default function manifest(): MetadataRoute.Manifest {
     // 'any' 而不是 'portrait':深海捕鱼是横屏的(见它的 DESIGN.md §4.3),方向交给各游戏页自己决定。
     // 竖屏那几款的画布是 aspect-[9/16],本来就不依赖这个锁,改了不受影响
     orientation: 'any',
-    background_color: '#eef7f1',
-    theme_color: '#32b85d',
+    background_color: '#0b2032',
+    theme_color: '#0b2032',
     lang: 'zh-CN',
     categories: ['games', 'entertainment'],
     icons: [
