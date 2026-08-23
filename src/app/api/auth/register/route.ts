@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import {
   CAPTCHA_COOKIE, SESSION_COOKIE, SESSION_MAX_AGE, cookieOptions, createSessionToken,
-  generatePassword, generateUsername, hashPassword, readCookie,
+  generateAvatar, generatePassword, generateUsername, hashPassword, readCookie,
 } from '@/lib/auth';
 import { verifyCaptcha } from '@/lib/captcha';
 import { getSql } from '@/lib/db';
@@ -33,6 +33,7 @@ export async function POST(request: Request) {
   }
 
   const password = generatePassword();
+  const generatedAvatar = generateAvatar();
   const passwordHash = hashPassword(password);
   const sql = getSql();
 
@@ -45,8 +46,8 @@ export async function POST(request: Request) {
     username = generateUsername();
     try {
       const rows = (await sql`
-        insert into users (username, password_hash, last_login_at)
-        values (${username}, ${passwordHash}, now())
+        insert into users (username, password_hash, avatar, last_login_at)
+        values (${username}, ${passwordHash}, ${generatedAvatar}, now())
         returning id, avatar, token_version
       `) as Array<{ id: string; avatar: string; token_version: number }>;
       // bigserial 回来是字符串

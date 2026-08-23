@@ -19,6 +19,8 @@ const SCRYPT = { N: 16384, r: 8, p: 1, keyLength: 32 };
 /** 去掉了容易看混的 0/O/1/I/l,用户要照着弹窗手抄的 */
 const SAFE_CHARS = '23456789abcdefghjkmnpqrstuvwxyz';
 const PASSWORD_CHARS = '23456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
+/** 默认头像池。注册时随机挑一个并持久化，之后登录不会变化。 */
+const DEFAULT_AVATARS = ['🐯', '🦊', '🐼', '🐨', '🐸', '🦁', '🐵', '🐰', '🐙', '🦄', '🐲', '👾'];
 
 export const SESSION_COOKIE = 'gb_session';
 export const CAPTCHA_COOKIE = 'gb_captcha';
@@ -94,6 +96,10 @@ export function generateUsername(): string {
 /** 12 位混合密码,约 71 bit 熵,够扛在线爆破 */
 export function generatePassword(): string {
   return pick(PASSWORD_CHARS, 12);
+}
+
+export function generateAvatar(): string {
+  return DEFAULT_AVATARS[randomInt(DEFAULT_AVATARS.length)];
 }
 
 export function normalizeUsername(input: unknown): string {

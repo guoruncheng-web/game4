@@ -17,6 +17,12 @@ alter table users add column if not exists token_version integer not null defaul
 -- 仍然复用这个字段，不需要让前端根据用户名临时猜一个。
 alter table users add column if not exists avatar text not null default '🎮';
 
+-- 早期账号都拿到同一个 🎮。按稳定的用户 ID 分散到头像池，执行多次结果不变；
+-- 新账号由注册接口随机挑选并直接写库。
+update users
+set avatar = (array['🐯','🦊','🐼','🐨','🐸','🦁','🐵','🐰','🐙','🦄','🐲','👾'])[(mod(id, 12) + 1)::integer]
+where avatar = '🎮';
+
 -- 登录时按用户名精确查,用户名统一小写存,唯一索引已经够用
 create index if not exists users_created_at_idx on users (created_at desc);
 
