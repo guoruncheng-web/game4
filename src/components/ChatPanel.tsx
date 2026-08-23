@@ -61,7 +61,13 @@ export default function ChatPanel() {
       void loadFriends();
       void loadRequests();
     }, 0);
-    return () => window.clearTimeout(timer);
+    // 对方同意申请发生在另一台设备，当前页面收不到本地事件；定时刷新后，
+    // 发起方无需手动刷新，就能在好友列表里看到刚通过的好友。
+    const polling = window.setInterval(() => { void loadFriends(); }, 5000);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearInterval(polling);
+    };
   }, [loadFriends, loadRequests]);
 
   useEffect(() => {
