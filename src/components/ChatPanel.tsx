@@ -11,7 +11,8 @@ type Friend = {
   lastMessage?: string | null;
   lastMessageAt?: string | null;
 };
-type SearchUser = Friend & { isFriend: boolean };
+type SearchUser = Friend & { isFriend: boolean; requestSent: boolean; requestReceived: boolean };
+type FriendRequest = { id: number; createdAt: string; sender: Friend };
 type Message = {
   id: number;
   senderId: number;
@@ -28,6 +29,7 @@ export default function ChatPanel() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchUser[]>([]);
+  const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [searching, setSearching] = useState(false);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
@@ -47,10 +49,20 @@ export default function ChatPanel() {
     else if (!quiet) setError(data.error ?? '消息加载失败');
   }, []);
 
+  const loadRequests = useCallback(async () => {
+    if (!user) return;
+    const res = await fetch('/api/friend-requests');
+    const data = await res.json();
+    if (res.ok) setRequests(data.requests);
+  }, [user]);
+
   useEffect(() => {
-    const timer = window.setTimeout(() => { void loadFriends(); }, 0);
+    const timer = window.setTimeout(() => {
+      void loadFriends();
+      void loadRequests();
+    }, 0);
     return () => window.clearTimeout(timer);
-  }, [loadFriends]);
+  }, [loadFriends, loadRequests]);
 
   useEffect(() => {
     if (!activeFriend) return undefined;
@@ -99,9 +111,28 @@ export default function ChatPanel() {
       return;
     }
     setResults((current) => current.map((item) => (
-      item.id === person.id ? { ...item, isFriend: true } : item
+      item.id === person.id ? { ...item, requestSent: true } : item
     )));
-    await loadFriends();
+  }
+
+  async function respondToRequest(request: FriendRequest, action: 'accept' | 'reject') {
+    setError('');
+    const res = await fetch('/api/friend-requests', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requestId: request.id, action }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error ?? '处理申请失败');
+      return;
+    }
+    setRequests((current) => current.filter((item) => item.id !== request.id));
+    if (action === 'accept') {
+      const friend = data.friend as Friend;
+      await loadFriends();
+      setActiveFriend(friend);
+    }
   }
 
   async function sendMessage() {
@@ -215,11 +246,27 @@ export default function ChatPanel() {
             <div key={person.id} className="flex items-center gap-3 rounded-2xl bg-white p-3">
               <span className="grid size-11 place-items-center rounded-xl bg-emerald-50 text-2xl">{person.avatar}</span>
               <span className="min-w-0 flex-1 truncate text-sm font-black text-[#173366]">{person.username}</span>
-              <button type="button" disabled={person.isFriend} onClick={() => { void addFriend(person); }} className="flex min-h-9 items-center gap-1 rounded-xl bg-emerald-50 px-3 text-xs font-black text-emerald-600 disabled:text-slate-400">
-                {person.isFriend ? '已是好友' : <><Plus size={15} /> 加好友</>}
+              <button type="button" disabled={person.isFriend || person.requestSent || person.requestReceived} onClick={() => { void addFriend(person); }} className="flex min-h-9 items-center gap-1 rounded-xl bg-emerald-50 px-3 text-xs font-black text-emerald-600 disabled:text-slate-400">
+                {person.isFriend ? '已是好友' : person.requestSent ? '已发送' : person.requestReceived ? '待你处理' : <><Plus size={15} /> 加好友</>}
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {requests.length > 0 && (
+        <div className="mt-6 rounded-3xl border-2 border-amber-100 bg-amber-50/80 p-3">
+          <p className="mb-2 px-1 text-sm font-black text-amber-700">好友申请</p>
+          <div className="space-y-2">
+            {requests.map((request) => (
+              <div key={request.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm">
+                <span className="grid size-11 place-items-center rounded-xl bg-emerald-50 text-2xl">{request.sender.avatar}</span>
+                <span className="min-w-0 flex-1 truncate text-sm font-black text-[#173366]">{request.sender.username}</span>
+                <button type="button" onClick={() => { void respondToRequest(request, 'reject'); }} className="min-h-9 rounded-xl bg-slate-100 px-3 text-xs font-black text-slate-500">拒绝</button>
+                <button type="button" onClick={() => { void respondToRequest(request, 'accept'); }} className="min-h-9 rounded-xl bg-emerald-500 px-3 text-xs font-black text-white">同意</button>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

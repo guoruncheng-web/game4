@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import AuthProvider from "@/components/AuthProvider";
 import CoopProvider from "@/components/CoopProvider";
 import PwaProvider from "@/components/PwaProvider";
+import FriendRequestBanner from "@/components/FriendRequestBanner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -55,6 +56,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {/* 联机连接挂在全站:邀请必须在任何页面都能收到,包括首页 */}
           <CoopProvider>
             {children}
+            <FriendRequestBanner />
             <PwaProvider />
           </CoopProvider>
         </AuthProvider>

@@ -30,6 +30,20 @@ create table if not exists friendships (
   check (user_a < user_b)
 );
 
+create table if not exists friend_requests (
+  id           bigserial   primary key,
+  sender_id    bigint      not null references users(id) on delete cascade,
+  recipient_id bigint      not null references users(id) on delete cascade,
+  status       text        not null default 'pending' check (status in ('pending', 'accepted', 'rejected')),
+  created_at   timestamptz not null default now(),
+  responded_at timestamptz,
+  check (sender_id <> recipient_id)
+);
+
+-- 同一方向同一时间只允许一条待处理申请；拒绝后仍可重新申请。
+create unique index if not exists friend_requests_pending_idx
+  on friend_requests (sender_id, recipient_id) where status = 'pending';
+
 create table if not exists direct_messages (
   id           bigserial   primary key,
   sender_id    bigint      not null references users(id) on delete cascade,

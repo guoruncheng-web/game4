@@ -59,7 +59,16 @@ const friend = r.payload?.users?.find((item) => item.username === 'test-e2e-2');
 check('聊天 可按昵称搜索用户', r.status === 200 && friend && !friend.isFriend, JSON.stringify(r.payload));
 
 r = await call('/api/friends', { method: 'POST', body: { userId: friend?.id } });
-check('聊天 添加好友', r.status === 200 && r.payload?.friend?.username === 'test-e2e-2', JSON.stringify(r.payload));
+check('聊天 发出好友申请', r.status === 200 && r.payload?.request?.recipient?.username === 'test-e2e-2', JSON.stringify(r.payload));
+
+r = await call('/api/friend-requests', { jarName: 'friend' });
+const friendRequest = r.payload?.requests?.find((item) => item.sender.username === 'test-e2e-1');
+check('聊天 对方收到好友申请', r.status === 200 && friendRequest, JSON.stringify(r.payload));
+
+r = await call('/api/friend-requests', {
+  method: 'PATCH', body: { requestId: friendRequest?.id, action: 'accept' }, jarName: 'friend',
+});
+check('聊天 对方同意后成为好友', r.status === 200 && r.payload?.friend?.username === 'test-e2e-1', JSON.stringify(r.payload));
 
 r = await call('/api/messages', { method: 'POST', body: { friendId: friend?.id, content: '你好，来玩一局！' } });
 check('聊天 给好友发送消息', r.status === 200 && r.payload?.message?.mine === true, JSON.stringify(r.payload));

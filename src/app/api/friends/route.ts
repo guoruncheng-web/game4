@@ -75,15 +75,36 @@ export async function POST(request: Request) {
   `) as Array<{ id: string; username: string; avatar: string }>;
   if (!target[0]) return NextResponse.json({ error: '用户不存在' }, { status: 404 });
 
-  await sql`
-    insert into friendships (user_a, user_b)
-    values (
-      least(${user.id}::bigint, ${targetId}::bigint),
-      greatest(${user.id}::bigint, ${targetId}::bigint)
-    )
-    on conflict do nothing
+  const friendship = await sql`
+    select 1 from friendships
+    where user_a = least(${user.id}::bigint, ${targetId}::bigint)
+      and user_b = greatest(${user.id}::bigint, ${targetId}::bigint)
+    limit 1
   `;
+  if (friendship.length > 0) {
+    return NextResponse.json({ error: '你们已经是好友了' }, { status: 409 });
+  }
+
+  const reverse = await sql`
+    select id from friend_requests
+    where sender_id = ${targetId} and recipient_id = ${user.id} and status = 'pending'
+    limit 1
+  `;
+  if (reverse.length > 0) {
+    return NextResponse.json({ error: '对方已经向你发来申请，请到申请列表处理' }, { status: 409 });
+  }
+
+  const requests = (await sql`
+    insert into friend_requests (sender_id, recipient_id)
+    values (${user.id}, ${targetId})
+    on conflict (sender_id, recipient_id) where status = 'pending'
+    do update set created_at = friend_requests.created_at
+    returning id
+  `) as Array<{ id: string }>;
   return NextResponse.json({
-    friend: { id: Number(target[0].id), username: target[0].username, avatar: target[0].avatar },
+    request: {
+      id: Number(requests[0].id),
+      recipient: { id: Number(target[0].id), username: target[0].username, avatar: target[0].avatar },
+    },
   });
 }

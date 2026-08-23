@@ -87,6 +87,20 @@ export default function Home() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    function openMessages() { setActiveTab('messages'); }
+    if (new URLSearchParams(window.location.search).get('tab') === 'messages') {
+      const timer = window.setTimeout(openMessages, 0);
+      window.addEventListener('game-box-open-messages', openMessages);
+      return () => {
+        window.clearTimeout(timer);
+        window.removeEventListener('game-box-open-messages', openMessages);
+      };
+    }
+    window.addEventListener('game-box-open-messages', openMessages);
+    return () => window.removeEventListener('game-box-open-messages', openMessages);
+  }, []);
+
   function toggleSound() {
     setSilent((current) => {
       const next = !current;
