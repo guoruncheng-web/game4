@@ -58,6 +58,9 @@ jobs:
             cd /srv/gameai
             export PATH=$PATH:/usr/local/bin
             CI=true pnpm install --frozen-lockfile
+            # schema.sql 全部使用 if not exists，部署时先迁移再构建；
+            # 新功能即使新增表/列，也不会出现代码已上线但数据库还没准备好的窗口。
+            node --env-file=.env.local scripts/db/init.mjs
             CI=true pnpm build
           REMOTE
 
