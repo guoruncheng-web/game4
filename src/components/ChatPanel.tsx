@@ -10,6 +10,7 @@ type Friend = {
   avatar: string;
   lastMessage?: string | null;
   lastMessageAt?: string | null;
+  unreadCount?: number;
 };
 type SearchUser = Friend & { isFriend: boolean; requestSent: boolean; requestReceived: boolean };
 type FriendRequest = { id: number; createdAt: string; sender: Friend };
@@ -199,10 +200,20 @@ export default function ChatPanel() {
         <div className="flex-1 space-y-2 overflow-y-auto py-4">
           {messages.length === 0 && <p className="py-12 text-center text-sm font-bold text-slate-400">还没有消息，打个招呼吧</p>}
           {messages.map((message) => (
-            <div key={message.id} className={`flex ${message.mine ? 'justify-end' : 'justify-start'}`}>
+            <div key={message.id} className={`flex items-end gap-2 ${message.mine ? 'justify-end' : 'justify-start'}`}>
+              {!message.mine && (
+                <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-white text-lg shadow-sm" aria-hidden="true">
+                  {activeFriend.avatar}
+                </span>
+              )}
               <div className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm font-semibold leading-relaxed ${message.mine ? 'rounded-br-md bg-emerald-500 text-white' : 'rounded-bl-md bg-white text-slate-700 shadow-sm'}`}>
                 {message.content}
               </div>
+              {message.mine && (
+                <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-emerald-50 text-lg shadow-sm" aria-hidden="true">
+                  {user.avatar}
+                </span>
+              )}
             </div>
           ))}
           <div ref={bottomRef} />
@@ -283,13 +294,24 @@ export default function ChatPanel() {
       <div className="space-y-2">
         {friends.length === 0 && <p className="rounded-3xl bg-white/60 px-4 py-10 text-center text-sm font-bold text-slate-400">还没有好友，先搜索昵称添加一个吧</p>}
         {friends.map((friend) => (
-          <button key={friend.id} type="button" onClick={() => setActiveFriend(friend)} className="flex w-full items-center gap-3 rounded-2xl border border-white bg-white/85 p-3 text-left shadow-sm transition active:scale-[0.99]">
+          <button key={friend.id} type="button" onClick={() => {
+            setFriends((current) => current.map((item) => (
+              item.id === friend.id ? { ...item, unreadCount: 0 } : item
+            )));
+            setActiveFriend(friend);
+          }} className="flex w-full items-center gap-3 rounded-2xl border border-white bg-white/85 p-3 text-left shadow-sm transition active:scale-[0.99]">
             <span className="grid size-12 place-items-center rounded-2xl bg-emerald-50 text-2xl">{friend.avatar}</span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-black text-[#173366]">{friend.username}</span>
               <span className="mt-0.5 block truncate text-xs font-semibold text-slate-400">{friend.lastMessage ?? '开始聊天'}</span>
             </span>
-            <MessageCircle size={19} className="text-emerald-500" />
+            {friend.unreadCount ? (
+              <span className="grid min-w-5 place-items-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-black text-white">
+                {friend.unreadCount > 99 ? '99+' : friend.unreadCount}
+              </span>
+            ) : (
+              <MessageCircle size={19} className="text-emerald-500" />
+            )}
           </button>
         ))}
       </div>

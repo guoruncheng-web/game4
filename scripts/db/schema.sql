@@ -59,6 +59,8 @@ create table if not exists direct_messages (
   check (sender_id <> recipient_id)
 );
 
+alter table direct_messages add column if not exists read_at timestamptz;
+
 create index if not exists direct_messages_pair_idx
   on direct_messages (least(sender_id, recipient_id), greatest(sender_id, recipient_id), id desc);
 

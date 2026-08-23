@@ -12,6 +12,7 @@ type FriendRow = {
   avatar: string;
   last_message: string | null;
   last_message_at: string | null;
+  unread_count: string | number;
 };
 
 export async function GET() {
@@ -25,7 +26,13 @@ export async function GET() {
       friend.username,
       friend.avatar,
       latest.content as last_message,
-      latest.created_at as last_message_at
+      latest.created_at as last_message_at,
+      (
+        select count(*)::int from direct_messages unread
+        where unread.sender_id = friend.id
+          and unread.recipient_id = ${user.id}
+          and unread.read_at is null
+      ) as unread_count
     from friendships f
     join users friend on friend.id = case when f.user_a = ${user.id} then f.user_b else f.user_a end
     left join lateral (
@@ -47,6 +54,7 @@ export async function GET() {
       avatar: row.avatar,
       lastMessage: row.last_message,
       lastMessageAt: row.last_message_at,
+      unreadCount: Number(row.unread_count),
     })),
   });
 }

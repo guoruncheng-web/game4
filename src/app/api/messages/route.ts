@@ -26,6 +26,10 @@ export async function GET(request: Request) {
   }
 
   const sql = getSql();
+  await sql`
+    update direct_messages set read_at = now()
+    where sender_id = ${friendId} and recipient_id = ${user.id} and read_at is null
+  `;
   const rows = (await sql`
     select id, sender_id, recipient_id, content, created_at
     from direct_messages

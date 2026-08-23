@@ -72,8 +72,14 @@ check('聊天 对方同意后成为好友', r.status === 200 && r.payload?.frien
 
 r = await call('/api/messages', { method: 'POST', body: { friendId: friend?.id, content: '你好，来玩一局！' } });
 check('聊天 给好友发送消息', r.status === 200 && r.payload?.message?.mine === true, JSON.stringify(r.payload));
+const senderId = r.payload?.message?.senderId;
 
-r = await call(`/api/messages?friendId=${r.payload?.message?.senderId}`, { jarName: 'friend' });
+r = await call('/api/friends', { jarName: 'friend' });
+check('聊天 好友列表显示未读消息',
+  r.status === 200 && r.payload?.friends?.some((item) => item.username === 'test-e2e-1' && item.unreadCount === 1),
+  JSON.stringify(r.payload));
+
+r = await call(`/api/messages?friendId=${senderId}`, { jarName: 'friend' });
 check('聊天 好友收到消息',
   r.status === 200 && r.payload?.messages?.some((message) => message.content === '你好，来玩一局！' && !message.mine),
   JSON.stringify(r.payload));

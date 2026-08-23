@@ -19,6 +19,7 @@ import { useEffect, useState } from 'react';
 import AuthPanel from '@/components/AuthPanel';
 import { useAuth } from '@/components/AuthProvider';
 import ChatPanel from '@/components/ChatPanel';
+import ProfilePanel from '@/components/ProfilePanel';
 import type { ReactNode } from 'react';
 
 const upcomingGames = [
@@ -35,7 +36,7 @@ const upcomingGames = [
 ];
 
 export default function Home() {
-  const { user, openPanel } = useAuth();
+  const { user } = useAuth();
   /**
    * 首页喇叭是全站的总开关,所以它看的是"实际有没有声音",而不只是 muted 那一个键。
    * 游戏里的音量滑条能拖到 0,拖到 0 之后 muted 仍然是 false ——
@@ -50,7 +51,8 @@ export default function Home() {
   const [pileLevel, setPileLevel] = useState(1);
   /** 捕鱼没有分数,卡片上显示的是钱包余额(单机模式那份,存在本机) */
   const [fishCoins, setFishCoins] = useState(500);
-  const [activeTab, setActiveTab] = useState<'games' | 'messages'>('games');
+  const [activeTab, setActiveTab] = useState<'games' | 'messages' | 'profile'>('games');
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -86,6 +88,35 @@ export default function Home() {
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadUnread() {
+      if (!user) {
+        if (!cancelled) setUnreadMessages(0);
+        return;
+      }
+      try {
+        const response = await fetch('/api/friends');
+        const data = await response.json();
+        if (!cancelled && response.ok) {
+          const total = (data.friends as Array<{ unreadCount?: number }>).reduce(
+            (sum, friend) => sum + (friend.unreadCount ?? 0), 0,
+          );
+          setUnreadMessages(total);
+        }
+      } catch {
+        // 未读红点是增强信息，断网时保留上一次状态。
+      }
+    }
+    const initial = window.setTimeout(() => { void loadUnread(); }, 0);
+    const polling = window.setInterval(() => { void loadUnread(); }, 5000);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(initial);
+      window.clearInterval(polling);
+    };
+  }, [user]);
 
   useEffect(() => {
     function openMessages() { setActiveTab('messages'); }
@@ -331,6 +362,7 @@ export default function Home() {
         </div>
 
         {activeTab === 'messages' && <ChatPanel />}
+        {activeTab === 'profile' && <ProfilePanel />}
 
         <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto flex w-full max-w-[480px] border-t border-white/90 bg-white/90 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_28px_rgba(47,104,97,0.1)] backdrop-blur-xl" aria-label="主导航">
           <button
@@ -348,14 +380,20 @@ export default function Home() {
             aria-current={activeTab === 'messages' ? 'page' : undefined}
             className={`flex min-h-20 flex-1 flex-col items-center justify-center gap-1 font-bold transition active:scale-95 ${activeTab === 'messages' ? 'text-emerald-600' : 'text-slate-400'}`}
           >
-            <MessageCircle size={24} />
+            <span className="relative">
+              <MessageCircle size={24} />
+              {unreadMessages > 0 && (
+                <span className="absolute -right-1.5 -top-1.5 size-2.5 rounded-full border-2 border-white bg-rose-500" aria-label={`${unreadMessages} 条未读消息`} />
+              )}
+            </span>
             <span className="text-xs">消息</span>
           </button>
           <button
             type="button"
-            onClick={() => openPanel(user ? 'account' : 'register')}
-            className="flex min-h-20 flex-1 flex-col items-center justify-center gap-1 font-bold text-slate-400 transition active:scale-95"
-            aria-label={user ? '账号设置' : '登录'}
+            onClick={() => setActiveTab('profile')}
+            aria-current={activeTab === 'profile' ? 'page' : undefined}
+            className={`flex min-h-20 flex-1 flex-col items-center justify-center gap-1 font-bold transition active:scale-95 ${activeTab === 'profile' ? 'text-emerald-600' : 'text-slate-400'}`}
+            aria-label="我的个人资料"
           >
             {user ? (
               <span className="text-2xl leading-none" aria-hidden="true">{user.avatar}</span>
