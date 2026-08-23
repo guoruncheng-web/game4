@@ -3,6 +3,7 @@
 import { ArrowLeft, MessageCircle, Plus, Search, Send, Users } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from './AuthProvider';
+import { useCoop } from './CoopProvider';
 
 type Friend = {
   id: number;
@@ -25,6 +26,7 @@ type Message = {
 
 export default function ChatPanel() {
   const { user, openPanel } = useAuth();
+  const { online, connected } = useCoop();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [activeFriend, setActiveFriend] = useState<Friend | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -35,6 +37,7 @@ export default function ChatPanel() {
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
+  const onlineIds = new Set(online.map((person) => person.id));
 
   const loadFriends = useCallback(async () => {
     if (!user) return;
@@ -184,6 +187,7 @@ export default function ChatPanel() {
   }
 
   if (activeFriend) {
+    const friendOnline = onlineIds.has(activeFriend.id);
     return (
       <section className="flex min-h-[calc(100dvh-12rem)] flex-col px-4">
         <div className="flex items-center gap-3 border-b border-emerald-100 pb-3">
@@ -193,7 +197,9 @@ export default function ChatPanel() {
           <span className="grid size-11 place-items-center rounded-2xl bg-white text-2xl">{activeFriend.avatar}</span>
           <div>
             <h1 className="font-black text-[#173366]">{activeFriend.username}</h1>
-            <p className="text-xs font-bold text-emerald-500">好友私聊</p>
+            <p className={`text-xs font-bold ${friendOnline ? 'text-emerald-500' : 'text-slate-400'}`}>
+              {!connected ? '状态连接中' : friendOnline ? '在线' : '离线'}
+            </p>
           </div>
         </div>
 
@@ -300,10 +306,22 @@ export default function ChatPanel() {
             )));
             setActiveFriend(friend);
           }} className="flex w-full items-center gap-3 rounded-2xl border border-white bg-white/85 p-3 text-left shadow-sm transition active:scale-[0.99]">
-            <span className="grid size-12 place-items-center rounded-2xl bg-emerald-50 text-2xl">{friend.avatar}</span>
+            <span className="relative grid size-12 place-items-center rounded-2xl bg-emerald-50 text-2xl">
+              {friend.avatar}
+              <span
+                className={`absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border-2 border-white ${connected && onlineIds.has(friend.id) ? 'bg-emerald-400' : 'bg-slate-300'}`}
+                aria-label={!connected ? '状态连接中' : onlineIds.has(friend.id) ? '在线' : '离线'}
+              />
+            </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-black text-[#173366]">{friend.username}</span>
-              <span className="mt-0.5 block truncate text-xs font-semibold text-slate-400">{friend.lastMessage ?? '开始聊天'}</span>
+              <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs font-semibold text-slate-400">
+                <span className={connected && onlineIds.has(friend.id) ? 'text-emerald-500' : 'text-slate-400'}>
+                  {!connected ? '连接中' : onlineIds.has(friend.id) ? '在线' : '离线'}
+                </span>
+                <span aria-hidden="true">·</span>
+                <span className="truncate">{friend.lastMessage ?? '开始聊天'}</span>
+              </span>
             </span>
             {friend.unreadCount ? (
               <span className="grid min-w-5 place-items-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-black text-white">
