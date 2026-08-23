@@ -1,5 +1,6 @@
 /** 账号接口的端到端冒烟测试。用法:先起 dev server,再 node scripts/db/e2e-auth.mjs http://127.0.0.1:3100 */
-const BASE = (process.argv[2] ?? 'http://127.0.0.1:3000') + '/api/auth';
+const ORIGIN = process.argv[2] ?? 'http://127.0.0.1:3000';
+const BASE = ORIGIN + '/api/auth';
 const jar = new Map();
 
 function cookieHeader(name = 'a') {
@@ -18,7 +19,7 @@ function absorb(res, name = 'a') {
   jar.set(name, store);
 }
 async function call(path, { method = 'GET', body, jarName = 'a', absorbInto } = {}) {
-  const res = await fetch(BASE + path, {
+  const res = await fetch((path.startsWith('/api/') ? ORIGIN : BASE) + path, {
     method,
     headers: {
       ...(body ? { 'Content-Type': 'application/json' } : {}),
@@ -48,10 +49,30 @@ check('2 /me 认得这条会话和头像',
   r.payload?.user?.username === 'test-e2e-1' && r.payload?.user?.avatar === '🎮',
   JSON.stringify(r.payload));
 
+r = await call('/login', {
+  method: 'POST', body: { username: 'test-e2e-2', password: 'Testpass123' }, jarName: 'friend',
+});
+check('聊天 好友账号登录', r.status === 200, JSON.stringify(r.payload));
+
+r = await call('/api/friends/search?q=test-e2e-2');
+const friend = r.payload?.users?.find((item) => item.username === 'test-e2e-2');
+check('聊天 可按昵称搜索用户', r.status === 200 && friend && !friend.isFriend, JSON.stringify(r.payload));
+
+r = await call('/api/friends', { method: 'POST', body: { userId: friend?.id } });
+check('聊天 添加好友', r.status === 200 && r.payload?.friend?.username === 'test-e2e-2', JSON.stringify(r.payload));
+
+r = await call('/api/messages', { method: 'POST', body: { friendId: friend?.id, content: '你好，来玩一局！' } });
+check('聊天 给好友发送消息', r.status === 200 && r.payload?.message?.mine === true, JSON.stringify(r.payload));
+
+r = await call(`/api/messages?friendId=${r.payload?.message?.senderId}`, { jarName: 'friend' });
+check('聊天 好友收到消息',
+  r.status === 200 && r.payload?.messages?.some((message) => message.content === '你好，来玩一局！' && !message.mine),
+  JSON.stringify(r.payload));
+
 r = await call('/login', { method: 'POST', body: { username: 'test-e2e-1', password: 'a'.repeat(150) }, jarName: 'trash' });
 check('3 超长密码被挡在 scrypt 之前', r.status === 401, JSON.stringify(r.payload));
 
-for (let i = 1; i <= 2; i++) {
+for (let i = 1; i <= 3; i++) {
   r = await call('/login', { method: 'POST', body: { username: 'test-e2e-1', password: 'wrong' }, jarName: 'trash' });
 }
 check('4 连错三次后要求验证码', r.payload.requireCaptcha === true, JSON.stringify(r.payload));

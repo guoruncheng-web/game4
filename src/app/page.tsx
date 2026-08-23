@@ -6,6 +6,7 @@ import {
   Gamepad2,
   Hand,
   Hourglass,
+  MessageCircle,
   Play,
   Sparkles,
   Star,
@@ -17,6 +18,7 @@ import {
 import { useEffect, useState } from 'react';
 import AuthPanel from '@/components/AuthPanel';
 import { useAuth } from '@/components/AuthProvider';
+import ChatPanel from '@/components/ChatPanel';
 import type { ReactNode } from 'react';
 
 const upcomingGames = [
@@ -48,6 +50,7 @@ export default function Home() {
   const [pileLevel, setPileLevel] = useState(1);
   /** 捕鱼没有分数,卡片上显示的是钱包余额(单机模式那份,存在本机) */
   const [fishCoins, setFishCoins] = useState(500);
+  const [activeTab, setActiveTab] = useState<'games' | 'messages'>('games');
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -125,6 +128,7 @@ export default function Home() {
           </div>
         </header>
 
+        <div className={activeTab === 'games' ? '' : 'hidden'}>
         <section className="px-5 pb-5 pt-1">
           <p className="text-[1.75rem] font-black tracking-[-0.04em] text-[#173366]">
             今晚玩点什么？
@@ -310,12 +314,29 @@ export default function Home() {
             ))}
           </div>
         </section>
+        </div>
+
+        {activeTab === 'messages' && <ChatPanel />}
 
         <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto flex w-full max-w-[480px] border-t border-white/90 bg-white/90 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_28px_rgba(47,104,97,0.1)] backdrop-blur-xl" aria-label="主导航">
-          <Link href="/" aria-current="page" className="flex min-h-20 flex-1 flex-col items-center justify-center gap-1 font-bold text-emerald-600">
+          <button
+            type="button"
+            onClick={() => setActiveTab('games')}
+            aria-current={activeTab === 'games' ? 'page' : undefined}
+            className={`flex min-h-20 flex-1 flex-col items-center justify-center gap-1 font-bold transition active:scale-95 ${activeTab === 'games' ? 'text-emerald-600' : 'text-slate-400'}`}
+          >
             <Gamepad2 size={24} strokeWidth={2.5} />
             <span className="text-xs">游戏</span>
-          </Link>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('messages')}
+            aria-current={activeTab === 'messages' ? 'page' : undefined}
+            className={`flex min-h-20 flex-1 flex-col items-center justify-center gap-1 font-bold transition active:scale-95 ${activeTab === 'messages' ? 'text-emerald-600' : 'text-slate-400'}`}
+          >
+            <MessageCircle size={24} />
+            <span className="text-xs">消息</span>
+          </button>
           <button
             type="button"
             onClick={() => openPanel(user ? 'account' : 'register')}

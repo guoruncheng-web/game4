@@ -16,11 +16,14 @@ await sql`delete from users where username like 'test-e2e-%'`;
 if (process.argv.includes('--clean')) {
   console.log('测试账号已清理');
 } else {
+  const passwordHash = hashPassword('Testpass123');
   const rows = (await sql`
     insert into users (username, password_hash, last_login_at)
-    values ('test-e2e-1', ${hashPassword('Testpass123')}, now())
-    returning id
-  `) as Array<{ id: string }>;
-  console.log('测试账号已就绪 test-e2e-1 / Testpass123 (id=%s)', rows[0].id);
+    values
+      ('test-e2e-1', ${passwordHash}, now()),
+      ('test-e2e-2', ${passwordHash}, now())
+    returning id, username
+  `) as Array<{ id: string; username: string }>;
+  console.log('测试账号已就绪 %s', rows.map((row) => `${row.username}(id=${row.id})`).join(', '));
 }
 process.exit(0);

@@ -20,6 +20,28 @@ alter table users add column if not exists avatar text not null default '🎮';
 -- 登录时按用户名精确查,用户名统一小写存,唯一索引已经够用
 create index if not exists users_created_at_idx on users (created_at desc);
 
+-- ---------------------------------------------------------------- 好友与私聊
+-- 好友关系只存一条无方向边，较小的用户 ID 永远放 user_a，避免 A/B 与 B/A 重复。
+create table if not exists friendships (
+  user_a     bigint      not null references users(id) on delete cascade,
+  user_b     bigint      not null references users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (user_a, user_b),
+  check (user_a < user_b)
+);
+
+create table if not exists direct_messages (
+  id           bigserial   primary key,
+  sender_id    bigint      not null references users(id) on delete cascade,
+  recipient_id bigint      not null references users(id) on delete cascade,
+  content      text        not null check (char_length(content) between 1 and 500),
+  created_at   timestamptz not null default now(),
+  check (sender_id <> recipient_id)
+);
+
+create index if not exists direct_messages_pair_idx
+  on direct_messages (least(sender_id, recipient_id), greatest(sender_id, recipient_id), id desc);
+
 -- ---------------------------------------------------------------- 联机协作
 -- 曾经有 coop_presence / coop_rooms / coop_signals 三张表,用来做在线状态、
 -- 房间和 WebRTC 信令 —— 那是部署在 serverless 上时的无奈之举:函数没有常驻内存,
