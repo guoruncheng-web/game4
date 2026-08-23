@@ -322,7 +322,11 @@ export default function Home() {
             className="flex min-h-20 flex-1 flex-col items-center justify-center gap-1 font-bold text-slate-400 transition active:scale-95"
             aria-label={user ? '账号设置' : '登录'}
           >
-            <UserRound size={24} />
+            {user ? (
+              <span className="text-2xl leading-none" aria-hidden="true">{user.avatar}</span>
+            ) : (
+              <UserRound size={24} />
+            )}
             <span className="text-xs">我的</span>
           </button>
         </nav>

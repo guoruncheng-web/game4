@@ -2,10 +2,10 @@ import { cookies } from 'next/headers';
 import { readSessionToken, SESSION_COOKIE } from './auth';
 import { getSql } from './db';
 
-export type CurrentUser = { id: number; username: string; tokenVersion: number };
+export type CurrentUser = { id: number; username: string; avatar: string; tokenVersion: number };
 
 // bigserial 经 neon 回来是字符串,拿到手先转成 number(账号量远到不了 2^53)
-type UserRow = { id: string | number; username: string; token_version: number };
+type UserRow = { id: string | number; username: string; avatar: string; token_version: number };
 
 /**
  * 服务端组件 / 路由处理器读当前登录用户。
@@ -31,10 +31,15 @@ export async function resolveSession(token: string | undefined): Promise<Current
   if (!claims) return null;
   const sql = getSql();
   const rows = (await sql`
-    select id, username, token_version from users where id = ${claims.userId} limit 1
+    select id, username, avatar, token_version from users where id = ${claims.userId} limit 1
   `) as UserRow[];
   const row = rows[0];
   if (!row) return null;
   if (row.token_version !== claims.tokenVersion) return null;
-  return { id: Number(row.id), username: row.username, tokenVersion: row.token_version };
+  return {
+    id: Number(row.id),
+    username: row.username,
+    avatar: row.avatar,
+    tokenVersion: row.token_version,
+  };
 }

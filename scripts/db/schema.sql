@@ -13,6 +13,10 @@ create table if not exists users (
 -- 这是"登出即时生效"和"密码泄露后能踢掉别人"的唯一手段。
 alter table users add column if not exists token_version integer not null default 0;
 
+-- 每个账号都有一个可直接展示的头像。先用 emoji 做默认头像；以后开放换头像时，
+-- 仍然复用这个字段，不需要让前端根据用户名临时猜一个。
+alter table users add column if not exists avatar text not null default '🎮';
+
 -- 登录时按用户名精确查,用户名统一小写存,唯一索引已经够用
 create index if not exists users_created_at_idx on users (created_at desc);
 

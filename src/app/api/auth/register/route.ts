@@ -38,6 +38,7 @@ export async function POST(request: Request) {
 
   // 用户名是随机生成的,极小概率撞库,撞了就换一个再来
   let username = '';
+  let avatar = '';
   let userId: number | null = null;
   let tokenVersion = 0;
   for (let attempt = 0; attempt < 5 && userId === null; attempt++) {
@@ -46,10 +47,11 @@ export async function POST(request: Request) {
       const rows = (await sql`
         insert into users (username, password_hash, last_login_at)
         values (${username}, ${passwordHash}, now())
-        returning id, token_version
-      `) as Array<{ id: string; token_version: number }>;
+        returning id, avatar, token_version
+      `) as Array<{ id: string; avatar: string; token_version: number }>;
       // bigserial 回来是字符串
       userId = rows[0] ? Number(rows[0].id) : null;
+      avatar = rows[0]?.avatar ?? '';
       tokenVersion = rows[0]?.token_version ?? 0;
     } catch (error) {
       const message = error instanceof Error ? error.message : '';
@@ -64,7 +66,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: '生成账号失败,请重试' }, { status: 500 });
   }
 
-  const response = NextResponse.json({ username, password });
+  const response = NextResponse.json({ username, password, avatar });
   response.cookies.set(
     SESSION_COOKIE,
     createSessionToken(userId, tokenVersion),

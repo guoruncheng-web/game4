@@ -39,10 +39,14 @@ function check(label, ok, detail) {
 }
 
 let r = await call('/login', { method: 'POST', body: { username: 'test-e2e-1', password: 'Testpass123' } });
-check('1 正确密码登录', r.status === 200 && r.payload.username === 'test-e2e-1', JSON.stringify(r.payload));
+check('1 正确密码登录并返回头像',
+  r.status === 200 && r.payload.username === 'test-e2e-1' && r.payload.avatar === '🎮',
+  JSON.stringify(r.payload));
 
 r = await call('/me');
-check('2 /me 认得这条会话', r.payload?.user?.username === 'test-e2e-1', JSON.stringify(r.payload));
+check('2 /me 认得这条会话和头像',
+  r.payload?.user?.username === 'test-e2e-1' && r.payload?.user?.avatar === '🎮',
+  JSON.stringify(r.payload));
 
 r = await call('/login', { method: 'POST', body: { username: 'test-e2e-1', password: 'a'.repeat(150) }, jarName: 'trash' });
 check('3 超长密码被挡在 scrypt 之前', r.status === 401, JSON.stringify(r.payload));

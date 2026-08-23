@@ -6,5 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const user = await getCurrentUser();
-  return NextResponse.json({ user: user ? { username: user.username } : null });
+  return NextResponse.json({
+    user: user ? { username: user.username, avatar: user.avatar } : null,
+  });
 }

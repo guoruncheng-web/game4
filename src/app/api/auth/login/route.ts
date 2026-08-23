@@ -68,8 +68,8 @@ export async function POST(request: Request) {
 
   const sql = getSql();
   const rows = (await sql`
-    select id, password_hash, token_version from users where username = ${username} limit 1
-  `) as Array<{ id: string; password_hash: string; token_version: number }>;
+    select id, password_hash, avatar, token_version from users where username = ${username} limit 1
+  `) as Array<{ id: string; password_hash: string; avatar: string; token_version: number }>;
 
   const user = rows[0];
   // 账号不存在和密码错误返回同一句话,不给撞库的人区分依据
@@ -90,7 +90,7 @@ export async function POST(request: Request) {
   clearFailures(userKey);
   resetRateLimit(`login:${ip}`);
 
-  const response = NextResponse.json({ username });
+  const response = NextResponse.json({ username, avatar: user.avatar });
   response.cookies.set(
     SESSION_COOKIE,
     createSessionToken(Number(user.id), user.token_version),

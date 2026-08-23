@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { useRouter } from 'next/navigation';
 import AuthDialog, { type AuthMode } from './AuthDialog';
 
-export type AuthUser = { username: string } | null;
+export type AuthUser = { username: string; avatar: string } | null;
 
 type AuthContextValue = {
   user: AuthUser;

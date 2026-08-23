@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, Copy, KeyRound, LogOut, RefreshCw, ShieldAlert, X } from 'lucide-react';
 
 export type AuthMode = 'register' | 'login' | 'account';
-type User = { username: string } | null;
+type User = { username: string; avatar: string } | null;
 /** 一键开号成功后拿到的明文凭据,只在这一次出现 */
 type Credentials = { username: string; password: string };
 
@@ -85,7 +85,7 @@ export default function AuthDialog({
         return;
       }
       setCredentials({ username: data.username, password: data.password });
-      onAuthed({ username: data.username });
+      onAuthed({ username: data.username, avatar: data.avatar });
     } catch {
       setError('网络不太好,再试一次');
       refreshCaptcha();
@@ -112,7 +112,7 @@ export default function AuthDialog({
         if (loginNeedsCaptcha || data.requireCaptcha) refreshCaptcha();
         return;
       }
-      onAuthed({ username: data.username });
+      onAuthed({ username: data.username, avatar: data.avatar });
       setLoginNeedsCaptcha(false);
       setPassword('');
       onClose();
@@ -274,9 +274,17 @@ export default function AuthDialog({
               <div className="space-y-3">
                 <div className="rounded-2xl border-2 border-slate-200 bg-white p-4">
                   <p className="text-xs font-bold text-slate-400">当前账号</p>
-                  <p className="mt-1 select-all break-all font-mono text-base font-bold text-slate-800">
-                    {user?.username}
-                  </p>
+                  <div className="mt-2 flex items-center gap-3">
+                    <span
+                      className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-2xl"
+                      aria-label="账号头像"
+                    >
+                      {user?.avatar}
+                    </span>
+                    <p className="select-all break-all font-mono text-base font-bold text-slate-800">
+                      {user?.username}
+                    </p>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 px-1 pt-1 text-sm font-black text-[#173366]">
                   <KeyRound size={16} className="text-emerald-500" />

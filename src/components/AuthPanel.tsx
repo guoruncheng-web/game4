@@ -34,9 +34,10 @@ export default function AuthPanel() {
         type="button"
         onClick={() => openPanel('account')}
         aria-label={`账号 ${user.username},点击管理`}
-        className="max-w-[8.5rem] truncate rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-700 transition active:scale-95"
+        className="flex max-w-[10rem] items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-700 transition active:scale-95"
       >
-        {user.username}
+        <span className="text-base" aria-hidden="true">{user.avatar}</span>
+        <span className="truncate">{user.username}</span>
       </button>
       <button
         type="button"
