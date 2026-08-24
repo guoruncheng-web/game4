@@ -16,6 +16,8 @@ alter table users add column if not exists token_version integer not null defaul
 -- 每个账号都有一个可直接展示的头像。先用 emoji 做默认头像；以后开放换头像时，
 -- 仍然复用这个字段，不需要让前端根据用户名临时猜一个。
 alter table users add column if not exists avatar text not null default '🎮';
+alter table users add column if not exists is_admin boolean not null default false;
+alter table users add column if not exists suspended_at timestamptz;
 
 -- 早期账号都拿到同一个 🎮。按稳定的用户 ID 分散到头像池，执行多次结果不变；
 -- 新账号由注册接口随机挑选并直接写库。
@@ -63,6 +65,26 @@ alter table direct_messages add column if not exists read_at timestamptz;
 
 create index if not exists direct_messages_pair_idx
   on direct_messages (least(sender_id, recipient_id), greatest(sender_id, recipient_id), id desc);
+
+-- ---------------------------------------------------------------- 后台游戏配置
+-- 代码仍是游戏元数据的来源；这里仅保存运营态（上下架与排序）。
+create table if not exists game_settings (
+  slug         text        primary key,
+  enabled      boolean     not null default true,
+  sort_order   integer     not null default 0,
+  updated_at   timestamptz not null default now()
+);
+
+insert into game_settings (slug, sort_order) values
+  ('star-runner', 10),
+  ('fruit-slasher', 20),
+  ('neon-strike', 30),
+  ('neon-strike-2d', 40),
+  ('eight-ball', 50),
+  ('triple-pile', 60),
+  ('fish-hunter', 70),
+  ('ludo', 80)
+on conflict (slug) do nothing;
 
 -- ---------------------------------------------------------------- 联机协作
 -- 曾经有 coop_presence / coop_rooms / coop_signals 三张表,用来做在线状态、

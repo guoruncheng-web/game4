@@ -50,6 +50,7 @@ export default function Home() {
   const [fishCoins, setFishCoins] = useState(500);
   const [activeTab, setActiveTab] = useState<'games' | 'messages' | 'profile'>('games');
   const [unreadMessages, setUnreadMessages] = useState(0);
+  const [gameAvailability, setGameAvailability] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -114,6 +115,19 @@ export default function Home() {
       window.clearInterval(polling);
     };
   }, [user]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/games')
+      .then((response) => response.json())
+      .then((data: { games?: Array<{ slug: string; enabled: boolean }> }) => {
+        if (!cancelled) {
+          setGameAvailability(Object.fromEntries((data.games ?? []).map((game) => [game.slug, game.enabled])));
+        }
+      })
+      .catch(() => undefined);
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     function openMessages() { setActiveTab('messages'); }
@@ -193,6 +207,7 @@ export default function Home() {
           <div className="space-y-3">
             <GameLink
               href="/star-runner"
+              enabled={gameAvailability['star-runner'] !== false}
               className="flex items-center gap-4 rounded-3xl border border-white bg-white/90 p-2.5 shadow-[0_10px_28px_rgba(23,88,82,0.14)] backdrop-blur transition active:scale-[0.99]"
             >
               <div className="relative size-24 shrink-0 overflow-hidden rounded-2xl bg-sky-300">
@@ -207,6 +222,7 @@ export default function Home() {
             </GameLink>
             <GameLink
               href="/neon-strike"
+              enabled={gameAvailability['neon-strike'] !== false}
               className="flex items-center gap-4 rounded-3xl border border-white bg-[#0c1235] p-2.5 shadow-[0_8px_24px_rgba(70,66,190,0.24)] transition active:scale-[0.99]"
             >
               <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_50%_30%,#713cff,#090820_70%)] text-5xl shadow-inner">🚀</div>
@@ -219,6 +235,7 @@ export default function Home() {
             </GameLink>
             <GameLink
               href="/neon-strike-2d"
+              enabled={gameAvailability['neon-strike-2d'] !== false}
               className="flex items-center gap-4 rounded-3xl border border-white bg-[#140a2e] p-2.5 shadow-[0_8px_24px_rgba(133,66,190,0.24)] transition active:scale-[0.99]"
             >
               <div className="relative size-24 shrink-0 overflow-hidden rounded-2xl bg-[#090820]">
@@ -239,6 +256,7 @@ export default function Home() {
             </GameLink>
             <GameLink
               href="/fruit-slasher"
+              enabled={gameAvailability['fruit-slasher'] !== false}
               className="flex items-center gap-4 rounded-3xl border border-white bg-white/90 p-2.5 shadow-[0_8px_24px_rgba(79,141,130,0.14)] backdrop-blur transition active:scale-[0.99]"
             >
               <div className="relative size-24 shrink-0 overflow-hidden rounded-2xl bg-[#071326]">
@@ -267,6 +285,7 @@ export default function Home() {
             </div>
             <GameLink
               href="/eight-ball"
+              enabled={gameAvailability['eight-ball'] !== false}
               className="flex items-center gap-4 rounded-3xl border border-white bg-[#123322] p-2.5 shadow-[0_8px_24px_rgba(31,122,82,0.24)] transition active:scale-[0.99]"
             >
               <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_50%_35%,#2a9463,#0d1a14_72%)] text-5xl shadow-inner">🎱</div>
@@ -279,6 +298,7 @@ export default function Home() {
             </GameLink>
             <GameLink
               href="/triple-pile"
+              enabled={gameAvailability['triple-pile'] !== false}
               className="flex items-center gap-4 rounded-3xl border border-white bg-[#2b1a10] p-2.5 shadow-[0_8px_24px_rgba(190,120,46,0.24)] transition active:scale-[0.99]"
             >
               <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_50%_35%,#c98a45,#1a120c_72%)] text-5xl shadow-inner">🍲</div>
@@ -297,6 +317,7 @@ export default function Home() {
             </div>
             <GameLink
               href="/fish-hunter"
+              enabled={gameAvailability['fish-hunter'] !== false}
               className="flex items-center gap-4 rounded-3xl border border-white bg-[#062435] p-2.5 shadow-[0_8px_24px_rgba(30,120,160,0.26)] transition active:scale-[0.99]"
             >
               <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_50%_35%,#1a86a8,#04141f_72%)] text-5xl shadow-inner">🐟</div>
@@ -309,6 +330,7 @@ export default function Home() {
             </GameLink>
             <GameLink
               href="/ludo"
+              enabled={gameAvailability.ludo !== false}
               className="flex items-center gap-4 rounded-3xl border border-white bg-[#0d2a63] p-2.5 shadow-[0_8px_24px_rgba(30,80,180,0.28)] transition active:scale-[0.99]"
             >
               <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl bg-[radial-gradient(circle_at_50%_35%,#4f8bff,#0b2154_72%)] text-5xl shadow-inner">✈️</div>
@@ -398,8 +420,18 @@ export default function Home() {
  * 未登录时点卡片就地弹登录面板,而不是先跳进游戏页再被 middleware 弹回首页。
  * /me 还没回来的那一小会儿按登录处理:middleware 在后面兜着,不会漏进去。
  */
-function GameLink({ href, className, children }: { href: string; className: string; children: ReactNode }) {
+function GameLink({ href, className, children, enabled = true }: {
+  href: string; className: string; children: ReactNode; enabled?: boolean;
+}) {
   const { user, loading, openPanel } = useAuth();
+  if (!enabled) {
+    return (
+      <div aria-disabled="true" className={`${className} relative overflow-hidden opacity-60`}>
+        {children}
+        <span className="absolute right-3 top-3 rounded-full bg-slate-900/80 px-2.5 py-1 text-[10px] font-black text-white">维护中</span>
+      </div>
+    );
+  }
   if (user) {
     return <Link href={href} className={className}>{children}</Link>;
   }

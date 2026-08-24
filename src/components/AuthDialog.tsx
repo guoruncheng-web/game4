@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, Copy, KeyRound, LogOut, RefreshCw, ShieldAlert, X } from 'lucide-react';
 
 export type AuthMode = 'register' | 'login' | 'account';
-type User = { username: string; avatar: string } | null;
+type User = { username: string; avatar: string; isAdmin?: boolean } | null;
 /** 一键开号成功后拿到的明文凭据,只在这一次出现 */
 type Credentials = { username: string; password: string };
 
@@ -85,7 +85,7 @@ export default function AuthDialog({
         return;
       }
       setCredentials({ username: data.username, password: data.password });
-      onAuthed({ username: data.username, avatar: data.avatar });
+      onAuthed({ username: data.username, avatar: data.avatar, isAdmin: data.isAdmin });
     } catch {
       setError('网络不太好,再试一次');
       refreshCaptcha();
@@ -112,7 +112,7 @@ export default function AuthDialog({
         if (loginNeedsCaptcha || data.requireCaptcha) refreshCaptcha();
         return;
       }
-      onAuthed({ username: data.username, avatar: data.avatar });
+      onAuthed({ username: data.username, avatar: data.avatar, isAdmin: data.isAdmin });
       setLoginNeedsCaptcha(false);
       setPassword('');
       onClose();

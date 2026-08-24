@@ -1,6 +1,7 @@
 'use client';
 
-import { CheckCircle2, KeyRound, LogIn, LogOut, ShieldCheck, UserRound } from 'lucide-react';
+import Link from 'next/link';
+import { CheckCircle2, KeyRound, LayoutDashboard, LogIn, LogOut, ShieldCheck, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from './AuthProvider';
 
@@ -79,6 +80,13 @@ export default function ProfilePanel() {
         <div className="flex items-center gap-2 text-base font-black text-[#173366]"><ShieldCheck size={19} className="text-emerald-500" />账号安全</div>
         <p className="mt-2 text-xs font-semibold leading-relaxed text-slate-400">账号没有绑定邮箱，无法找回密码。请妥善保存账号和密码；修改密码后，其他设备会自动退出。</p>
       </div>
+
+      {user.isAdmin && (
+        <Link href="/admin" className="flex min-h-14 items-center justify-between rounded-3xl border-2 border-emerald-200 bg-emerald-50 px-4 font-black text-emerald-700 shadow-sm">
+          <span className="flex items-center gap-2"><LayoutDashboard size={20} />进入管理后台</span>
+          <span aria-hidden="true">→</span>
+        </Link>
+      )}
 
       <div className="space-y-3 rounded-3xl border-2 border-white bg-white/80 p-4 shadow-sm">
         <div className="flex items-center gap-2 text-base font-black text-[#173366]"><KeyRound size={18} className="text-emerald-500" />修改密码</div>

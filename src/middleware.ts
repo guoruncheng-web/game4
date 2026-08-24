@@ -1,13 +1,14 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { SESSION_COOKIE, readSessionToken } from '@/lib/auth';
+import { SESSION_COOKIE } from '@/lib/auth';
+import { resolveSession } from '@/lib/session';
+import { getSql } from '@/lib/db';
+import { GAMES } from '@/games/registry';
 
 /**
  * 登录守卫:游戏路由必须登录才能进。
  *
- * 这里**只验签名和过期,不查数据库** —— 每次导航都往 Neon 打一次往返太贵,
- * 而这一层的职责只是"把没登录的人挡在门外"。真正的会话撤销(token_version 比对)
- * 在 `getCurrentUser()` 里,所有读用户数据的接口都会走到那一步。
- * 也就是说:被登出的 token 还能推开这扇门,但推开之后什么用户数据都拿不到。
+ * 后台增加封禁后，这里必须解析完整会话并比对 token_version；否则被封用户仍能凭旧
+ * cookie 进入纯前端游戏。游戏上下架也在导航入口检查，不能只把首页按钮变灰。
  *
  * 放行清单用的是排除式匹配,新增一款游戏不需要回来改这里 —— 只要它是个页面路由,默认就是要登录的。
  */
@@ -25,12 +26,29 @@ export const config = {
 
 /** 不需要登录也能打开的页面 */
 const PUBLIC_PATHS = new Set(['/', '/offline']);
+const GAME_SLUGS = new Set(GAMES.map((game) => game.slug));
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   if (PUBLIC_PATHS.has(pathname)) return NextResponse.next();
 
-  if (readSessionToken(request.cookies.get(SESSION_COOKIE)?.value)) {
+  const user = await resolveSession(request.cookies.get(SESSION_COOKIE)?.value).catch(() => null);
+  if (user) {
+    if (pathname === '/admin' && !user.isAdmin) return NextResponse.redirect(new URL('/', request.url));
+    const slug = pathname.split('/')[1];
+    if (GAME_SLUGS.has(slug)) {
+      try {
+        const sql = getSql();
+        const rows = await sql`select enabled from game_settings where slug = ${slug} limit 1`;
+        if (rows[0]?.enabled === false) {
+          const target = new URL('/', request.url);
+          target.searchParams.set('unavailable', slug);
+          return NextResponse.redirect(target);
+        }
+      } catch {
+        // 运营配置查询失败时不拖垮所有游戏，首页 API 也采用同样的开放回退。
+      }
+    }
     return NextResponse.next();
   }
 

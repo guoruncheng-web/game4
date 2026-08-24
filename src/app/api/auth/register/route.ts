@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: '生成账号失败,请重试' }, { status: 500 });
   }
 
-  const response = NextResponse.json({ username, password, avatar });
+  const response = NextResponse.json({ username, password, avatar, isAdmin: false });
   response.cookies.set(
     SESSION_COOKIE,
     createSessionToken(userId, tokenVersion),
