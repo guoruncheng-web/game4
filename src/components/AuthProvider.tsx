@@ -68,6 +68,12 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
   const openPanel = useCallback((next: AuthMode = 'register') => setMode(next), []);
 
+  const handleAuthed = useCallback((nextUser: AuthUser) => {
+    setUser(nextUser);
+    // /admin 是服务端权限页，登录成功后立即让它重新读取新会话。
+    router.refresh();
+  }, [router]);
+
   const logout = useCallback(async () => {
     await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
     setUser(null);
@@ -98,7 +104,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
         <AuthDialog
           initialMode={mode}
           user={user}
-          onAuthed={setUser}
+          onAuthed={handleAuthed}
           onClose={handleClose}
           onLogout={logout}
         />

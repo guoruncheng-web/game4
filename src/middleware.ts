@@ -25,7 +25,7 @@ export const config = {
 };
 
 /** 不需要登录也能打开的页面 */
-const PUBLIC_PATHS = new Set(['/', '/offline']);
+const PUBLIC_PATHS = new Set(['/', '/offline', '/admin']);
 const GAME_SLUGS = new Set(GAMES.map((game) => game.slug));
 
 export async function middleware(request: NextRequest) {
@@ -34,7 +34,6 @@ export async function middleware(request: NextRequest) {
 
   const user = await resolveSession(request.cookies.get(SESSION_COOKIE)?.value).catch(() => null);
   if (user) {
-    if (pathname === '/admin' && !user.isAdmin) return NextResponse.redirect(new URL('/', request.url));
     const slug = pathname.split('/')[1];
     if (GAME_SLUGS.has(slug)) {
       try {
