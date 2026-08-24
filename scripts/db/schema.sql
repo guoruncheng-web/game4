@@ -86,10 +86,6 @@ insert into game_settings (slug, sort_order) values
   ('ludo', 80)
 on conflict (slug) do nothing;
 
--- 一次性引导管理员；线上生效后从 schema 中移除。
-insert into users (username, password_hash, avatar, is_admin, last_login_at)
-values ('admin', 'scrypt$16384$8$1$j5n2gsXrdsg/NNx6w7eykg==$zPbtYP75H4Ob5WzZel8/t9uOXLpu/aTswwrUSCa7qCE=', '👑', true, now())
-on conflict (username) do update set is_admin = true;
 
 -- ---------------------------------------------------------------- 联机协作
 -- 曾经有 coop_presence / coop_rooms / coop_signals 三张表,用来做在线状态、
