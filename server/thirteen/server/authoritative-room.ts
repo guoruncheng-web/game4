@@ -38,6 +38,7 @@ export interface PlayerSnapshot {
   readonly roomId: string;
   readonly rulesVersion: typeof RULES_VERSION;
   readonly revision: number;
+  readonly matchNumber: number;
   readonly seat: number;
   readonly ownHand: readonly Card[];
   readonly opponentCounts: readonly number[];
@@ -90,6 +91,7 @@ export class AuthoritativeRoom {
   private state: MatchState | null = null;
   private seed: number | null = null;
   private revision = 0;
+  private matchNumber = 0;
   private deadlineAt = 0;
   private previousWinner: number | null = null;
   private readonly actions: MatchAction[] = [];
@@ -111,6 +113,10 @@ export class AuthoritativeRoom {
 
   get started(): boolean {
     return this.state !== null;
+  }
+
+  get finished(): boolean {
+    return this.state?.winner !== null && this.state?.winner !== undefined;
   }
 
   join(userId: string): number {
@@ -152,7 +158,8 @@ export class AuthoritativeRoom {
     const seed = this.seedSource() >>> 0;
     this.seed = seed;
     this.state = createMatch(seed, this.previousWinner);
-    this.revision = 1;
+    this.matchNumber += 1;
+    this.revision += 1;
     this.actions.length = 0;
     this.deadlineAt = this.now() + TURN_TIMEOUT_MS;
   }
@@ -237,6 +244,7 @@ export class AuthoritativeRoom {
       roomId: this.roomId,
       rulesVersion: RULES_VERSION,
       revision: this.revision,
+      matchNumber: this.matchNumber,
       seat,
       ownHand: [...this.state.hands[seat]],
       opponentCounts: this.state.hands.map((hand, index) => index === seat ? 0 : hand.length),

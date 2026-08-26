@@ -5,8 +5,10 @@
   "privateRoomCode": true,
   "completedMatches": 20,
   "privacyScopedHands": true,
-  "totalActions": 1129,
-  "maximumActions": 70,
+  "totalActions": 1158,
+  "maximumActions": 72,
+  "liveRematchStarted": true,
+  "rematchFirstSequenceAccepted": true,
   "roomReleasedAfterEveryMatch": true,
   "accepted": true
 }

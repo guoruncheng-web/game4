@@ -6,6 +6,7 @@ export type ThirteenClientMessage =
   | { readonly t: 'thirteen:join-private'; readonly v: typeof ROOM_PROTOCOL_VERSION; readonly code: string }
   | { readonly t: 'thirteen:matchmake'; readonly v: typeof ROOM_PROTOCOL_VERSION }
   | { readonly t: 'thirteen:leave'; readonly v: typeof ROOM_PROTOCOL_VERSION }
+  | { readonly t: 'thirteen:rematch'; readonly v: typeof ROOM_PROTOCOL_VERSION }
   | { readonly t: 'thirteen:snapshot'; readonly v: typeof ROOM_PROTOCOL_VERSION }
   | { readonly t: 'thirteen:command'; readonly v: typeof ROOM_PROTOCOL_VERSION; readonly command: ClientCommand };
 
@@ -20,6 +21,7 @@ export function parseThirteenClientMessage(value: unknown): ThirteenClientMessag
     case 'thirteen:create-private':
     case 'thirteen:matchmake':
     case 'thirteen:leave':
+    case 'thirteen:rematch':
     case 'thirteen:snapshot':
       return value as ThirteenClientMessage;
     case 'thirteen:join-private':
