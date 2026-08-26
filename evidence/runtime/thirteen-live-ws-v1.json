@@ -3,9 +3,10 @@
   "protocolVersion": 1,
   "authenticatedClients": 4,
   "privateRoomCode": true,
-  "distinctSeats": 4,
+  "completedMatches": 20,
   "privacyScopedHands": true,
-  "acceptedOpeningRevision": 2,
-  "roomReleasedAfterLeave": true,
+  "totalActions": 1129,
+  "maximumActions": 70,
+  "roomReleasedAfterEveryMatch": true,
   "accepted": true
 }
