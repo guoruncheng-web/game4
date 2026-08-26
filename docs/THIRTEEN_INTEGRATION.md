@@ -29,7 +29,7 @@ Service Worker 版本为 `v23`。`/thirteen/` 下的 JS、JSON、CSS、WASM、�
 - ESLint：全仓通过。
 - Next.js 16.3.0 production build（webpack）：编译、TypeScript 和 19 个静态页面生成通过，包含 `/thirteen`。
 - 同源宿主运行：iframe 200、加载遮罩退出、1280×633 Canvas、Cocos `Main` 场景、0 控制台错误。
-- 四客户端真人链路：4 个真实数据库鉴权会话、私人房、4 个不同 seat、脱敏快照、首手推进至 revision 2、离开后房间回收均通过；临时账号自动清理。
+- 四客户端真人链路：4 个真实数据库鉴权会话连续完成 20 个私人房完整牌局，共 1,129 个权威动作、最长 70 动作；每步四份公开快照一致，离开后房间回收，临时账号自动清理。
 - PWA 离线重放：断网后 `/thirteen` 仍启动 Cocos `Main`，Canvas 可见且加载遮罩退出。
 
 证据位于 `evidence/runtime/thirteen-*-v1.{json,png}`；可重复脚本位于 `tools/sim/thirteen/`。
