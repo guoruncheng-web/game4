@@ -1,0 +1,24 @@
+{
+  "url": "http://127.0.0.1:3220/thirteen",
+  "seconds": 12,
+  "state": {
+    "canvas": false,
+    "w": 0,
+    "h": 0,
+    "cc": false,
+    "scene": null
+  },
+  "events": [],
+  "checked": {
+    "pagePath": "/thirteen",
+    "iframePath": "/thirteen/game/index.html",
+    "iframeSameOrigin": true,
+    "loadingOverlayVisible": false,
+    "canvas": true,
+    "canvasWidth": 1280,
+    "canvasHeight": 633,
+    "cocos": true,
+    "scene": "Main"
+  },
+  "screenshot": "/Users/mac/projects/oner/game/game4/evidence/runtime/thirteen-host-v1.png"
+}

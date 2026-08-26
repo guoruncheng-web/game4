@@ -28,6 +28,8 @@ import postgres from 'postgres';
 import { createFishAdapter, FISH_GAME } from './fish-room.mjs';
 import { AuthoritativeGateway } from './umo/gateway.ts';
 import { UmoWsAdapter } from './umo/ws-adapter.ts';
+import { RoomDirectory } from './thirteen/server/room-directory.ts';
+import { ThirteenWsAdapter } from './thirteen/server/ws-adapter.ts';
 
 const PORT = Number(process.env.WS_PORT || 7011);
 const SESSION_COOKIE = 'gb_session';
@@ -105,6 +107,13 @@ function sendTo(userId, msg) {
   send(clients.get(userId)?.ws, msg);
 }
 
+// Thirteen is a four-seat authoritative game, isolated from legacy relay rooms.
+const thirteenDirectory = new RoomDirectory(() => randomBytes(4).readUInt32LE(0));
+const thirteenAdapter = new ThirteenWsAdapter(
+  thirteenDirectory,
+  (userId, message) => sendTo(Number(userId), message),
+);
+
 const umoStateFile = process.env.UMO_STATE_FILE;
 const umoStateSecret = process.env.UMO_STATE_KEY;
 if (umoStateFile && (!umoStateSecret || umoStateSecret.length < 32)) {
@@ -153,7 +162,9 @@ function umoStateKey(secret) {
 function invitableList(exceptId) {
   const out = [];
   for (const [id, c] of clients) {
-    if (id !== exceptId && !c.roomId) out.push({ id, username: c.username });
+    if (id !== exceptId && !c.roomId && !thirteenDirectory.assignmentFor(String(id))) {
+      out.push({ id, username: c.username });
+    }
   }
   return out.slice(0, 50);
 }
@@ -161,7 +172,9 @@ function invitableList(exceptId) {
 /** 在线名单变了就推给所有空闲的人,免得他们看着一份过期的列表点邀请 */
 function broadcastOnline() {
   for (const [id, c] of clients) {
-    if (!c.roomId) send(c.ws, { t: 'online', users: invitableList(id) });
+    if (!c.roomId && !thirteenDirectory.assignmentFor(String(id))) {
+      send(c.ws, { t: 'online', users: invitableList(id) });
+    }
   }
 }
 
@@ -288,6 +301,18 @@ function peerOf(room, userId) {
 
 function handle(client, msg) {
   const me = client.userId;
+  if (typeof msg?.t === 'string' && msg.t.startsWith('thirteen:')) {
+    if (client.roomId && ['thirteen:create-private', 'thirteen:join-private', 'thirteen:matchmake'].includes(msg.t)) {
+      send(client.ws, { t: 'thirteen:error', v: 1, code: 'user_already_in_other_game' });
+      return;
+    }
+    thirteenAdapter.handle(String(me), msg);
+    return;
+  }
+  if (thirteenDirectory.assignmentFor(String(me)) && msg?.t !== 'hello') {
+    send(client.ws, { t: 'error', message: '你正在十三张房间中' });
+    return;
+  }
   switch (msg.t) {
     case 'hello':
       send(client.ws, { t: 'online', users: invitableList(me) });
@@ -419,6 +444,7 @@ const server = createServer((req, res) => {
       rooms: rooms.size,
       umoRooms: umoAdapter.roomCount,
       umoConnections: umoAdapter.connectionCount,
+      thirteenRooms: thirteenDirectory.roomIds().length,
     }));
   }
   res.writeHead(426).end('Expected WebSocket');
@@ -466,6 +492,7 @@ server.on('upgrade', async (req, socket, head) => {
       ws.on('close', () => {
         if (clients.get(user.id) !== client) return; // 已经被新连接顶掉了
         clients.delete(user.id);
+        thirteenAdapter.disconnect(String(user.id));
         const room = client.roomId ? rooms.get(client.roomId) : null;
         if (room?.fish) leaveFishRoom(room, user.id);
         else if (room) closeRoom(room.id, 'peer-left', client.username);
@@ -487,6 +514,11 @@ setInterval(() => {
     try { client.ws.ping(); } catch { /* 忽略 */ }
   }
 }, PING_INTERVAL_MS).unref();
+
+// Gameplay uses authoritative actions; this lightweight scheduler only handles deadlines and bot takeover.
+setInterval(() => {
+  try { thirteenAdapter.tick(Date.now()); } catch (error) { console.error('[thirteen] tick 出错', error); }
+}, 250).unref();
 
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`[ws] 监听 127.0.0.1:${PORT}`);

@@ -1,0 +1,11 @@
+{
+  "feature": "game4 authenticated four-client Thirteen websocket integration",
+  "protocolVersion": 1,
+  "authenticatedClients": 4,
+  "privateRoomCode": true,
+  "distinctSeats": 4,
+  "privacyScopedHands": true,
+  "acceptedOpeningRevision": 2,
+  "roomReleasedAfterLeave": true,
+  "accepted": true
+}

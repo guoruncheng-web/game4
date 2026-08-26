@@ -82,6 +82,13 @@ export const GAMES: GameMeta[] = [
     controls: '点按手牌出牌 · 抽牌 / 释放脉冲 · 支持断线恢复',
     accent: 'text-teal-300',
   },
+  {
+    slug: 'thirteen',
+    title: 'Chặt Heo! 西贡牌局',
+    tagline: '越南南方十三张 · 单机练习与四人权威牌桌',
+    controls: '点按选牌 · 提示 / 过牌 / 出牌 · 横屏游玩',
+    accent: 'text-amber-300',
+  },
 ];
 
 export function getGame(slug: string): GameMeta | undefined {

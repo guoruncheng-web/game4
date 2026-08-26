@@ -25,7 +25,7 @@ export const config = {
 };
 
 /** 不需要登录也能打开的页面 */
-const PUBLIC_PATHS = new Set(['/', '/offline', '/admin', '/umo']);
+const PUBLIC_PATHS = new Set(['/', '/offline', '/admin', '/umo', '/thirteen']);
 const GAME_SLUGS = new Set(GAMES.map((game) => game.slug));
 
 export async function middleware(request: NextRequest) {
