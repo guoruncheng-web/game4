@@ -357,6 +357,22 @@ export default function Home() {
               </div>
               <span className="grid size-11 place-items-center rounded-2xl bg-teal-300/10 text-teal-300"><Play size={21} className="fill-current" /></span>
             </GameLink>
+            <GameLink
+              href="/thirteen"
+              enabled={gameAvailability.thirteen !== false}
+              requiresAuth={false}
+              className="flex items-center gap-4 rounded-3xl border border-white bg-[#082f31] p-2.5 shadow-[0_8px_24px_rgba(12,92,82,0.3)] transition active:scale-[0.99]"
+            >
+              <div className="relative size-24 shrink-0 overflow-hidden rounded-2xl bg-[#061f25]">
+                <Image src="/thirteen/cover.png" alt="西贡夜市中的十三张牌桌入口" fill sizes="96px" className="object-cover" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-lg font-black text-amber-300">Chặt Heo!</p>
+                <p className="mt-0.5 text-sm font-bold text-emerald-100/90">西贡夜市 · 南方十三张</p>
+                <p className="mt-2 text-xs font-bold text-teal-300">游客可单机 · 登录后四人联机</p>
+              </div>
+              <span className="grid size-11 place-items-center rounded-2xl bg-amber-300/10 text-amber-300"><Play size={21} className="fill-current" /></span>
+            </GameLink>
             {upcomingGames.map((game) => (
               <article
                 key={game.image}

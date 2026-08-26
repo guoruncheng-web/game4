@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @source not "../../public/umo/game/**";
+@source not "../../public/thirteen/game/**";
 
 :root {
   --background: #0b2032;

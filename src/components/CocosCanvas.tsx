@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from './AuthProvider';
 
 type Props = {
   src: string;
   title: string;
-  gameId?: 'umo';
+  gameId?: 'umo' | 'thirteen';
   readyOnLoad?: boolean;
   backdropClassName?: string;
   loadingText?: string;
@@ -28,11 +29,24 @@ export default function CocosCanvas({
 }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
+  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return undefined;
+
+    function sendThirteenSession() {
+      if (gameId !== 'thirteen') return;
+      iframe?.contentWindow?.postMessage({
+        source: 'game4',
+        type: 'game4:session',
+        version: 1,
+        locale: navigator.language,
+        user: user ? { id: user.username, displayName: user.username } : null,
+        returnPath: '/',
+      }, window.location.origin);
+    }
 
     function onMessage(event: MessageEvent<unknown>) {
       if (event.origin !== window.location.origin || event.source !== iframe?.contentWindow) return;
@@ -40,14 +54,16 @@ export default function CocosCanvas({
       if (!value || value.source !== gameId || value.version !== 1) return;
       if (value.type === `${gameId}:ready`) {
         setReady(true);
+        sendThirteenSession();
       } else if (value.type === `${gameId}:exit`) {
         router.push('/');
       }
     }
 
     window.addEventListener('message', onMessage);
+    if (ready) sendThirteenSession();
     return () => window.removeEventListener('message', onMessage);
-  }, [gameId, router]);
+  }, [gameId, ready, router, user]);
 
   return (
     <div className={`relative size-full overflow-hidden ${backdropClassName}`}>

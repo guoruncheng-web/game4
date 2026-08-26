@@ -1,0 +1,164 @@
+import { spawn } from 'node:child_process';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import { mkdir } from 'node:fs/promises';
+
+const url = process.argv[2] || 'http://127.0.0.1:3220/thirteen';
+const origin = new URL(url).origin;
+const screenshot = process.argv[3];
+const resultPath = process.argv[4];
+const chromePath = process.env.COCOS_CHROME
+  || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+function cdpClient(ws) {
+  let nextId = 0;
+  const pending = new Map();
+  ws.addEventListener('message', (event) => {
+    const message = JSON.parse(event.data);
+    if (message.id !== undefined && pending.has(message.id)) {
+      pending.get(message.id)(message);
+      pending.delete(message.id);
+    }
+  });
+  return {
+    send(method, params = {}) {
+      const id = ++nextId;
+      return new Promise((resolve) => {
+        pending.set(id, resolve);
+        ws.send(JSON.stringify({ id, method, params }));
+      });
+    },
+  };
+}
+
+async function evaluate(cdp, expression) {
+  const result = await cdp.send('Runtime.evaluate', {
+    expression: `(async () => JSON.stringify(await (${expression})))()`,
+    returnByValue: true,
+    awaitPromise: true,
+  });
+  if (result.result.exceptionDetails) throw new Error(result.result.exceptionDetails.text);
+  return JSON.parse(result.result.result.value);
+}
+
+const profile = await mkdtemp(join(tmpdir(), 'thirteen-pwa-'));
+const chrome = spawn(chromePath, [
+  '--headless=new',
+  '--remote-debugging-port=0',
+  `--user-data-dir=${profile}`,
+  '--no-first-run',
+  '--disable-extensions',
+  '--mute-audio',
+  '--use-angle=swiftshader',
+  '--enable-unsafe-swiftshader',
+  '--window-size=1280,720',
+], { stdio: ['ignore', 'ignore', 'pipe'] });
+
+try {
+  let port;
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    await sleep(100);
+    try {
+      port = Number((await readFile(join(profile, 'DevToolsActivePort'), 'utf8')).split('\n')[0]);
+      if (port) break;
+    } catch { /* Chrome is still starting. */ }
+  }
+  if (!port) throw new Error('chrome_debug_port_unavailable');
+  const target = await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent(url)}`, { method: 'PUT' })
+    .then((response) => response.json());
+  const ws = new WebSocket(target.webSocketDebuggerUrl);
+  await new Promise((resolve, reject) => {
+    ws.addEventListener('open', resolve, { once: true });
+    ws.addEventListener('error', reject, { once: true });
+  });
+  const cdp = cdpClient(ws);
+  await cdp.send('Runtime.enable');
+  await cdp.send('Page.enable');
+  await cdp.send('Network.enable');
+  await cdp.send('Page.navigate', { url });
+  await sleep(12_000);
+  const registered = await evaluate(cdp, `(async () => {
+    await navigator.serviceWorker.ready;
+    for (let attempt = 0; attempt < 40 && !navigator.serviceWorker.controller; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    return Boolean(navigator.serviceWorker.controller);
+  })()`);
+  if (!registered) throw new Error('service_worker_did_not_control_page');
+
+  await cdp.send('Page.navigate', { url: `${origin}/offline` });
+  await sleep(2_000);
+  await cdp.send('Page.navigate', { url });
+  await sleep(12_000);
+  const online = await evaluate(cdp, `(async () => {
+    const names = await caches.keys();
+    const assets = await caches.open('game-box-assets-v38');
+    const shell = await caches.open('game-box-shell-v23');
+    const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
+    const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
+    const frame = document.querySelector('iframe');
+    return {
+      names,
+      assetCount: assetKeys.length,
+      shellKeys,
+      cachedGameIndex: assetKeys.includes('/thirteen/game/index.html')
+        || shellKeys.includes('/thirteen/game/index.html'),
+      cachedSettings: assetKeys.includes('/thirteen/game/src/settings.json'),
+      cachedRoute: shellKeys.includes('/thirteen') || shellKeys.includes('/thirteen/'),
+      onlineCanvas: Boolean(frame?.contentDocument?.querySelector('canvas')),
+    };
+  })()`);
+
+  await cdp.send('Page.navigate', { url: `${origin}/offline` });
+  await sleep(2_000);
+  await cdp.send('Network.emulateNetworkConditions', {
+    offline: true,
+    latency: 0,
+    downloadThroughput: 0,
+    uploadThroughput: 0,
+  });
+  await cdp.send('Page.navigate', { url });
+  await sleep(12_000);
+  const offline = await evaluate(cdp, `(() => {
+    const frame = document.querySelector('iframe');
+    const gameWindow = frame?.contentWindow;
+    const canvas = frame?.contentDocument?.querySelector('canvas');
+    return {
+      pagePath: location.pathname,
+      canvas: Boolean(canvas),
+      canvasWidth: canvas?.width || 0,
+      canvasHeight: canvas?.height || 0,
+      cocos: typeof gameWindow?.cc !== 'undefined',
+      scene: gameWindow?.cc?.director?.getScene?.()?.name || null,
+      loadingOverlayVisible: [...document.querySelectorAll('div')]
+        .some((node) => node.textContent === '正在摆好牌桌…' && getComputedStyle(node).display !== 'none'),
+    };
+  })()`);
+  if (screenshot) {
+    await mkdir(dirname(screenshot), { recursive: true });
+    const shot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+    await writeFile(screenshot, Buffer.from(shot.result.data, 'base64'));
+  }
+  ws.close();
+
+  const accepted = online.cachedGameIndex
+    && online.cachedSettings
+    && online.cachedRoute
+    && online.onlineCanvas
+    && offline.canvas
+    && offline.cocos
+    && offline.scene === 'Main'
+    && !offline.loadingOverlayVisible;
+  const report = { feature: 'Thirteen PWA offline replay', online, offline, accepted };
+  if (resultPath) {
+    await mkdir(dirname(resultPath), { recursive: true });
+    await writeFile(resultPath, `${JSON.stringify(report, null, 2)}\n`);
+  }
+  console.log(JSON.stringify(report, null, 2));
+  if (!accepted) process.exitCode = 1;
+} finally {
+  chrome.kill('SIGKILL');
+  await rm(profile, { recursive: true, force: true }).catch(() => {});
+}

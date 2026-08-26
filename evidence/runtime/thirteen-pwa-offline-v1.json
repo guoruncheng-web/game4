@@ -1,0 +1,32 @@
+{
+  "feature": "Thirteen PWA offline replay",
+  "online": {
+    "names": [
+      "game-box-shell-v23",
+      "game-box-assets-v23",
+      "game-box-static-v23"
+    ],
+    "assetCount": 224,
+    "shellKeys": [
+      "/icons/icon-192.png",
+      "/icons/icon-512.png",
+      "/offline",
+      "/thirteen",
+      "/thirteen/game/index.html"
+    ],
+    "cachedGameIndex": true,
+    "cachedSettings": true,
+    "cachedRoute": true,
+    "onlineCanvas": true
+  },
+  "offline": {
+    "pagePath": "/thirteen",
+    "canvas": true,
+    "canvasWidth": 1280,
+    "canvasHeight": 633,
+    "cocos": true,
+    "scene": "Main",
+    "loadingOverlayVisible": false
+  },
+  "accepted": true
+}

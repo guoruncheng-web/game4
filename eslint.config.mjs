@@ -17,6 +17,8 @@ const eslintConfig = defineConfig([
     "public/ludo/effekseer/runtime/**",
     // UMO 同样提交已在源项目验收过的 Creator release，不重复扫描生成代码。
     "public/umo/game/**",
+    // Thirteen 的 Creator release 同样在游戏源仓独立验收。
+    "public/thirteen/game/**",
   ]),
 ]);
 
