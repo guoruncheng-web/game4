@@ -5,7 +5,7 @@
 ## 组成
 
 - `/thirteen`：公开可访问的同源 Cocos iframe 宿主页；游客可玩单机、教学和设置。
-- `/thirteen/game/`：Cocos Creator 3.8.8 Web Mobile release 产物，来源项目提交 `4a74004`。
+- `/thirteen/game/`：Cocos Creator 3.8.8 Web Mobile release 产物，来源项目提交 `4bfc838`。
 - `/ws`：沿用 game4 已有的鉴权 WebSocket 服务；`thirteen:*` v1 消息由独立四人权威房间目录处理。
 - `server/thirteen/`：与 Cocos 项目同版本的牌、牌型、状态机和房间核心；服务端生成随机种子并裁决所有动作。
 
@@ -18,6 +18,7 @@
 - 客户端一次只保留一个待确认动作；服务端按席位序列号去重并拒绝缺号或非法动作。
 - 断线 3 秒后由 Bot 托管，60 秒内允许同一鉴权用户重连；过期或主动离开会释放用户分配。
 - 联网结算支持四人一致投票再来一局；新局递增 match number、保持 revision 单调并重置每席动作序列。
+- 在线牌桌显示由服务端 `deadlineAt` 驱动的三段颜色逐秒倒计时；客户端不自行裁决超时。
 - `thirteen:*` 分支与现有双人转发及捕鱼权威房间隔离，同一用户不能同时加入两类房间。
 
 ## PWA
