@@ -24,6 +24,15 @@ interface DirectoryRoom {
   readonly code: string | null;
   readonly room: AuthoritativeRoom;
   readonly users: Array<string | null>;
+  readonly rematchVotes: Set<string>;
+}
+
+export interface RematchResult {
+  readonly room: WaitingRoomView;
+  readonly votes: number;
+  readonly required: number;
+  readonly voters: readonly string[];
+  readonly started: boolean;
 }
 
 export class RoomDirectory {
@@ -113,6 +122,7 @@ export class RoomDirectory {
     this.userRooms.delete(userId);
     if (!entry) return { roomId, deleted: true };
     const index = entry.users.indexOf(userId);
+    entry.rematchVotes.delete(userId);
     if (entry.room.started) {
       entry.room.disconnect(userId);
       if (index >= 0) entry.users[index] = null;
@@ -126,6 +136,21 @@ export class RoomDirectory {
       return { roomId, deleted: true };
     }
     return { roomId, deleted: false };
+  }
+
+  requestRematch(userId: string): RematchResult {
+    const entry = this.requireEntry(userId);
+    if (!entry.room.finished) throw new Error('match_not_finished');
+    const members = entry.users.filter((member): member is string => member !== null);
+    if (members.length !== 4) throw new Error('rematch_requires_four_players');
+    entry.rematchVotes.add(userId);
+    const voters = members.filter((member) => entry.rematchVotes.has(member));
+    if (voters.length === members.length) {
+      entry.room.rematch();
+      entry.rematchVotes.clear();
+      return { room: this.view(entry), votes: 0, required: 4, voters: [], started: true };
+    }
+    return { room: this.view(entry), votes: voters.length, required: 4, voters, started: false };
   }
 
   receive(userId: string, command: ClientCommand): RoomResult {
@@ -162,7 +187,9 @@ export class RoomDirectory {
 
   private createEntry(id: string, code: string | null): DirectoryRoom {
     const seed = () => this.randomUint32() >>> 0;
-    const entry: DirectoryRoom = { code, room: new AuthoritativeRoom(id, seed, this.now), users: [] };
+    const entry: DirectoryRoom = {
+      code, room: new AuthoritativeRoom(id, seed, this.now), users: [], rematchVotes: new Set(),
+    };
     this.rooms.set(id, entry);
     if (code) this.codes.set(code, id);
     return entry;

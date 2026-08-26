@@ -60,6 +60,21 @@ export class ThirteenWsAdapter {
           if (previous && !result.deleted) this.broadcastRoom(previous.room);
           return;
         }
+        case 'thirteen:rematch': {
+          const result = this.directory.requestRematch(userId);
+          for (const member of this.directory.members(result.room.roomId)) {
+            this.send(member, {
+              t: 'thirteen:rematch',
+              v: ROOM_PROTOCOL_VERSION,
+              votes: result.votes,
+              required: result.required,
+              voted: result.voters.includes(member),
+              started: result.started,
+            });
+          }
+          if (result.started) this.broadcastSnapshots(result.room.roomId);
+          return;
+        }
         case 'thirteen:snapshot':
           this.sendSnapshot(userId);
           return;

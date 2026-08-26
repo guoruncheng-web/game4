@@ -100,6 +100,7 @@ try {
 
   let totalActions = 0;
   let maximumActions = 0;
+  let liveRematchStarted = false;
   for (let game = 0; game < gameCount; game += 1) {
     const sequences = [0, 0, 0, 0];
     clients[0].send({ t: 'thirteen:create-private', v: 1 });
@@ -174,6 +175,50 @@ try {
     totalActions += actions;
     maximumActions = Math.max(maximumActions, actions);
 
+    if (game === gameCount - 1) {
+      const finalRevision = snapshots[0].snapshot.revision;
+      for (const client of clients) client.send({ t: 'thirteen:rematch', v: 1 });
+      await Promise.all(clients.map((client) => (
+        client.next('thirteen:rematch', (message) => message.started === true)
+      )));
+      const rematchSnapshots = await Promise.all(clients.map((client) => (
+        client.next('thirteen:snapshot', (message) => (
+          message.snapshot?.matchNumber === 2 && message.snapshot.revision > finalRevision
+        ))
+      )));
+      const nextSeat = rematchSnapshots[0].snapshot.currentSeat;
+      const nextIndex = rematchSnapshots.findIndex((message) => message.snapshot.seat === nextSeat);
+      const own = rematchSnapshots[nextIndex].snapshot;
+      const hands = [[], [], [], []];
+      hands[nextSeat] = own.ownHand;
+      const candidate = legalPlays({
+        rulesVersion: RULES_VERSION,
+        hands,
+        currentSeat: nextSeat,
+        firstPlayPending: own.firstPlayPending,
+        lastPlay: own.lastPlay,
+        passed: own.passed,
+        hasPlayed: [true, true, true, true],
+        winner: own.winner,
+        turn: own.turn,
+      }, nextSeat)[0];
+      clients[nextIndex].send({
+        t: 'thirteen:command', v: 1,
+        command: {
+          protocolVersion: 1,
+          clientSequence: 1,
+          action: candidate
+            ? { type: 'play', cardIds: candidate.cards.map((card) => card.id) }
+            : { type: 'pass' },
+        },
+      });
+      const rematchAck = await clients[nextIndex].next(
+        'thirteen:ack', (message) => message.revision === own.revision + 1,
+      );
+      assert(rematchAck.ok === true, 'rematch_first_sequence_not_accepted');
+      liveRematchStarted = true;
+    }
+
     const liveHealth = await fetch(healthUrl).then((response) => response.json());
     assert(liveHealth.online === 4 && liveHealth.thirteenRooms === 1, 'live_health_did_not_report_four_clients_one_room');
     for (const client of clients) {
@@ -198,6 +243,8 @@ try {
     privacyScopedHands: true,
     totalActions,
     maximumActions,
+    liveRematchStarted,
+    rematchFirstSequenceAccepted: liveRematchStarted,
     roomReleasedAfterEveryMatch: true,
     accepted: true,
   };

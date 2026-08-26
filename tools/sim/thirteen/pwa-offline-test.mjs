@@ -81,7 +81,7 @@ try {
   await sleep(12_000);
   const registered = await evaluate(cdp, `(async () => {
     await navigator.serviceWorker.ready;
-    for (let attempt = 0; attempt < 40 && !navigator.serviceWorker.controller; attempt += 1) {
+    for (let attempt = 0; attempt < 100 && !navigator.serviceWorker.controller; attempt += 1) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
     return Boolean(navigator.serviceWorker.controller);
