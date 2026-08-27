@@ -47,9 +47,46 @@ jobs:
             --exclude 'node_modules' \
             --exclude '.next' \
             --exclude '.env.local' \
+            --exclude '.state' \
             --exclude 'src/games/*/assets' \
             -e "ssh -o StrictHostKeyChecking=accept-new" \
             ./ "$USER@$HOST:$APP_DIR/"
+
+      - name: 初始化 UMO 加密恢复存储
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new "$USER@$HOST" bash -se <<'REMOTE'
+            set -eu
+            umask 077
+            app_dir=/srv/gameai
+            state_dir="$app_dir/.state/umo"
+            env_file="$app_dir/.env.local"
+            state_file="$state_dir/state.enc"
+
+            test -f "$env_file"
+            install -d -m 700 "$state_dir"
+            chmod 600 "$env_file"
+
+            state_file_count=$(grep -c '^UMO_STATE_FILE=' "$env_file" || true)
+            state_key_count=$(grep -c '^UMO_STATE_KEY=' "$env_file" || true)
+            test "$state_file_count" -le 1
+            test "$state_key_count" -le 1
+
+            if [ "$state_file_count" -eq 0 ]; then
+              printf '\nUMO_STATE_FILE=%s\n' "$state_file" >> "$env_file"
+            else
+              grep -qx "UMO_STATE_FILE=$state_file" "$env_file"
+            fi
+
+            if [ "$state_key_count" -eq 0 ]; then
+              state_key=$(/opt/node24/bin/node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('hex'))")
+              printf 'UMO_STATE_KEY=%s\n' "$state_key" >> "$env_file"
+              unset state_key
+            else
+              grep -q '^UMO_STATE_KEY=................................' "$env_file"
+            fi
+
+            echo 'UMO encrypted recovery storage ready'
+          REMOTE
 
       - name: 安装依赖并构建
         run: |

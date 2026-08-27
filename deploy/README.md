@@ -33,8 +33,9 @@
 - **`.env.local` 只在服务器上**,不在仓库里。部署时 rsync 明确排除了它,
   否则 `--delete` 会把它删掉、应用起不来。
 - **UMO 权威房间恢复需要两个成对配置。** 在服务器 `.env.local` 设置
-  `UMO_STATE_FILE=/var/lib/gameai/umo/state.enc` 与至少 32 字符的独立高熵
-  `UMO_STATE_KEY`;并预先创建 `deploy` 可写的 `/var/lib/gameai/umo`（目录 0700）。
+  `UMO_STATE_FILE=/srv/gameai/.state/umo/state.enc` 与至少 32 字符的独立高熵
+  `UMO_STATE_KEY`。部署工作流会以 `deploy` 身份幂等创建 `.state/umo`（目录 0700），
+  在首次部署时由服务器端 Node 生成 32 字节随机密钥，并让 rsync 永久排除 `.state`。
   状态以 AES-256-GCM、文件 0600、临时文件后原子 rename 写入；只配路径不配密钥时
   WebSocket 服务会拒绝启动，避免恢复 token 明文落盘。密钥不得提交仓库或输出到日志。
 - 服务以 `deploy` 账号运行,sudo 白名单只有重启那一个服务。
