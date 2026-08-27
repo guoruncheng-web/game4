@@ -1,0 +1,89 @@
+{
+  "feature": "UMO PWA navigation, online, trusted audio and offline replay",
+  "firstLoad": {
+    "pagePath": "/umo",
+    "framePath": "/umo/game/index.html",
+    "canvas": true,
+    "canvasWidth": 520,
+    "canvasHeight": 866,
+    "cocos": true,
+    "scene": "MainMenu",
+    "mainMenuRoot": true,
+    "loadingOverlayVisible": false,
+    "serviceWorkerControlled": true,
+    "readyMs": 3498
+  },
+  "online": {
+    "pagePath": "/umo",
+    "framePath": "/umo/game/index.html",
+    "canvas": true,
+    "canvasWidth": 520,
+    "canvasHeight": 866,
+    "cocos": true,
+    "scene": "MainMenu",
+    "mainMenuRoot": true,
+    "loadingOverlayVisible": false,
+    "serviceWorkerControlled": true,
+    "readyMs": 2244
+  },
+  "audio": {
+    "before": {
+      "muted": false,
+      "sfxVolume": 0.7,
+      "contextState": "not-created"
+    },
+    "muted": {
+      "muted": true,
+      "sfxVolume": 0.7,
+      "contextState": "not-created"
+    },
+    "unmuted": {
+      "muted": false,
+      "sfxVolume": 0.7,
+      "contextState": "running"
+    }
+  },
+  "cache": {
+    "names": [
+      "game-box-shell-v35",
+      "game-box-assets-v35",
+      "game-box-static-v35"
+    ],
+    "umoAssetCount": 44,
+    "cachedGameIndex": true,
+    "cachedSettings": true,
+    "cachedMainBundle": true,
+    "cachedRoute": true
+  },
+  "exit": {
+    "controlFound": true,
+    "pagePath": "/"
+  },
+  "afterExit": {
+    "pagePath": "/umo",
+    "framePath": "/umo/game/index.html",
+    "canvas": true,
+    "canvasWidth": 520,
+    "canvasHeight": 866,
+    "cocos": true,
+    "scene": "MainMenu",
+    "mainMenuRoot": true,
+    "loadingOverlayVisible": false,
+    "serviceWorkerControlled": true,
+    "readyMs": 4870
+  },
+  "offline": {
+    "pagePath": "/umo",
+    "framePath": "/umo/game/index.html",
+    "canvas": true,
+    "canvasWidth": 520,
+    "canvasHeight": 866,
+    "cocos": true,
+    "scene": "MainMenu",
+    "mainMenuRoot": true,
+    "loadingOverlayVisible": false,
+    "serviceWorkerControlled": true,
+    "readyMs": 2233
+  },
+  "accepted": true
+}
