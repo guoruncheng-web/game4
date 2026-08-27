@@ -43,6 +43,20 @@ The published Cocos tree was replaced as a whole and verified byte-for-byte agai
 
 See `pwa-local.json` and `pwa-local.png` in this directory for machine-readable and visual evidence.
 
+## Public production acceptance
+
+- Deployment Actions run: `33098940652`; all build, restart, and smoke-check steps passed in 57 seconds.
+- `https://www.gameai.xingzdh.com/`: HTTP 200.
+- `https://www.gameai.xingzdh.com/umo`: HTTP 200.
+- `/ws/health`: `ok: true`.
+- Fresh-profile first-load MainMenu: 71,874 ms.
+- Warm online replay: 4,964 ms; after exit/re-entry: 4,216 ms; offline reload: 2,249 ms.
+- Service Worker controlled the page; all `v35` caches and required UMO entries were present.
+- Trusted audio reached `running`, exit returned to `/`, and offline replay returned to MainMenu.
+- Public production acceptance result: `accepted: true`.
+
+See `pwa-public.json` and `pwa-public.png` in this directory. The cross-region cold-start result is accepted as a non-blocking performance risk by the release policy, but **performance exemption does not mean performance passed**; 71.874 seconds remains an optimization target. PWA takeover, trusted audio, cache contents, offline reload, protocol, Actions, and online health were not exempted.
+
 ## Avatar acceptance boundary
 
 The RC15 standalone acceptance used an authenticated-session payload and proves that the account avatar replaces the baked person glyph instead of covering it. A fresh game4 browser profile is intentionally unauthenticated, so it validates the guest fallback and PWA behavior, not a real production account. The production host exposes `/api/auth/me`; authenticated public-account validation remains a separate credentialed check and is not falsely claimed here.
