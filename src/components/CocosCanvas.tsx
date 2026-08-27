@@ -61,9 +61,9 @@ export default function CocosCanvas({
   }, [gameId, ready, router, user]);
 
   return (
-    <div className="relative size-full overflow-hidden bg-[#061f25]">
+    <div className="relative size-full overflow-hidden bg-[#040816]">
       {!ready && (
-        <div className="absolute inset-0 z-10 grid place-items-center bg-[#061f25] text-lg font-bold text-amber-200">
+        <div className="absolute inset-0 z-10 grid place-items-center bg-[#040816] text-lg font-bold text-amber-200">
           {loadingText}
         </div>
       )}

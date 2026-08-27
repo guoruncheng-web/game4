@@ -18,7 +18,7 @@
  * 装个桌面图标就替用户吃掉这么多流量是不礼貌的。
  */
 
-const VERSION = 'v30';
+const VERSION = 'v31';
 const SHELL_CACHE = `game-box-shell-${VERSION}`;
 const STATIC_CACHE = `game-box-static-${VERSION}`;
 const ASSET_CACHE = `game-box-assets-${VERSION}`;
