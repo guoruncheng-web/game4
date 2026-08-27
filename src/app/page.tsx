@@ -436,8 +436,8 @@ export default function Home() {
  * 未登录时点卡片就地弹登录面板,而不是先跳进游戏页再被 middleware 弹回首页。
  * /me 还没回来的那一小会儿按登录处理:middleware 在后面兜着,不会漏进去。
  */
-function GameLink({ href, className, children, enabled = true }: {
-  href: string; className: string; children: ReactNode; enabled?: boolean;
+function GameLink({ href, className, children, enabled = true, requiresAuth = true }: {
+  href: string; className: string; children: ReactNode; enabled?: boolean; requiresAuth?: boolean;
 }) {
   const { user, loading, openPanel } = useAuth();
   if (!enabled) {
@@ -448,7 +448,7 @@ function GameLink({ href, className, children, enabled = true }: {
       </div>
     );
   }
-  if (user) {
+  if (user || !requiresAuth) {
     return <Link href={href} className={className}>{children}</Link>;
   }
   return (

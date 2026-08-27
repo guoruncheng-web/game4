@@ -215,6 +215,16 @@ async function runMatch(mode: MatchMode): Promise<Record<string, unknown>> {
             await takeTurn(peers, views, roomCode, mode, turns);
             turns += 1;
 
+            // A skip/reverse card may bypass the dropped seat. If it actually
+            // becomes current, synchronize the host's immediate disconnect-bot
+            // broadcast before resuming so connected peers cannot stay stale.
+            if (views[0]?.public.currentSeat === droppedSeat) {
+                await Promise.all(peers.map(async (peer, seat) => {
+                    if (!peer) return;
+                    views[seat] = (await peer.wait('SNAPSHOT')).payload.view as unknown as SeatView;
+                }));
+            }
+
             const recoveredPeer = await Peer.connect(service.url);
             peers[droppedSeat] = recoveredPeer;
             const snapshot = recoveredPeer.wait('SNAPSHOT');
