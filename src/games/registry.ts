@@ -75,6 +75,13 @@ export const GAMES: GameMeta[] = [
     controls: '创建或用游戏 ID 加入 · 点骰子掷 · 点棋子走',
     accent: 'text-sky-300',
   },
+  {
+    slug: 'umo',
+    title: 'UMO',
+    tagline: '四人脉冲卡牌竞技 · 经典与 2v2 权威对局',
+    controls: '点按手牌出牌 · 抽牌 / 释放脉冲 · 支持断线恢复',
+    accent: 'text-teal-300',
+  },
 ];
 
 export function getGame(slug: string): GameMeta | undefined {

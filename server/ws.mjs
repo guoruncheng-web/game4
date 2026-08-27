@@ -20,10 +20,14 @@
  */
 
 import { createServer } from 'node:http';
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { WebSocketServer } from 'ws';
 import postgres from 'postgres';
 import { createFishAdapter, FISH_GAME } from './fish-room.mjs';
+import { AuthoritativeGateway } from './umo/gateway.ts';
+import { UmoWsAdapter } from './umo/ws-adapter.ts';
 
 const PORT = Number(process.env.WS_PORT || 7011);
 const SESSION_COOKIE = 'gb_session';
@@ -101,6 +105,50 @@ function sendTo(userId, msg) {
   send(clients.get(userId)?.ws, msg);
 }
 
+const umoStateFile = process.env.UMO_STATE_FILE;
+const umoStateSecret = process.env.UMO_STATE_KEY;
+if (umoStateFile && (!umoStateSecret || umoStateSecret.length < 32)) {
+  throw new Error('UMO_STATE_KEY must contain at least 32 characters when UMO_STATE_FILE is enabled');
+}
+const umoGateway = umoStateFile && existsSync(umoStateFile)
+  ? AuthoritativeGateway.restore(decryptUmoState(readFileSync(umoStateFile, 'utf8'), umoStateSecret))
+  : new AuthoritativeGateway();
+const umoAdapter = new UmoWsAdapter(umoGateway, {
+  ...(umoStateFile ? {
+    onGatewayChanged: (snapshotJson) => persistUmoAtomically(umoStateFile, snapshotJson, umoStateSecret),
+  } : {}),
+});
+
+function persistUmoAtomically(path, snapshotJson, secret) {
+  mkdirSync(dirname(path), { recursive: true });
+  const temporaryPath = `${path}.tmp`;
+  writeFileSync(temporaryPath, encryptUmoState(snapshotJson, secret), { encoding: 'utf8', mode: 0o600 });
+  renameSync(temporaryPath, path);
+}
+
+function encryptUmoState(snapshotJson, secret) {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv('aes-256-gcm', umoStateKey(secret), iv);
+  const ciphertext = Buffer.concat([cipher.update(snapshotJson, 'utf8'), cipher.final()]);
+  return ['umo-state-v1', iv.toString('base64url'), cipher.getAuthTag().toString('base64url'), ciphertext.toString('base64url')].join('.');
+}
+
+function decryptUmoState(envelope, secret) {
+  const [version, encodedIv, encodedTag, encodedCiphertext, ...extra] = envelope.trim().split('.');
+  if (version !== 'umo-state-v1' || !encodedIv || !encodedTag || !encodedCiphertext || extra.length > 0) {
+    throw new Error('UMO_STATE_ENVELOPE_INVALID');
+  }
+  const decipher = createDecipheriv('aes-256-gcm', umoStateKey(secret), Buffer.from(encodedIv, 'base64url'));
+  decipher.setAuthTag(Buffer.from(encodedTag, 'base64url'));
+  return Buffer.concat([
+    decipher.update(Buffer.from(encodedCiphertext, 'base64url')),
+    decipher.final(),
+  ]).toString('utf8');
+}
+
+function umoStateKey(secret) {
+  return createHash('sha256').update(secret, 'utf8').digest();
+}
 /** 可邀请的人:在线、且不在房间里 */
 function invitableList(exceptId) {
   const out = [];
@@ -365,15 +413,27 @@ const server = createServer((req, res) => {
   // 给运维一个不需要 WebSocket 就能看的健康检查
   if (req.url === '/ws/health') {
     res.writeHead(200, { 'content-type': 'application/json' });
-    return res.end(JSON.stringify({ ok: true, online: clients.size, rooms: rooms.size }));
+    return res.end(JSON.stringify({
+      ok: true,
+      online: clients.size,
+      rooms: rooms.size,
+      umoRooms: umoAdapter.roomCount,
+      umoConnections: umoAdapter.connectionCount,
+    }));
   }
   res.writeHead(426).end('Expected WebSocket');
 });
 
 const wss = new WebSocketServer({ noServer: true });
+const umoWss = new WebSocketServer({ noServer: true });
 
 server.on('upgrade', async (req, socket, head) => {
   try {
+    const requestUrl = new URL(req.url || '/ws', 'http://127.0.0.1');
+    if (requestUrl.pathname === '/ws' && requestUrl.searchParams.get('game') === 'umo') {
+      umoWss.handleUpgrade(req, socket, head, (ws) => umoAdapter.attach(ws));
+      return;
+    }
     const user = await resolveUser(req.headers.cookie);
     if (!user) {
       // 没登录直接拒,不要升级成 WebSocket 再断 —— 前端分不清"没登录"和"服务挂了"

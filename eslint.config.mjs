@@ -9,11 +9,14 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    ".next-*/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
     // 官方 EffekseerForWebGL 压缩运行时,不是项目源码。
     "public/ludo/effekseer/runtime/**",
+    // UMO 同样提交已在源项目验收过的 Creator release，不重复扫描生成代码。
+    "public/umo/game/**",
   ]),
 ]);
 

@@ -1,0 +1,40 @@
+{
+  "tool": "NumPy",
+  "reference": "games/umo/evidence/ui-reconstruction/2026-08-26-main-menu-figma-v1/cocos-stage-normalized-862x1824.png",
+  "referenceSha256": "6dcebc15c04335bc204aa37df30ccd7b52f02b85ec1990fb09219695662d469c",
+  "screenshot": "evidence/runtime/umo-pwa-v1/umo-offline-main-menu.png",
+  "screenshotSha256": "65374eb8da80da053fdf32f3fdd077224c455b8f21ad25c48ca43d64fbb89147",
+  "viewport": [
+    520,
+    866
+  ],
+  "stageCrop": {
+    "x": 56,
+    "y": 0,
+    "width": 408,
+    "height": 866
+  },
+  "normalizedSize": [
+    862,
+    1824
+  ],
+  "overlayExclusion": {
+    "x": 0,
+    "y": 0,
+    "width": 200,
+    "height": 240,
+    "reason": "PWA back button overlays the game stage"
+  },
+  "fullFrame": {
+    "mae": 3.2048,
+    "p95": 18.0,
+    "pixelsWithin10": 0.920197
+  },
+  "gameStageExcludingPwaOverlay": {
+    "mae": 2.8919,
+    "p95": 17.0,
+    "pixelsWithin10": 0.922599
+  },
+  "accepted": true,
+  "acceptanceRule": "MAE < 5 and at least 90% of channels within 10/255 after viewport resampling; geometry remains covered by the source Cocos acceptance."
+}

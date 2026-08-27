@@ -341,6 +341,22 @@ export default function Home() {
               </div>
               <span className="grid size-11 place-items-center rounded-2xl bg-sky-300/10 text-sky-300"><Play size={21} className="fill-current" /></span>
             </GameLink>
+            <GameLink
+              href="/umo"
+              enabled={gameAvailability.umo !== false}
+              requiresAuth={false}
+              className="flex items-center gap-4 rounded-3xl border border-white bg-[#050b1d] p-2.5 shadow-[0_8px_24px_rgba(38,204,183,0.26)] transition active:scale-[0.99]"
+            >
+              <div className="relative size-24 shrink-0 overflow-hidden rounded-2xl bg-[#071022]">
+                <Image src="/umo/cover.png" alt="霓虹竞技台上的 UMO 卡牌模式入口" fill sizes="96px" className="object-cover object-top" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-lg font-black text-teal-300">UMO</p>
+                <p className="mt-0.5 text-sm font-bold text-cyan-100/90">四人脉冲卡牌竞技</p>
+                <p className="mt-2 text-xs font-bold text-amber-300">游客可玩 · 经典 / 2v2 联机</p>
+              </div>
+              <span className="grid size-11 place-items-center rounded-2xl bg-teal-300/10 text-teal-300"><Play size={21} className="fill-current" /></span>
+            </GameLink>
             {upcomingGames.map((game) => (
               <article
                 key={game.image}

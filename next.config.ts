@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   // 局域网真机试玩时允许加载 Next.js 开发资源。
   // Next 16 的 dev server 会对带 Origin 头的请求校验来源,
   // 本机(127.0.0.1 / localhost)必须也在列表里,否则动态 chunk 全 403,

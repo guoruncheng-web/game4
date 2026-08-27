@@ -32,5 +32,10 @@
 - **`proxy_read_timeout` 必须放大**(这里给了 1 小时)。默认 60 秒会让挂机的玩家莫名掉线。
 - **`.env.local` 只在服务器上**,不在仓库里。部署时 rsync 明确排除了它,
   否则 `--delete` 会把它删掉、应用起不来。
+- **UMO 权威房间恢复需要两个成对配置。** 在服务器 `.env.local` 设置
+  `UMO_STATE_FILE=/var/lib/gameai/umo/state.enc` 与至少 32 字符的独立高熵
+  `UMO_STATE_KEY`;并预先创建 `deploy` 可写的 `/var/lib/gameai/umo`（目录 0700）。
+  状态以 AES-256-GCM、文件 0600、临时文件后原子 rename 写入；只配路径不配密钥时
+  WebSocket 服务会拒绝启动，避免恢复 token 明文落盘。密钥不得提交仓库或输出到日志。
 - 服务以 `deploy` 账号运行,sudo 白名单只有重启那一个服务。
   sshd 的 `AllowUsers` 里必须有 `deploy`,否则 Actions 连不上。

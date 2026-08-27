@@ -11,7 +11,9 @@
     "icons": "node tools/pwa/build-icons.mjs",
     "fish:rtp": "node --import ./server/ts-register.mjs tools/sim/fish-hunter/rtp.mjs",
     "fish:test": "node --import ./server/ts-register.mjs tools/sim/fish-hunter/room-test.mjs",
-    "ludo:test": "node --import ./server/ts-register.mjs tools/sim/ludo/rules-test.mjs"
+    "ludo:test": "node --import ./server/ts-register.mjs tools/sim/ludo/rules-test.mjs",
+    "umo:test": "node --experimental-strip-types --import ./server/ts-register.mjs tools/sim/umo/room-test.mts",
+    "umo:pwa-test": "node tools/sim/umo/pwa-offline-test.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.20.0",

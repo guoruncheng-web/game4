@@ -1,0 +1,52 @@
+{
+  "feature": "UMO PWA online and offline replay",
+  "firstLoad": {
+    "pagePath": "/umo",
+    "framePath": "/umo/game/index.html",
+    "canvas": true,
+    "canvasWidth": 520,
+    "canvasHeight": 866,
+    "cocos": true,
+    "scene": "MainMenu",
+    "mainMenuRoot": true,
+    "loadingOverlayVisible": false,
+    "serviceWorkerControlled": true
+  },
+  "online": {
+    "pagePath": "/umo",
+    "framePath": "/umo/game/index.html",
+    "canvas": true,
+    "canvasWidth": 520,
+    "canvasHeight": 866,
+    "cocos": true,
+    "scene": "MainMenu",
+    "mainMenuRoot": true,
+    "loadingOverlayVisible": false,
+    "serviceWorkerControlled": true
+  },
+  "cache": {
+    "names": [
+      "game-box-shell-v24",
+      "game-box-static-v24",
+      "game-box-assets-v24"
+    ],
+    "umoAssetCount": 200,
+    "cachedGameIndex": true,
+    "cachedSettings": true,
+    "cachedMainBundle": true,
+    "cachedRoute": true
+  },
+  "offline": {
+    "pagePath": "/umo",
+    "framePath": "/umo/game/index.html",
+    "canvas": true,
+    "canvasWidth": 520,
+    "canvasHeight": 866,
+    "cocos": true,
+    "scene": "MainMenu",
+    "mainMenuRoot": true,
+    "loadingOverlayVisible": false,
+    "serviceWorkerControlled": true
+  },
+  "accepted": true
+}
