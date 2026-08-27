@@ -155,8 +155,8 @@ try {
   const audio = { before: audioBefore, muted: audioMuted, unmuted: audioUnmuted };
   const cache = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
-    const assets = await caches.open('game-box-assets-v32');
-    const shell = await caches.open('game-box-shell-v32');
+    const assets = await caches.open('game-box-assets-v33');
+    const shell = await caches.open('game-box-shell-v33');
     const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
     const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
     return {
@@ -168,6 +168,22 @@ try {
       cachedRoute: shellKeys.includes('/umo') || shellKeys.includes('/umo/'),
     };
   })()`);
+  const exit = await evaluate(cdp, `(async () => {
+    const gameWindow = document.querySelector('iframe')?.contentWindow;
+    const actions = gameWindow?.cc?.director?.getScene?.()
+      ?.getChildByName('Canvas')?.getChildByName('MainMenuRoot')?.getChildByName('Actions');
+    const back = actions?.getChildByName('BackHit');
+    back?.emit('touch-end');
+    for (let attempt = 0; attempt < 50 && location.pathname !== '/'; attempt += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    return {
+      controlFound: Boolean(back),
+      pagePath: location.pathname,
+    };
+  })()`);
+  await cdp.send('Page.navigate', { url });
+  const afterExit = await waitForMainMenu(cdp);
 
   await cdp.send('Page.navigate', { url: `${origin}/offline` });
   await sleep(1_000);
@@ -198,12 +214,15 @@ try {
     && audio.muted?.muted === true
     && audio.unmuted?.muted === false
     && audio.unmuted?.contextState === 'running'
+    && exit.controlFound
+    && exit.pagePath === '/'
+    && afterExit.canvas
     && offline.canvas
     && offline.cocos
     && offline.scene === 'MainMenu'
     && offline.mainMenuRoot
     && !offline.loadingOverlayVisible;
-  const report = { feature: 'UMO PWA online, trusted audio and offline replay', firstLoad, online, audio, cache, offline, accepted };
+  const report = { feature: 'UMO PWA navigation, online, trusted audio and offline replay', firstLoad, online, audio, cache, exit, afterExit, offline, accepted };
   if (resultPath) {
     await mkdir(dirname(resultPath), { recursive: true });
     await writeFile(resultPath, `${JSON.stringify(report, null, 2)}\n`);
