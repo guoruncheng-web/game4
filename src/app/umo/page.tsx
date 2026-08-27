@@ -10,7 +10,7 @@ export default function UmoPage() {
         title="UMO"
         gameId="umo"
         readyOnLoad
-        loadingText="正在加载 UMO…"
+        showLoadingOverlay={false}
       />
     </main>
   );

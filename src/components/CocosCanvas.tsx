@@ -10,6 +10,7 @@ type Props = {
   gameId?: 'umo';
   readyOnLoad?: boolean;
   loadingText?: string;
+  showLoadingOverlay?: boolean;
 };
 
 /**
@@ -22,6 +23,7 @@ export default function CocosCanvas({
   gameId = 'umo',
   readyOnLoad = false,
   loadingText = '正在摆好牌桌…',
+  showLoadingOverlay = true,
 }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
@@ -62,7 +64,7 @@ export default function CocosCanvas({
 
   return (
     <div className="relative size-full overflow-hidden bg-[#040816]">
-      {!ready && (
+      {showLoadingOverlay && !ready && (
         <div className="absolute inset-0 z-10 grid place-items-center bg-[#040816] text-lg font-bold text-amber-200">
           {loadingText}
         </div>
