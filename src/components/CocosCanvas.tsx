@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from './AuthProvider';
 
 type Props = {
   src: string;
@@ -15,7 +14,7 @@ type Props = {
 
 /**
  * Cocos 游戏使用同源 iframe，避免把 Creator 的 SystemJS/WebGL 生命周期塞进 React 树。
- * 会话只传公开玩家资料；httpOnly Cookie 仍由浏览器在 /ws 握手时自行携带。
+ * Cocos 通过同源 API 查询公开玩家资料；httpOnly Cookie 仍只由浏览器携带。
  */
 export default function CocosCanvas({
   src,
@@ -27,23 +26,11 @@ export default function CocosCanvas({
 }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
-  const { user } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return undefined;
-
-    function sendSession() {
-      iframe?.contentWindow?.postMessage({
-        source: 'game4',
-        type: 'game4:session',
-        version: 1,
-        locale: navigator.language,
-        user: user ? { id: user.username, displayName: user.username } : null,
-        returnPath: '/',
-      }, window.location.origin);
-    }
 
     function onMessage(event: MessageEvent<unknown>) {
       if (event.origin !== window.location.origin || event.source !== iframe?.contentWindow) return;
@@ -51,16 +38,14 @@ export default function CocosCanvas({
       if (!value || value.source !== gameId || value.version !== 1) return;
       if (value.type === `${gameId}:ready`) {
         setReady(true);
-        sendSession();
       } else if (value.type === `${gameId}:exit`) {
         router.push('/');
       }
     }
 
     window.addEventListener('message', onMessage);
-    if (ready) sendSession();
     return () => window.removeEventListener('message', onMessage);
-  }, [gameId, ready, router, user]);
+  }, [gameId, router]);
 
   return (
     <div className="relative size-full overflow-hidden bg-[#040816]">

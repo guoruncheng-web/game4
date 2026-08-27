@@ -42,14 +42,14 @@ class Peer {
         this.socket.send(JSON.stringify({ protocolVersion: 1, type, requestId, payload }));
     }
 
-    wait(type: string, timeoutMs = 3000): Promise<Envelope> {
+    wait(type: string, timeoutMs = 3000, label = type): Promise<Envelope> {
         const queuedIndex = this.queue.findIndex((message) => message.type === type);
         if (queuedIndex >= 0) return Promise.resolve(this.queue.splice(queuedIndex, 1)[0] as Envelope);
         return new Promise<Envelope>((resolve, reject) => {
             const timer = setTimeout(() => {
                 const index = this.waiters.findIndex((waiter) => waiter.timer === timer);
                 if (index >= 0) this.waiters.splice(index, 1);
-                reject(new Error(`TIMEOUT_WAITING_FOR_${type}`));
+                reject(new Error(`TIMEOUT_WAITING_FOR_${label}`));
             }, timeoutMs);
             this.waiters.push({ type, resolve, reject, timer });
         });
@@ -78,7 +78,7 @@ class Peer {
     }
 }
 
-const codes = ['310245', '864209', '579024'];
+const codes = ['310245', '864209', '579024', '778899'];
 let codeIndex = 0;
 let tokenIndex = 0;
 let authoritativeNow = 0;
@@ -115,17 +115,63 @@ try {
     const classic = await runMatch('classic');
     const teams = await runMatch('teams2v2');
     const automation = await runAutomationScheduler();
+    const solo = await runSoloBots();
     assert.ok(persistedSnapshots > 0);
     console.log(JSON.stringify({
         transport: 'ws',
         classic,
         teams2v2: teams,
         automation,
+        solo,
         persistedSnapshots,
         failures: [],
     }, null, 2));
 } finally {
     await service.close();
+}
+
+async function runSoloBots(): Promise<Record<string, unknown>> {
+    authoritativeNow = 0;
+    const peer = await Peer.connect(service.url);
+    const welcomePromise = peer.wait('WELCOME');
+    peer.send('CREATE', 'solo:create', { anonymousId: 'solo:0', clientBuild: 'solo-bots', mode: 'classic' });
+    const welcome = await welcomePromise;
+    const roomCode = welcome.payload.roomCode as string;
+    await peer.wait('LOBBY');
+
+    const readyResult = peer.wait('READY_RESULT');
+    const startedLobby = peer.wait('LOBBY');
+    peer.send('READY', 'solo:ready', { roomCode, ready: true, fillBots: true });
+    assert.equal((await readyResult).payload.accepted, true);
+    const lobby = (await startedLobby).payload as unknown as {
+        started: boolean;
+        seats: Array<{ connected: boolean; ready: boolean; bot: boolean }>;
+    };
+    assert.equal(lobby.started, true);
+    assert.equal(lobby.seats.length, 4);
+    assert.equal(lobby.seats.filter((seat) => seat.bot).length, 3);
+    assert.ok(lobby.seats.every((seat) => seat.connected && seat.ready));
+    const view = welcome.payload.view as unknown as SeatView;
+
+    const humanResult = peer.wait('INTENT_RESULT');
+    peer.send('INTENT', 'solo:human:draw', {
+        roomCode,
+        matchId: view.public.matchId,
+        expectedSeq: view.public.seq,
+        intent: { type: 'draw' },
+    });
+    assert.equal((await humanResult).payload.accepted, true);
+    const automated = await peer.wait('SNAPSHOT', 3000, 'SOLO_BOT_SNAPSHOT');
+    const automation = automated.payload.automation as { seat?: number; reason?: string } | undefined;
+    assert.equal(automation?.reason, 'bot');
+    assert.ok((automated.payload.tail as Array<{ type?: string; detail?: string }>)
+        .some((event) => event.type === 'BOT_ACTION' && event.detail === 'bot'));
+    await peer.close();
+    return {
+        roomCode,
+        botSeats: lobby.seats.filter((seat) => seat.bot).length,
+        automationReason: automation.reason,
+    };
 }
 
 async function runAutomationScheduler(): Promise<Record<string, unknown>> {

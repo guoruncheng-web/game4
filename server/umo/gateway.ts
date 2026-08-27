@@ -28,6 +28,7 @@ export interface GatewayTick {
 interface SeatSession {
     readonly seat: number;
     readonly recoveryToken: string;
+    readonly bot: boolean;
     connectionId: string | null;
     ready: boolean;
     lastEmoteAt: number | null;
@@ -56,6 +57,7 @@ interface DurableGatewaySnapshot {
         readonly seats: readonly {
             readonly seat: number;
             readonly recoveryToken: string;
+            readonly bot?: boolean;
             readonly ready: boolean;
             readonly lastEmoteAt?: number | null;
             readonly disconnectedAt?: number | null;
@@ -99,6 +101,7 @@ export class AuthoritativeGateway {
                 seats: session.seats.map((seat) => ({
                     seat: seat.seat,
                     recoveryToken: seat.recoveryToken,
+                    bot: seat.bot,
                     ready: seat.ready,
                     lastEmoteAt: seat.lastEmoteAt,
                     disconnectedAt: seat.disconnectedAt,
@@ -123,12 +126,12 @@ export class AuthoritativeGateway {
         for (const stored of snapshot.rooms) {
             if (!/^\d{6}$/.test(stored.code) || !Array.isArray(stored.seats)) throw new Error('GATEWAY_SNAPSHOT_INVALID');
             const room = AuthoritativeRoom.restoreDurable(stored.room);
-            for (const stateSeat of room.state.seats) stateSeat.connected = false;
-            gateway.rooms.set(stored.code, {
+            const restoredSession: RoomSession = {
                 code: stored.code,
                 room,
                 seats: stored.seats.map((seat: DurableGatewaySnapshot['rooms'][number]['seats'][number]) => ({
                     ...seat,
+                    bot: seat.bot ?? false,
                     lastEmoteAt: seat.lastEmoteAt ?? null,
                     disconnectedAt: seat.disconnectedAt ?? gateway.now(),
                     timeoutTurns: seat.timeoutTurns ?? 0,
@@ -141,7 +144,11 @@ export class AuthoritativeGateway {
                 warningSeq: stored.warningSeq ?? null,
                 automationIndex: stored.automationIndex ?? 0,
                 automationNotBefore: Math.max(stored.automationNotBefore ?? 0, gateway.now() + RESTART_RECOVERY_GRACE_MS),
-            });
+            };
+            for (const stateSeat of room.state.seats) {
+                stateSeat.connected = restoredSession.seats[stateSeat.seat]?.bot ?? false;
+            }
+            gateway.rooms.set(stored.code, restoredSession);
         }
         return gateway;
     }
@@ -197,8 +204,8 @@ export class AuthoritativeGateway {
             const seat = session.seats[currentSeat];
             if (!seat) continue;
             const disconnected = seat.connectionId === null;
-            if (now >= session.automationNotBefore && (disconnected || now - session.turnStartedAt >= TURN_TIMEOUT_MS)) {
-                responses.push(...this.automateTurn(session, disconnected ? 'disconnect' : 'timeout'));
+            if (now >= session.automationNotBefore && (seat.bot || disconnected || now - session.turnStartedAt >= TURN_TIMEOUT_MS)) {
+                responses.push(...this.automateTurn(session, seat.bot ? 'bot' : disconnected ? 'disconnect' : 'timeout'));
                 changed = true;
                 continue;
             }
@@ -227,6 +234,7 @@ export class AuthoritativeGateway {
         const seatSession: SeatSession = {
             seat,
             recoveryToken: this.tokenFactory(),
+            bot: false,
             connectionId,
             ready: false,
             lastEmoteAt: null,
@@ -266,7 +274,7 @@ export class AuthoritativeGateway {
         const token = typeof payload.recoveryToken === 'string' ? payload.recoveryToken : '';
         const afterSeq = Number.isInteger(payload.afterSeq) ? Number(payload.afterSeq) : -1;
         const session = this.rooms.get(roomCode);
-        const seat = session?.seats.find((candidate) => candidate.recoveryToken === token);
+        const seat = session?.seats.find((candidate) => !candidate.bot && candidate.recoveryToken === token);
         if (!session || !seat || afterSeq < 0) return [this.error(connectionId, requestId, 'RECOVERY_TOKEN_INVALID', false)];
         if (seat.connectionId) this.connectionRooms.delete(seat.connectionId);
         seat.connectionId = connectionId;
@@ -289,12 +297,34 @@ export class AuthoritativeGateway {
         const session = roomCode ? this.rooms.get(roomCode) : undefined;
         const seat = session?.seats.find((candidate) => candidate.connectionId === connectionId);
         if (!session || !seat) return [this.error(connectionId, requestId, 'SESSION_NOT_JOINED', false)];
-        if (payload.roomCode !== roomCode || typeof payload.ready !== 'boolean') {
+        if (payload.roomCode !== roomCode
+            || typeof payload.ready !== 'boolean'
+            || (payload.fillBots !== undefined && typeof payload.fillBots !== 'boolean')) {
             return [this.error(connectionId, requestId, 'READY_ENVELOPE_INVALID', false)];
         }
         if (session.started) return [this.error(connectionId, requestId, 'MATCH_ALREADY_STARTED', false)];
+        if (payload.fillBots === true) {
+            const humans = session.seats.filter((candidate) => !candidate.bot);
+            if (!payload.ready || session.seats.length !== 1 || humans.length !== 1 || humans[0] !== seat) {
+                return [this.error(connectionId, requestId, 'SOLO_START_UNAVAILABLE', false)];
+            }
+            for (let botSeat = 1; botSeat < 4; botSeat += 1) {
+                session.seats.push({
+                    seat: botSeat,
+                    recoveryToken: this.tokenFactory(),
+                    bot: true,
+                    connectionId: null,
+                    ready: true,
+                    lastEmoteAt: null,
+                    disconnectedAt: null,
+                    timeoutTurns: 0,
+                });
+                const stateSeat = session.room.state.seats[botSeat];
+                if (stateSeat) stateSeat.connected = true;
+            }
+        }
         seat.ready = payload.ready;
-        if (session.seats.length === 4 && session.seats.every((candidate) => candidate.ready && candidate.connectionId !== null)) {
+        if (session.seats.length === 4 && session.seats.every((candidate) => candidate.ready && (candidate.bot || candidate.connectionId !== null))) {
             session.started = true;
             session.turnStartedAt = this.now();
             session.warningSeq = null;
@@ -381,6 +411,7 @@ export class AuthoritativeGateway {
         const { session, duplicate } = validation;
         if (duplicate) return [...this.lobbyBroadcast(session, requestId), ...this.snapshotBroadcast(session, requestId)];
         session.lastLifecycle = { type: 'RETURN_LOBBY', matchId: session.room.state.matchId, seq: session.room.state.seq };
+        session.seats.splice(0, session.seats.length, ...session.seats.filter((seat) => !seat.bot));
         this.resetRoom(session);
         session.started = false;
         for (const seat of session.seats) seat.ready = false;
@@ -465,7 +496,8 @@ export class AuthoritativeGateway {
         const seed = BigInt(session.code) + BigInt(session.round) * 1_000_003n;
         session.room = new AuthoritativeRoom(mode, seed);
         for (const stateSeat of session.room.state.seats) {
-            stateSeat.connected = session.seats[stateSeat.seat]?.connectionId !== null;
+            const seat = session.seats[stateSeat.seat];
+            stateSeat.connected = Boolean(seat && (seat.bot || seat.connectionId !== null));
         }
         for (const seat of session.seats) seat.timeoutTurns = 0;
         session.turnStartedAt = this.now();
@@ -519,7 +551,12 @@ export class AuthoritativeGateway {
         const payload = {
             roomCode: session.code,
             started: session.started,
-            seats: session.seats.map((seat) => ({ seat: seat.seat, connected: seat.connectionId !== null, ready: seat.ready })),
+            seats: session.seats.map((seat) => ({
+                seat: seat.seat,
+                connected: seat.bot || seat.connectionId !== null,
+                ready: seat.ready,
+                bot: seat.bot,
+            })),
         };
         return session.seats.flatMap((seat) => seat.connectionId
             ? [this.response(seat.connectionId, 'LOBBY', requestId, payload)]

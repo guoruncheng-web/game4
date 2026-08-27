@@ -31,7 +31,7 @@ export interface MatchState {
   winningTeam: number | null;
 }
 
-export type AutomationReason = "timeout" | "disconnect";
+export type AutomationReason = "timeout" | "disconnect" | "bot";
 export interface BaseIntent {
   readonly seat: number;
   readonly expectedSeq: number;
