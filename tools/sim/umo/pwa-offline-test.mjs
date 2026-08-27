@@ -7,6 +7,10 @@ const url = process.argv[2] || 'http://127.0.0.1:3221/umo';
 const origin = new URL(url).origin;
 const screenshot = process.argv[3];
 const resultPath = process.argv[4];
+const mainMenuTimeoutMs = Number(process.env.UMO_PWA_MAIN_MENU_TIMEOUT_MS || 24_000);
+if (!Number.isFinite(mainMenuTimeoutMs) || mainMenuTimeoutMs < 5_000 || mainMenuTimeoutMs > 180_000) {
+  throw new Error('invalid_UMO_PWA_MAIN_MENU_TIMEOUT_MS');
+}
 const chromePath = process.env.COCOS_CHROME
   || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -44,7 +48,8 @@ async function evaluate(cdp, expression) {
 
 async function waitForMainMenu(cdp) {
   return evaluate(cdp, `(async () => {
-    for (let attempt = 0; attempt < 240; attempt += 1) {
+    const startedAt = performance.now();
+    for (let attempt = 0; attempt < ${Math.ceil(mainMenuTimeoutMs / 100)}; attempt += 1) {
       const frame = document.querySelector('iframe');
       const gameWindow = frame?.contentWindow;
       const canvas = frame?.contentDocument?.querySelector('canvas');
@@ -62,11 +67,12 @@ async function waitForMainMenu(cdp) {
           loadingOverlayVisible: [...document.querySelectorAll('div')]
             .some((node) => node.textContent === '正在加载 UMO…' && getComputedStyle(node).display !== 'none'),
           serviceWorkerControlled: Boolean(navigator.serviceWorker.controller),
+          readyMs: Math.round(performance.now() - startedAt),
         };
       }
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
-    return { pagePath: location.pathname, canvas: false, scene: null };
+    return { pagePath: location.pathname, canvas: false, scene: null, timeoutMs: ${mainMenuTimeoutMs} };
   })()`);
 }
 
@@ -116,7 +122,10 @@ try {
     } catch { /* Chrome is still starting. */ }
   }
   if (!port) throw new Error('chrome_debug_port_unavailable');
-  const target = await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent(url)}`, { method: 'PUT' })
+  // Start from a neutral document. Creating the target at `url` and then
+  // calling Page.navigate below double-navigates; on a cold public connection
+  // the second navigation can abort Cocos while its first module graph loads.
+  const target = await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent('about:blank')}`, { method: 'PUT' })
     .then((response) => response.json());
   const ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => {
@@ -146,8 +155,8 @@ try {
   const audio = { before: audioBefore, muted: audioMuted, unmuted: audioUnmuted };
   const cache = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
-    const assets = await caches.open('game-box-assets-v25');
-    const shell = await caches.open('game-box-shell-v25');
+    const assets = await caches.open('game-box-assets-v26');
+    const shell = await caches.open('game-box-shell-v26');
     const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
     const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
     return {
