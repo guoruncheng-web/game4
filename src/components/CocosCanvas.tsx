@@ -8,6 +8,7 @@ type Props = {
   title: string;
   gameId?: 'umo';
   readyOnLoad?: boolean;
+  backdropClassName?: string;
   loadingText?: string;
   showLoadingOverlay?: boolean;
 };
@@ -21,6 +22,7 @@ export default function CocosCanvas({
   title,
   gameId = 'umo',
   readyOnLoad = false,
+  backdropClassName = 'bg-[#040816]',
   loadingText = '正在摆好牌桌…',
   showLoadingOverlay = true,
 }: Props) {
@@ -48,9 +50,9 @@ export default function CocosCanvas({
   }, [gameId, router]);
 
   return (
-    <div className="relative size-full overflow-hidden bg-[#040816]">
+    <div className={`relative size-full overflow-hidden ${backdropClassName}`}>
       {showLoadingOverlay && !ready && (
-        <div className="absolute inset-0 z-10 grid place-items-center bg-[#040816] text-lg font-bold text-amber-200">
+        <div className={`absolute inset-0 z-10 grid place-items-center text-lg font-bold text-amber-200 ${backdropClassName}`}>
           {loadingText}
         </div>
       )}

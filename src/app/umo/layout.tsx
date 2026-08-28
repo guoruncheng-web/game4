@@ -1,15 +1,16 @@
 import type { Metadata, Viewport } from 'next';
 
 export const metadata: Metadata = {
+  manifest: '/umo/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     title: 'UMO',
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#040816',
+  themeColor: '#f5efe3',
   viewportFit: 'cover',
   userScalable: false,
 };

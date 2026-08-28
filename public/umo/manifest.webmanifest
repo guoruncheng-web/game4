@@ -1,0 +1,28 @@
+{
+  "id": "/umo",
+  "name": "UMO · 好友联机卡牌",
+  "short_name": "UMO",
+  "description": "支持经典与 2v2 好友房的多人卡牌游戏",
+  "start_url": "/umo",
+  "scope": "/umo",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f5efe3",
+  "theme_color": "#f5efe3",
+  "lang": "zh-CN",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
