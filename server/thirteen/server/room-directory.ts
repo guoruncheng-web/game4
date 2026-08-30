@@ -13,6 +13,11 @@ export interface WaitingRoomView {
   readonly playerCount: number;
   readonly maximumPlayers: 4;
   readonly started: boolean;
+  readonly players: readonly {
+    readonly seat: number;
+    readonly userId: string;
+    readonly connected: boolean;
+  }[];
 }
 
 export interface DirectoryAssignment {
@@ -222,6 +227,13 @@ export class RoomDirectory {
       playerCount: entry.room.started ? 4 : entry.users.length,
       maximumPlayers: 4,
       started: entry.room.started,
+      players: entry.room.presence().flatMap((presence) => (
+        entry.users[presence.seat] === null ? [] : [{
+          seat: presence.seat,
+          userId: presence.userId,
+          connected: presence.connected,
+        }]
+      )),
     };
   }
 

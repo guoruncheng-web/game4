@@ -28,8 +28,10 @@ export class ThirteenWsAdapter {
             return;
           }
           const assignment = this.directory.reconnect(userId);
-          this.send(userId, { t: 'thirteen:room', v: ROOM_PROTOCOL_VERSION, ...assignment });
-          if (assignment.room.started) this.sendSnapshot(userId);
+          if (assignment.room.started) {
+            this.send(userId, { t: 'thirteen:room', v: ROOM_PROTOCOL_VERSION, ...assignment });
+            this.broadcastSnapshots(assignment.room.roomId);
+          } else this.broadcastRoom(assignment.room);
           return;
         }
         case 'thirteen:create-private': {
@@ -57,7 +59,11 @@ export class ThirteenWsAdapter {
           const previous = this.directory.assignmentFor(userId);
           const result = this.directory.leave(userId);
           this.send(userId, { t: 'thirteen:left', v: ROOM_PROTOCOL_VERSION });
-          if (previous && !result.deleted) this.broadcastRoom(previous.room);
+          if (previous && !result.deleted) {
+            const remaining = this.directory.members(previous.room.roomId)[0];
+            const updated = remaining ? this.directory.assignmentFor(remaining)?.room : null;
+            if (updated) this.broadcastRoom(updated);
+          }
           return;
         }
         case 'thirteen:rematch': {
@@ -94,7 +100,16 @@ export class ThirteenWsAdapter {
   }
 
   disconnect(userId: string): void {
+    const assignment = this.directory.assignmentFor(userId);
     this.directory.disconnect(userId);
+    if (!assignment) return;
+    if (assignment.room.started) {
+      this.broadcastSnapshots(assignment.room.roomId);
+      return;
+    }
+    const remaining = this.directory.members(assignment.room.roomId)[0];
+    const updated = remaining ? this.directory.assignmentFor(remaining)?.room : null;
+    if (updated) this.broadcastRoom(updated);
   }
 
   tick(at?: number): number {

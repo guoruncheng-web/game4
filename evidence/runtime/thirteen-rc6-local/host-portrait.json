@@ -1,0 +1,24 @@
+{
+  "url": "http://127.0.0.1:3220/thirteen",
+  "seconds": 12,
+  "state": {
+    "canvas": false,
+    "w": 0,
+    "h": 0,
+    "cc": false,
+    "scene": null
+  },
+  "events": [],
+  "checked": {
+    "pagePath": "/thirteen",
+    "iframePath": "/thirteen/game/index.html",
+    "iframeSameOrigin": true,
+    "loadingOverlayVisible": false,
+    "canvas": true,
+    "canvasWidth": 520,
+    "canvasHeight": 953,
+    "cocos": true,
+    "scene": "O02RotateGuard"
+  },
+  "screenshot": "evidence/runtime/thirteen-rc6-local/host-portrait.png"
+}
