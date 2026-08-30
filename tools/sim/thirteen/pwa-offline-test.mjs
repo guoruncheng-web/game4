@@ -43,6 +43,26 @@ async function evaluate(cdp, expression) {
   return JSON.parse(result.result.result.value);
 }
 
+async function waitForLobby(cdp, timeoutMs = 30_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const state = await evaluate(cdp, `(() => {
+      const frame = document.querySelector('iframe');
+      const gameWindow = frame?.contentWindow;
+      const scene = gameWindow?.cc?.director?.getScene?.();
+      const flow = scene?.getChildByName?.('ThirteenFlow')?.components
+        ?.find?.((component) => typeof component.getAcceptanceState === 'function');
+      return {
+        scene: scene?.name || null,
+        audio: flow?.getAcceptanceState?.().audio || null,
+      };
+    })()`);
+    if (state.scene === 'R02Lobby' && state.audio?.loadedClips === 21) return state;
+    await sleep(100);
+  }
+  throw new Error('thirteen_lobby_timeout');
+}
+
 const profile = await mkdtemp(join(tmpdir(), 'thirteen-pwa-'));
 const chrome = spawn(chromePath, [
   '--headless=new',
@@ -66,7 +86,9 @@ try {
     } catch { /* Chrome is still starting. */ }
   }
   if (!port) throw new Error('chrome_debug_port_unavailable');
-  const target = await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent(url)}`, { method: 'PUT' })
+  // Create a blank target and navigate once after CDP domains are enabled. Opening the
+  // destination in /json/new and navigating again can interrupt Cocos module startup.
+  const target = await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent('about:blank')}`, { method: 'PUT' })
     .then((response) => response.json());
   const ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => {
@@ -78,7 +100,7 @@ try {
   await cdp.send('Page.enable');
   await cdp.send('Network.enable');
   await cdp.send('Page.navigate', { url });
-  await sleep(12_000);
+  await waitForLobby(cdp);
   const registered = await evaluate(cdp, `(async () => {
     await navigator.serviceWorker.ready;
     for (let attempt = 0; attempt < 100 && !navigator.serviceWorker.controller; attempt += 1) {
@@ -91,11 +113,11 @@ try {
   await cdp.send('Page.navigate', { url: `${origin}/offline` });
   await sleep(2_000);
   await cdp.send('Page.navigate', { url });
-  await sleep(12_000);
+  await waitForLobby(cdp);
   const online = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
-    const assets = await caches.open('game-box-assets-v38');
-    const shell = await caches.open('game-box-shell-v23');
+    const assets = await caches.open('game-box-assets-v39');
+    const shell = await caches.open('game-box-shell-v39');
     const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
     const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
     const frame = document.querySelector('iframe');
@@ -105,11 +127,73 @@ try {
       shellKeys,
       cachedGameIndex: assetKeys.includes('/thirteen/game/index.html')
         || shellKeys.includes('/thirteen/game/index.html'),
-      cachedSettings: assetKeys.includes('/thirteen/game/src/settings.json'),
+      cachedSettings: assetKeys.some((path) => path.startsWith('/thirteen/game/src/settings') && path.endsWith('.json')),
       cachedRoute: shellKeys.includes('/thirteen') || shellKeys.includes('/thirteen/'),
       onlineCanvas: Boolean(frame?.contentDocument?.querySelector('canvas')),
     };
   })()`);
+  const audioBefore = await evaluate(cdp, `(() => {
+    const frame = document.querySelector('iframe');
+    const flow = frame?.contentWindow?.cc?.director?.getScene?.()?.getChildByName?.('ThirteenFlow')
+      ?.components?.find?.((component) => typeof component.getAcceptanceState === 'function');
+    return flow?.getAcceptanceState?.().audio || null;
+  })()`);
+  const clickPoint = await evaluate(cdp, `(() => {
+    const frame = document.querySelector('iframe');
+    const rect = frame?.getBoundingClientRect?.();
+    const gameWindow = frame?.contentWindow;
+    const canvas = frame?.contentDocument?.querySelector('canvas');
+    if (gameWindow && canvas) {
+      gameWindow.__thirteenInputProbe = { mouse: 0, touch: 0, pointer: 0 };
+      canvas.addEventListener('mousedown', () => { gameWindow.__thirteenInputProbe.mouse += 1; });
+      canvas.addEventListener('touchstart', () => { gameWindow.__thirteenInputProbe.touch += 1; });
+      canvas.addEventListener('pointerdown', () => { gameWindow.__thirteenInputProbe.pointer += 1; });
+    }
+    return rect ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, rect: [rect.left, rect.top, rect.width, rect.height] } : null;
+  })()`);
+  if (!clickPoint) throw new Error('thirteen_iframe_click_target_missing');
+  let audioAfter = audioBefore;
+  for (let attempt = 0; attempt < 5 && !audioAfter?.unlocked; attempt += 1) {
+    await cdp.send('Input.dispatchMouseEvent', {
+      type: 'mousePressed', x: clickPoint.x, y: clickPoint.y, button: 'left', clickCount: 1,
+    });
+    await cdp.send('Input.dispatchMouseEvent', {
+      type: 'mouseReleased', x: clickPoint.x, y: clickPoint.y, button: 'left', clickCount: 1,
+    });
+    await sleep(500);
+    audioAfter = await evaluate(cdp, `(() => {
+      const frame = document.querySelector('iframe');
+      const flow = frame?.contentWindow?.cc?.director?.getScene?.()?.getChildByName?.('ThirteenFlow')
+        ?.components?.find?.((component) => typeof component.getAcceptanceState === 'function');
+      return flow?.getAcceptanceState?.().audio || null;
+    })()`);
+  }
+  if (!audioAfter?.unlocked) {
+    await cdp.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 });
+    for (let attempt = 0; attempt < 3 && !audioAfter?.unlocked; attempt += 1) {
+      await cdp.send('Input.dispatchTouchEvent', {
+        type: 'touchStart',
+        touchPoints: [{ x: clickPoint.x, y: clickPoint.y, radiusX: 1, radiusY: 1, force: 1, id: 1 }],
+      });
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await sleep(500);
+      audioAfter = await evaluate(cdp, `(() => {
+        const frame = document.querySelector('iframe');
+        const flow = frame?.contentWindow?.cc?.director?.getScene?.()?.getChildByName?.('ThirteenFlow')
+          ?.components?.find?.((component) => typeof component.getAcceptanceState === 'function');
+        return flow?.getAcceptanceState?.().audio || null;
+      })()`);
+    }
+  }
+  const inputProbe = await evaluate(cdp, `(() => {
+    const frame = document.querySelector('iframe');
+    return {
+      parentActiveElement: document.activeElement?.tagName || null,
+      frameActiveElement: frame?.contentDocument?.activeElement?.id || frame?.contentDocument?.activeElement?.tagName || null,
+      events: frame?.contentWindow?.__thirteenInputProbe || null,
+    };
+  })()`);
+  online.trustedAudio = { before: audioBefore, after: audioAfter, clickPoint, inputProbe };
 
   await cdp.send('Page.navigate', { url: `${origin}/offline` });
   await sleep(2_000);
@@ -149,8 +233,10 @@ try {
     && online.onlineCanvas
     && offline.canvas
     && offline.cocos
-    && offline.scene === 'Main'
-    && !offline.loadingOverlayVisible;
+    && offline.scene === 'R02Lobby'
+    && !offline.loadingOverlayVisible
+    && online.trustedAudio.after?.loadedClips === 21
+    && online.trustedAudio.after?.unlocked === true;
   const report = { feature: 'Thirteen PWA offline replay', online, offline, accepted };
   if (resultPath) {
     await mkdir(dirname(resultPath), { recursive: true });

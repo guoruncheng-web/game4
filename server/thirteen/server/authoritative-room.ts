@@ -33,6 +33,21 @@ export interface SeatPresence {
   readonly botControlled: boolean;
 }
 
+export interface PublicResultEntry {
+  readonly rank: number;
+  readonly seat: number;
+  readonly userId: string;
+  readonly remaining: number;
+  readonly delta: number;
+  readonly cong: boolean;
+}
+
+export interface PublicMatchResult {
+  readonly winnerSeat: number;
+  readonly matchNumber: number;
+  readonly entries: readonly PublicResultEntry[];
+}
+
 export interface PlayerSnapshot {
   readonly protocolVersion: typeof ROOM_PROTOCOL_VERSION;
   readonly roomId: string;
@@ -51,6 +66,8 @@ export interface PlayerSnapshot {
   readonly deadlineAt: number;
   readonly presence: readonly SeatPresence[];
   readonly score: ScoreResult | null;
+  /** Complete server-authored result. Clients must never infer ranks from public hand counts. */
+  readonly publicResult: PublicMatchResult | null;
 }
 
 export type RoomResult =
@@ -117,6 +134,15 @@ export class AuthoritativeRoom {
 
   get finished(): boolean {
     return this.state?.winner !== null && this.state?.winner !== undefined;
+  }
+
+  presence(): readonly SeatPresence[] {
+    return this.seats.map((record, seat) => ({
+      seat,
+      userId: record.userId,
+      connected: record.connected,
+      botControlled: record.botControlled,
+    }));
   }
 
   join(userId: string): number {
@@ -239,6 +265,7 @@ export class AuthoritativeRoom {
     const seat = this.seats.findIndex((record) => record.userId === userId);
     if (seat < 0) throw new Error('not_room_member');
     if (!this.state) throw new Error('match_not_started');
+    const score = scoreMatch(this.state);
     return {
       protocolVersion: ROOM_PROTOCOL_VERSION,
       roomId: this.roomId,
@@ -255,13 +282,9 @@ export class AuthoritativeRoom {
       winner: this.state.winner,
       turn: this.state.turn,
       deadlineAt: this.deadlineAt,
-      presence: this.seats.map((record, index) => ({
-        seat: index,
-        userId: record.userId,
-        connected: record.connected,
-        botControlled: record.botControlled,
-      })),
-      score: scoreMatch(this.state),
+      presence: this.presence(),
+      score,
+      publicResult: score ? this.buildPublicResult(score) : null,
     };
   }
 
@@ -293,5 +316,30 @@ export class AuthoritativeRoom {
     this.actions.push(action);
     this.revision += 1;
     this.deadlineAt = at + TURN_TIMEOUT_MS;
+  }
+
+  private buildPublicResult(score: ScoreResult): PublicMatchResult {
+    const losingSeats = [0, 1, 2, 3]
+      .filter((seat) => seat !== score.winner)
+      .sort((left, right) => (
+        score.penalties[left] - score.penalties[right]
+        || ((left - score.winner + 4) % 4) - ((right - score.winner + 4) % 4)
+      ));
+    const orderedSeats = [score.winner, ...losingSeats];
+    const winnerDelta = score.penalties.reduce((total, penalty, seat) => (
+      seat === score.winner ? total : total + penalty
+    ), 0);
+    return {
+      winnerSeat: score.winner,
+      matchNumber: this.matchNumber,
+      entries: orderedSeats.map((seat, index) => ({
+        rank: index + 1,
+        seat,
+        userId: this.seats[seat].userId,
+        remaining: this.state!.hands[seat].length,
+        delta: seat === score.winner ? winnerDelta : -score.penalties[seat],
+        cong: score.cong[seat],
+      })),
+    };
   }
 }

@@ -1,0 +1,14 @@
+{
+  "feature": "game4 authenticated four-client Thirteen websocket integration",
+  "protocolVersion": 1,
+  "authenticatedClients": 4,
+  "privateRoomCode": true,
+  "completedMatches": 20,
+  "privacyScopedHands": true,
+  "totalActions": 1159,
+  "maximumActions": 67,
+  "liveRematchStarted": true,
+  "rematchFirstSequenceAccepted": true,
+  "roomReleasedAfterEveryMatch": true,
+  "accepted": true
+}
