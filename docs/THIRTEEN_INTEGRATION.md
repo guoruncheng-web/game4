@@ -1,11 +1,11 @@
 # Thirteen / Chặt Heo! 集成记录
 
-状态：中文单语言 RC8 本地 production / PWA 技术验收通过；公网推送与部署仍受真机听感/安全区和法务许可门禁阻塞。
+状态：中文单语言 RC12 本地 production / PWA 技术验收通过；公网推送与部署仍受真机听感/安全区和法务许可门禁阻塞。
 
 ## 组成
 
 - `/thirteen`：公开可访问的同源 Cocos iframe 宿主页；游客可玩单机、教学和设置。
-- `/thirteen/game/`：Cocos Creator 3.8.8 Web Mobile 中文单语言 RC8，512 个文件、14,867,296 bytes，全树 manifest SHA-256 `fd7f72557735719a82dc3dfa3bb127d0ad02cb628a8f38efa03219be6d18b2c6`。
+- `/thirteen/game/`：Cocos Creator 3.8.8 Web Mobile 中文单语言 RC12，515 个文件、14,612,195 bytes，全树 SHA-256 `dcba8a6a47927e892522b3876d277dc3e665b08fdb942c7eee967c54b75ed09f`。
 - `/ws`：沿用 game4 已有的鉴权 WebSocket 服务；`thirteen:*` v1 消息由独立四人权威房间目录处理。
 - `server/thirteen/`：与 Cocos 项目同版本的牌、牌型、状态机和房间核心；服务端生成随机种子并裁决所有动作。
 
@@ -23,7 +23,17 @@
 
 ## PWA
 
-Service Worker 版本为 `v41`。`/thirteen/` 下的 JS、JSON、CSS、WASM、图片和音频采用玩过即缓存策略，不在安装阶段全量预下载。全新 profile 在线打开并到达 Lobby 后，路由、Cocos 入口、哈希 settings 和首屏依赖可从缓存重放。
+Service Worker 版本为 `v42`。`/thirteen/` 下的 JS、JSON、CSS、WASM、图片和音频采用玩过即缓存策略，不在安装阶段全量预下载。全新 profile 在线打开并到达 Lobby 后，路由、Cocos 入口、settings 和首屏依赖可从缓存重放。
+
+## RC12 交互、发牌音频与 PWA 候选（2026-08-31）
+
+- 首次开局与再来一局均先展示桌面中央 52 张背面牌、洗牌与发牌；完整模式按 13 轮发牌节奏播放 13 个低音量同步点，低质量为 7 个，减少动效为 1 个。独立构建实测表现脉冲、音频尝试、成功播放为 13/13/13。
+- 所有 43 个按钮与 18 张可点牌统一接入抖动和合适点击音效；出牌粒子为 0，出牌音与洗牌音分离。
+- Cocos 源提交为 `b8bfb21ff03331e4a0fd3460dd5a6010271fc993`；RC12 源树与 `public/thirteen/game/` 均为 515 文件、14,612,195 bytes，逐文件比较哈希一致。
+- game4 `thirteen:test`、全仓 ESLint、Next 16.3 production build 均通过；`/thirteen` 已生成静态生产路由。
+- PWA v42 使用全新 Chrome profile 接管，缓存 87 项 Thirteen 运行资源；在线和断网重载均进入中文 `R02Lobby`，Canvas 为 1280×633，宿主遮罩不可见。可信 Canvas 点击使 21 个音频资源从锁定进入解锁，Music/Ambience 正常播放。
+- 520×953 宿主验收进入 `O02RotateGuard`，同源 iframe、Canvas、Cocos 均正常，运行事件错误为 0。
+- 本地证据位于 `evidence/runtime/thirteen-rc12-zh-local/`；这代表发布候选技术通过，不代表公网硬门已签署。
 
 ## RC8 UI 与逐帧出牌增量（2026-08-31）
 
