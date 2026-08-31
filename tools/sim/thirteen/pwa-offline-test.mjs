@@ -8,6 +8,10 @@ const url = process.argv[2] || 'http://127.0.0.1:3220/thirteen';
 const origin = new URL(url).origin;
 const screenshot = process.argv[3];
 const resultPath = process.argv[4];
+const lobbyTimeoutMs = Number(process.env.THIRTEEN_PWA_LOBBY_TIMEOUT_MS || 30_000);
+if (!Number.isFinite(lobbyTimeoutMs) || lobbyTimeoutMs < 5_000 || lobbyTimeoutMs > 180_000) {
+  throw new Error('invalid_THIRTEEN_PWA_LOBBY_TIMEOUT_MS');
+}
 const chromePath = process.env.COCOS_CHROME
   || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -72,7 +76,6 @@ const chrome = spawn(chromePath, [
   `--user-data-dir=${profile}`,
   '--no-first-run',
   '--disable-extensions',
-  '--mute-audio',
   '--use-angle=swiftshader',
   '--enable-unsafe-swiftshader',
   '--window-size=1280,720',
@@ -103,7 +106,7 @@ try {
   await cdp.send('Page.enable');
   await cdp.send('Network.enable');
   await cdp.send('Page.navigate', { url });
-  await waitForLobby(cdp);
+  await waitForLobby(cdp, lobbyTimeoutMs);
   const registered = await evaluate(cdp, `(async () => {
     await navigator.serviceWorker.ready;
     for (let attempt = 0; attempt < 100 && !navigator.serviceWorker.controller; attempt += 1) {
@@ -116,7 +119,7 @@ try {
   await cdp.send('Page.navigate', { url: `${origin}/offline` });
   await sleep(2_000);
   await cdp.send('Page.navigate', { url });
-  await waitForLobby(cdp);
+  await waitForLobby(cdp, lobbyTimeoutMs);
   const online = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
     const assets = await caches.open('game-box-assets-v47');
