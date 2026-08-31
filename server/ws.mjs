@@ -8,7 +8,7 @@
  * nginx 把 `/ws` 反代到这里。**同域名下浏览器会自动带上会话 cookie**,
  * 所以鉴权直接复用现有账号体系,不需要另发一套票据。
  *
- * 承担四件事,全部是内存态:
+ * 承担四件事；在线连接是内存态，UMO 与十三张权威房间使用加密恢复快照:
  *   1. 在线状态 —— 谁登录着、在不在游戏里
  *   2. 邀请 —— 转发给目标用户,对方在任何页面都能收到
  *   3. 房间 —— 匹配页的双人状态、谁是房主
@@ -78,10 +78,10 @@ async function resolveUser(cookieHeader) {
 
   const id = Number(rawId);
   if (!Number.isInteger(id) || id <= 0) return null;
-  const rows = await sql`select id, username, token_version from users where id = ${id} limit 1`;
+  const rows = await sql`select id, username, avatar, token_version from users where id = ${id} limit 1`;
   const row = rows[0];
   if (!row || row.token_version !== Number(rawVersion)) return null;
-  return { id: Number(row.id), username: row.username };
+  return { id: Number(row.id), username: row.username, avatar: row.avatar };
 }
 
 // ---------------------------------------------------------------- 状态
@@ -108,11 +108,68 @@ function sendTo(userId, msg) {
 }
 
 // Thirteen is a four-seat authoritative game, isolated from legacy relay rooms.
-const thirteenDirectory = new RoomDirectory(() => randomBytes(4).readUInt32LE(0));
+// Its room snapshots, command sequences and practice-chip ledger survive process restarts.
+const thirteenStateFile = process.env.THIRTEEN_STATE_FILE;
+const thirteenStateSecret = process.env.THIRTEEN_STATE_KEY;
+if (thirteenStateFile && (!thirteenStateSecret || thirteenStateSecret.length < 32)) {
+  throw new Error('THIRTEEN_STATE_KEY must contain at least 32 characters when THIRTEEN_STATE_FILE is enabled');
+}
+let thirteenStateHealthy = true;
+const thirteenDirectory = thirteenStateFile && existsSync(thirteenStateFile)
+  ? RoomDirectory.restore(
+    JSON.parse(decryptThirteenState(readFileSync(thirteenStateFile, 'utf8'), thirteenStateSecret)),
+    () => randomBytes(4).readUInt32LE(0),
+  )
+  : new RoomDirectory(() => randomBytes(4).readUInt32LE(0));
 const thirteenAdapter = new ThirteenWsAdapter(
   thirteenDirectory,
   (userId, message) => sendTo(Number(userId), message),
+  thirteenStateFile ? () => {
+    try {
+      persistThirteenAtomically(thirteenStateFile, thirteenDirectory.snapshotJson(), thirteenStateSecret);
+      thirteenStateHealthy = true;
+    } catch (error) {
+      thirteenStateHealthy = false;
+      console.error('[thirteen] encrypted state persistence failed', error);
+    }
+  } : null,
 );
+
+function persistThirteenAtomically(path, snapshotJson, secret) {
+  mkdirSync(dirname(path), { recursive: true });
+  const temporaryPath = `${path}.tmp`;
+  writeFileSync(temporaryPath, encryptThirteenState(snapshotJson, secret), { encoding: 'utf8', mode: 0o600 });
+  renameSync(temporaryPath, path);
+}
+
+function encryptThirteenState(snapshotJson, secret) {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv('aes-256-gcm', thirteenStateKey(secret), iv);
+  const ciphertext = Buffer.concat([cipher.update(snapshotJson, 'utf8'), cipher.final()]);
+  return ['thirteen-state-v2', iv.toString('base64url'), cipher.getAuthTag().toString('base64url'), ciphertext.toString('base64url')].join('.');
+}
+
+function decryptThirteenState(envelope, secret) {
+  const [version, encodedIv, encodedTag, encodedCiphertext, ...extra] = envelope.trim().split('.');
+  if (version !== 'thirteen-state-v2' || !encodedIv || !encodedTag || !encodedCiphertext || extra.length > 0) {
+    throw new Error('THIRTEEN_STATE_ENVELOPE_INVALID');
+  }
+  const decipher = createDecipheriv('aes-256-gcm', thirteenStateKey(secret), Buffer.from(encodedIv, 'base64url'));
+  decipher.setAuthTag(Buffer.from(encodedTag, 'base64url'));
+  return Buffer.concat([
+    decipher.update(Buffer.from(encodedCiphertext, 'base64url')),
+    decipher.final(),
+  ]).toString('utf8');
+}
+
+function thirteenStateKey(secret) {
+  return createHash('sha256').update(secret, 'utf8').digest();
+}
+
+if (thirteenStateFile && existsSync(thirteenStateFile)) {
+  // Persist the restore-time disconnect normalization before accepting sockets.
+  persistThirteenAtomically(thirteenStateFile, thirteenDirectory.snapshotJson(), thirteenStateSecret);
+}
 
 const umoStateFile = process.env.UMO_STATE_FILE;
 const umoStateSecret = process.env.UMO_STATE_KEY;
@@ -303,10 +360,14 @@ function handle(client, msg) {
   const me = client.userId;
   if (typeof msg?.t === 'string' && msg.t.startsWith('thirteen:')) {
     if (client.roomId && ['thirteen:create-private', 'thirteen:join-private', 'thirteen:matchmake'].includes(msg.t)) {
-      send(client.ws, { t: 'thirteen:error', v: 1, code: 'user_already_in_other_game' });
+      send(client.ws, { t: 'thirteen:error', v: 2, code: 'user_already_in_other_game' });
       return;
     }
-    thirteenAdapter.handle(String(me), msg);
+    thirteenAdapter.handle({
+      userId: String(me),
+      displayName: client.username,
+      avatar: client.avatar,
+    }, msg);
     return;
   }
   if (thirteenDirectory.assignmentFor(String(me)) && msg?.t !== 'hello') {
@@ -445,6 +506,7 @@ const server = createServer((req, res) => {
       umoRooms: umoAdapter.roomCount,
       umoConnections: umoAdapter.connectionCount,
       thirteenRooms: thirteenDirectory.roomIds().length,
+      thirteenPersistence: thirteenStateFile ? (thirteenStateHealthy ? 'encrypted-ready' : 'error') : 'memory-only',
     }));
   }
   res.writeHead(426).end('Expected WebSocket');
@@ -473,10 +535,13 @@ server.on('upgrade', async (req, socket, head) => {
         send(old.ws, { t: 'replaced' });
         try { old.ws.close(); } catch { /* 已经关了 */ }
       }
-      const client = { ws, userId: user.id, username: user.username, roomId: old?.roomId ?? null, alive: true };
+      const client = {
+        ws, userId: user.id, username: user.username, avatar: user.avatar,
+        roomId: old?.roomId ?? null, alive: true,
+      };
       clients.set(user.id, client);
 
-      send(ws, { t: 'ready', me: { id: user.id, username: user.username } });
+      send(ws, { t: 'ready', me: { id: user.id, username: user.username, avatar: user.avatar } });
       // 继承来的房间已经解散了就把标记清掉,否则这个人会永远"在房间里"、
       // 既收不到在线列表也进不了新房间
       if (client.roomId && !rooms.has(client.roomId)) client.roomId = null;

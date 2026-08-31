@@ -11,7 +11,7 @@ import {
   type ScoreResult,
 } from '../assets/game/scripts/core/match';
 
-export const ROOM_PROTOCOL_VERSION = 1;
+export const ROOM_PROTOCOL_VERSION = 2;
 export const TURN_TIMEOUT_MS = 15_000;
 export const DISCONNECT_BOT_DELAY_MS = 3_000;
 export const RECONNECT_WINDOW_MS = 60_000;
@@ -25,20 +25,30 @@ export interface ClientCommand {
   readonly clientSequence: number;
   readonly action: ClientAction;
 }
-
 export interface SeatPresence {
   readonly seat: number;
   readonly userId: string;
+  readonly displayName: string;
+  readonly avatar: string;
   readonly connected: boolean;
   readonly botControlled: boolean;
+}
+
+export interface PlayerIdentity {
+  readonly userId: string;
+  readonly displayName: string;
+  readonly avatar: string;
 }
 
 export interface PublicResultEntry {
   readonly rank: number;
   readonly seat: number;
   readonly userId: string;
+  readonly displayName: string;
+  readonly avatar: string;
   readonly remaining: number;
   readonly delta: number;
+  readonly wagerDelta?: number;
   readonly cong: boolean;
 }
 
@@ -54,6 +64,8 @@ export interface PlayerSnapshot {
   readonly rulesVersion: typeof RULES_VERSION;
   readonly revision: number;
   readonly matchNumber: number;
+  /** Sequence the authenticated client must use for its next accepted command. */
+  readonly nextClientSequence: number;
   readonly seat: number;
   readonly ownHand: readonly Card[];
   readonly opponentCounts: readonly number[];
@@ -76,14 +88,38 @@ export type RoomResult =
 
 interface SeatRecord {
   readonly userId: string;
+  displayName: string;
+  avatar: string;
   connected: boolean;
   botControlled: boolean;
   disconnectedAt: number | null;
   lastClientSequence: number;
 }
 
+export interface AuthoritativeRoomSnapshot {
+  readonly version: 1;
+  readonly roomId: string;
+  readonly seats: readonly SeatRecord[];
+  readonly state: MatchState | null;
+  readonly seed: number | null;
+  readonly revision: number;
+  readonly matchNumber: number;
+  readonly deadlineAt: number;
+  readonly previousWinner: number | null;
+  readonly actions: readonly MatchAction[];
+}
+
 function validUserId(userId: string): boolean {
   return /^[A-Za-z0-9_-]{1,64}$/.test(userId);
+}
+
+function normalizeIdentity(value: string | PlayerIdentity): PlayerIdentity {
+  if (typeof value === 'string') return { userId: value, displayName: value, avatar: '' };
+  return {
+    userId: value.userId,
+    displayName: value.displayName.trim().slice(0, 32) || value.userId,
+    avatar: value.avatar.trim().slice(0, 16),
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -136,16 +172,24 @@ export class AuthoritativeRoom {
     return this.state?.winner !== null && this.state?.winner !== undefined;
   }
 
+  get currentMatchNumber(): number {
+    return this.matchNumber;
+  }
+
   presence(): readonly SeatPresence[] {
     return this.seats.map((record, seat) => ({
       seat,
       userId: record.userId,
+      displayName: record.displayName,
+      avatar: record.avatar,
       connected: record.connected,
       botControlled: record.botControlled,
     }));
   }
 
-  join(userId: string): number {
+  join(identityInput: string | PlayerIdentity): number {
+    const identity = normalizeIdentity(identityInput);
+    const { userId } = identity;
     if (!validUserId(userId)) throw new Error('invalid_user_id');
     const existing = this.seats.findIndex((seat) => seat.userId === userId);
     if (existing >= 0) {
@@ -157,18 +201,30 @@ export class AuthoritativeRoom {
       record.connected = true;
       record.botControlled = false;
       record.disconnectedAt = null;
+      record.displayName = identity.displayName;
+      record.avatar = identity.avatar;
       return existing;
     }
     if (this.started) throw new Error('match_already_started');
     if (this.seats.length >= 4) throw new Error('room_full');
     this.seats.push({
       userId,
+      displayName: identity.displayName,
+      avatar: identity.avatar,
       connected: true,
       botControlled: false,
       disconnectedAt: null,
       lastClientSequence: 0,
     });
     return this.seats.length - 1;
+  }
+
+  updateIdentity(identityInput: string | PlayerIdentity): void {
+    const identity = normalizeIdentity(identityInput);
+    const record = this.seats.find((seat) => seat.userId === identity.userId);
+    if (!record) return;
+    record.displayName = identity.displayName;
+    record.avatar = identity.avatar;
   }
 
   removeWaiting(userId: string): void {
@@ -195,6 +251,16 @@ export class AuthoritativeRoom {
     if (!record.connected) return;
     record.connected = false;
     record.disconnectedAt = this.now();
+  }
+
+  /** A restored process has no live sockets, regardless of the persisted flags. */
+  disconnectAll(): void {
+    const at = this.now();
+    for (const record of this.seats) {
+      record.connected = false;
+      record.botControlled = false;
+      record.disconnectedAt = at;
+    }
   }
 
   expiredDisconnectedUsers(at: number = this.now()): readonly string[] {
@@ -272,6 +338,7 @@ export class AuthoritativeRoom {
       rulesVersion: RULES_VERSION,
       revision: this.revision,
       matchNumber: this.matchNumber,
+      nextClientSequence: this.seats[seat].lastClientSequence + 1,
       seat,
       ownHand: [...this.state.hands[seat]],
       opponentCounts: this.state.hands.map((hand, index) => index === seat ? 0 : hand.length),
@@ -299,6 +366,42 @@ export class AuthoritativeRoom {
   /** Server audit surface; never serialize this object directly to a client. */
   audit(): { seed: number | null; revision: number; state: MatchState | null; actions: readonly MatchAction[] } {
     return { seed: this.seed, revision: this.revision, state: this.state, actions: [...this.actions] };
+  }
+
+  snapshot(): AuthoritativeRoomSnapshot {
+    return {
+      version: 1,
+      roomId: this.roomId,
+      seats: this.seats.map((seat) => ({ ...seat })),
+      state: this.state,
+      seed: this.seed,
+      revision: this.revision,
+      matchNumber: this.matchNumber,
+      deadlineAt: this.deadlineAt,
+      previousWinner: this.previousWinner,
+      actions: [...this.actions],
+    };
+  }
+
+  static restore(
+    snapshot: AuthoritativeRoomSnapshot,
+    seedSource: () => number,
+    now: () => number = Date.now,
+  ): AuthoritativeRoom {
+    if (snapshot?.version !== 1 || !Array.isArray(snapshot.seats)
+      || !Array.isArray(snapshot.actions) || typeof snapshot.roomId !== 'string') {
+      throw new Error('invalid_authoritative_room_snapshot');
+    }
+    const room = new AuthoritativeRoom(snapshot.roomId, seedSource, now);
+    room.seats.push(...snapshot.seats.map((seat) => ({ ...seat })));
+    room.state = snapshot.state;
+    room.seed = snapshot.seed;
+    room.revision = snapshot.revision;
+    room.matchNumber = snapshot.matchNumber;
+    room.deadlineAt = snapshot.deadlineAt;
+    room.previousWinner = snapshot.previousWinner;
+    room.actions.push(...snapshot.actions);
+    return room;
   }
 
   private requireSeat(userId: string): SeatRecord {
@@ -336,6 +439,8 @@ export class AuthoritativeRoom {
         rank: index + 1,
         seat,
         userId: this.seats[seat].userId,
+        displayName: this.seats[seat].displayName,
+        avatar: this.seats[seat].avatar,
         remaining: this.state!.hands[seat].length,
         delta: seat === score.winner ? winnerDelta : -score.penalties[seat],
         cong: score.cong[seat],

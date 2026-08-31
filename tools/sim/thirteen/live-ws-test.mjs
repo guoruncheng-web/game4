@@ -90,12 +90,12 @@ try {
       ('test-thirteen-2', ${passwordHash}, now()),
       ('test-thirteen-3', ${passwordHash}, now()),
       ('test-thirteen-4', ${passwordHash}, now())
-    returning id, username, token_version
+    returning id, username, avatar, token_version
   `;
   clients = users.map((user) => new TestClient(user, createSessionToken(Number(user.id), user.token_version)));
   await Promise.all(clients.map((client) => client.open()));
   await Promise.all(clients.map((client) => client.next('ready')));
-  for (const client of clients) client.send({ t: 'thirteen:hello', v: 1 });
+  for (const client of clients) client.send({ t: 'thirteen:hello', v: 2 });
   await Promise.all(clients.map((client) => client.next('thirteen:ready')));
 
   let totalActions = 0;
@@ -103,14 +103,16 @@ try {
   let liveRematchStarted = false;
   for (let game = 0; game < gameCount; game += 1) {
     const sequences = [0, 0, 0, 0];
-    clients[0].send({ t: 'thirteen:create-private', v: 1 });
+    clients[0].send({ t: 'thirteen:create-private', v: 2, stake: 500 });
     const created = await clients[0].next('thirteen:room', (message) => Boolean(message.room?.code));
     const code = created.room.code;
     const roomId = created.room.roomId;
     for (let index = 1; index < clients.length; index += 1) {
-      clients[index].send({ t: 'thirteen:join-private', v: 1, code });
+      clients[index].send({ t: 'thirteen:join-private', v: 2, code });
       await clients[index].next('thirteen:room', (message) => message.room?.roomId === roomId);
     }
+
+    for (const client of clients) client.send({ t: 'thirteen:ready', v: 2, ready: true });
 
     let snapshots = await Promise.all(clients.map((client) => (
       client.next('thirteen:snapshot', (message) => (
@@ -124,6 +126,9 @@ try {
     for (const { snapshot } of snapshots) {
       assert(snapshot.ownHand.length === 13, 'own_hand_not_thirteen_cards');
       assert(snapshot.opponentCounts.length === 4, 'opponent_counts_missing');
+      assert(snapshot.tableStake === 500, 'practice_chip_stake_not_authoritative');
+      assert(snapshot.wallet.balance === 9_500 && snapshot.wallet.reserved === 500, 'practice_chip_reservation_missing');
+      assert(snapshot.presence.every((seat) => seat.displayName.startsWith('test-thirteen-')), 'real_account_profile_missing');
       assert(!('hands' in snapshot) && !('seed' in snapshot) && !('actions' in snapshot), 'private_server_state_leaked');
     }
 
@@ -150,9 +155,9 @@ try {
       sequences[currentIndex] += 1;
       clients[currentIndex].send({
         t: 'thirteen:command',
-        v: 1,
+        v: 2,
         command: {
-          protocolVersion: 1,
+          protocolVersion: 2,
           clientSequence: sequences[currentIndex],
           action: candidate
             ? { type: 'play', cardIds: candidate.cards.map((card) => card.id) }
@@ -172,12 +177,15 @@ try {
       actions += 1;
     }
     assert(snapshots[0].snapshot.winner !== null, 'live_match_did_not_terminate');
+    const wagerDeltas = snapshots[0].snapshot.publicResult.entries.map((entry) => entry.wagerDelta).sort((a, b) => a - b);
+    assert(JSON.stringify(wagerDeltas) === JSON.stringify([-500, -500, -500, 1_500]), 'practice_chip_settlement_not_zero_sum');
+    assert(snapshots.every(({ snapshot }) => snapshot.wallet.reserved === 0), 'practice_chip_reservation_not_released');
     totalActions += actions;
     maximumActions = Math.max(maximumActions, actions);
 
     if (game === gameCount - 1) {
       const finalRevision = snapshots[0].snapshot.revision;
-      for (const client of clients) client.send({ t: 'thirteen:rematch', v: 1 });
+      for (const client of clients) client.send({ t: 'thirteen:rematch', v: 2 });
       await Promise.all(clients.map((client) => (
         client.next('thirteen:rematch', (message) => message.started === true)
       )));
@@ -203,9 +211,9 @@ try {
         turn: own.turn,
       }, nextSeat)[0];
       clients[nextIndex].send({
-        t: 'thirteen:command', v: 1,
+        t: 'thirteen:command', v: 2,
         command: {
-          protocolVersion: 1,
+          protocolVersion: 2,
           clientSequence: 1,
           action: candidate
             ? { type: 'play', cardIds: candidate.cards.map((card) => card.id) }
@@ -222,10 +230,14 @@ try {
     const liveHealth = await fetch(healthUrl).then((response) => response.json());
     assert(liveHealth.online === 4 && liveHealth.thirteenRooms === 1, 'live_health_did_not_report_four_clients_one_room');
     for (const client of clients) {
-      client.send({ t: 'thirteen:leave', v: 1 });
+      client.send({ t: 'thirteen:leave', v: 2 });
       await client.next('thirteen:left');
     }
-    const leftHealth = await fetch(healthUrl).then((response) => response.json());
+    let leftHealth = await fetch(healthUrl).then((response) => response.json());
+    for (let wait = 0; leftHealth.thirteenRooms !== 0 && wait < 50; wait += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      leftHealth = await fetch(healthUrl).then((response) => response.json());
+    }
     assert(leftHealth.thirteenRooms === 0, 'room_not_released_after_four_explicit_leaves');
     for (const client of clients) {
       client.messages = client.messages.filter((message) => ![
@@ -236,11 +248,15 @@ try {
 
   const report = {
     feature: 'game4 authenticated four-client Thirteen websocket integration',
-    protocolVersion: 1,
+    protocolVersion: 2,
     authenticatedClients: 4,
     privateRoomCode: true,
     completedMatches: gameCount,
     privacyScopedHands: true,
+    realAccountProfiles: true,
+    explicitReady: true,
+    practiceChipStake: 500,
+    zeroSumSettlement: true,
     totalActions,
     maximumActions,
     liveRematchStarted,
