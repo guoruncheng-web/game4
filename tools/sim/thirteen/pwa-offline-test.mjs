@@ -55,9 +55,11 @@ async function waitForLobby(cdp, timeoutMs = 30_000) {
       return {
         scene: scene?.name || null,
         audio: flow?.getAcceptanceState?.().audio || null,
+        settings: flow?.getAcceptanceState?.().settings || null,
       };
     })()`);
-    if (state.scene === 'R02Lobby' && state.audio?.loadedClips === 21) return state;
+    if (state.scene === 'R02Lobby' && state.audio?.loadedClips === 21
+      && state.settings?.language === 'zh-CN') return state;
     await sleep(100);
   }
   throw new Error('thirteen_lobby_timeout');
@@ -75,6 +77,7 @@ const chrome = spawn(chromePath, [
   '--enable-unsafe-swiftshader',
   '--window-size=1280,720',
 ], { stdio: ['ignore', 'ignore', 'pipe'] });
+let ws;
 
 try {
   let port;
@@ -90,7 +93,7 @@ try {
   // destination in /json/new and navigating again can interrupt Cocos module startup.
   const target = await fetch(`http://127.0.0.1:${port}/json/new?${encodeURIComponent('about:blank')}`, { method: 'PUT' })
     .then((response) => response.json());
-  const ws = new WebSocket(target.webSocketDebuggerUrl);
+  ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((resolve, reject) => {
     ws.addEventListener('open', resolve, { once: true });
     ws.addEventListener('error', reject, { once: true });
@@ -116,8 +119,8 @@ try {
   await waitForLobby(cdp);
   const online = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
-    const assets = await caches.open('game-box-assets-v39');
-    const shell = await caches.open('game-box-shell-v39');
+    const assets = await caches.open('game-box-assets-v40');
+    const shell = await caches.open('game-box-shell-v40');
     const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
     const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
     const frame = document.querySelector('iframe');
@@ -130,6 +133,9 @@ try {
       cachedSettings: assetKeys.some((path) => path.startsWith('/thirteen/game/src/settings') && path.endsWith('.json')),
       cachedRoute: shellKeys.includes('/thirteen') || shellKeys.includes('/thirteen/'),
       onlineCanvas: Boolean(frame?.contentDocument?.querySelector('canvas')),
+      releaseLanguage: frame?.contentWindow?.cc?.director?.getScene?.()?.getChildByName?.('ThirteenFlow')
+        ?.components?.find?.((component) => typeof component.getAcceptanceState === 'function')
+        ?.getAcceptanceState?.().settings?.language || null,
     };
   })()`);
   const audioBefore = await evaluate(cdp, `(() => {
@@ -216,6 +222,9 @@ try {
       canvasHeight: canvas?.height || 0,
       cocos: typeof gameWindow?.cc !== 'undefined',
       scene: gameWindow?.cc?.director?.getScene?.()?.name || null,
+      releaseLanguage: gameWindow?.cc?.director?.getScene?.()?.getChildByName?.('ThirteenFlow')
+        ?.components?.find?.((component) => typeof component.getAcceptanceState === 'function')
+        ?.getAcceptanceState?.().settings?.language || null,
       loadingOverlayVisible: [...document.querySelectorAll('div')]
         .some((node) => node.textContent === '正在摆好牌桌…' && getComputedStyle(node).display !== 'none'),
     };
@@ -225,8 +234,6 @@ try {
     const shot = await cdp.send('Page.captureScreenshot', { format: 'png' });
     await writeFile(screenshot, Buffer.from(shot.result.data, 'base64'));
   }
-  ws.close();
-
   const accepted = online.cachedGameIndex
     && online.cachedSettings
     && online.cachedRoute
@@ -234,6 +241,8 @@ try {
     && offline.canvas
     && offline.cocos
     && offline.scene === 'R02Lobby'
+    && online.releaseLanguage === 'zh-CN'
+    && offline.releaseLanguage === 'zh-CN'
     && !offline.loadingOverlayVisible
     && online.trustedAudio.after?.loadedClips === 21
     && online.trustedAudio.after?.unlocked === true;
@@ -245,6 +254,17 @@ try {
   console.log(JSON.stringify(report, null, 2));
   if (!accepted) process.exitCode = 1;
 } finally {
+  ws?.close();
+  const chromeExited = new Promise((resolve) => {
+    if (chrome.exitCode !== null || chrome.signalCode !== null) resolve();
+    else chrome.once('exit', resolve);
+  });
   chrome.kill('SIGKILL');
+  await Promise.race([chromeExited, sleep(2_000)]);
+  chrome.unref();
   await rm(profile, { recursive: true, force: true }).catch(() => {});
 }
+
+// Node's built-in WebSocket can retain an internal handle after the remote
+// headless browser is gone. All evidence and cleanup are complete at this point.
+process.exit(process.exitCode ?? 0);
