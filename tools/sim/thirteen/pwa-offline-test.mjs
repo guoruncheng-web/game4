@@ -119,8 +119,8 @@ try {
   await waitForLobby(cdp);
   const online = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
-    const assets = await caches.open('game-box-assets-v46');
-    const shell = await caches.open('game-box-shell-v46');
+    const assets = await caches.open('game-box-assets-v47');
+    const shell = await caches.open('game-box-shell-v47');
     const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
     const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
     const frame = document.querySelector('iframe');
@@ -131,6 +131,7 @@ try {
       cachedGameIndex: assetKeys.includes('/thirteen/game/index.html')
         || shellKeys.includes('/thirteen/game/index.html'),
       cachedSettings: assetKeys.some((path) => path.startsWith('/thirteen/game/src/settings') && path.endsWith('.json')),
+      cachedAudioClips: assetKeys.filter((path) => path.startsWith('/thirteen/game/') && path.endsWith('.m4a')).length,
       cachedRoute: shellKeys.includes('/thirteen') || shellKeys.includes('/thirteen/'),
       onlineCanvas: Boolean(frame?.contentDocument?.querySelector('canvas')),
       releaseLanguage: frame?.contentWindow?.cc?.director?.getScene?.()?.getChildByName?.('ThirteenFlow')
@@ -236,6 +237,7 @@ try {
   }
   const accepted = online.cachedGameIndex
     && online.cachedSettings
+    && online.cachedAudioClips === 21
     && online.cachedRoute
     && online.onlineCanvas
     && offline.canvas
@@ -245,7 +247,13 @@ try {
     && offline.releaseLanguage === 'zh-CN'
     && !offline.loadingOverlayVisible
     && online.trustedAudio.after?.loadedClips === 21
-    && online.trustedAudio.after?.unlocked === true;
+    && online.trustedAudio.after?.unlocked === true
+    && online.trustedAudio.after?.architecture === 'scene-mounted-six-bus'
+    && online.trustedAudio.after?.assignedSources === 6
+    && online.trustedAudio.after?.missingSources?.length === 0
+    && online.trustedAudio.after?.contextState === 'running'
+    && online.trustedAudio.after?.musicPlaying === true
+    && online.trustedAudio.after?.ambiencePlaying === true;
   const report = { feature: 'Thirteen PWA offline replay', online, offline, accepted };
   if (resultPath) {
     await mkdir(dirname(resultPath), { recursive: true });
