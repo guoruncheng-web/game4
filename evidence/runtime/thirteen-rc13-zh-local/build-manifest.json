@@ -1,0 +1,15 @@
+{
+  "release": "Thirteen RC13 v2 zh-CN",
+  "creatorVersion": "3.8.8",
+  "sourceCommit": "573e772b427b6ebc2b827a049dd04ef8d830effb",
+  "serviceWorkerVersion": "v43",
+  "fileCount": 515,
+  "totalBytes": 14613948,
+  "comparisonSha256": "ec287bff46485c785fa24f69ee20c9ac63fb97efd2759a25dfba757f44b6d111",
+  "game4Checks": {
+    "thirteenTest": "accepted",
+    "lint": "accepted",
+    "productionBuild": "accepted",
+    "pwaOfflineReplay": "accepted"
+  }
+}

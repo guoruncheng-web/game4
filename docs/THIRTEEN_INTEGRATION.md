@@ -1,11 +1,11 @@
 # Thirteen / Chặt Heo! 集成记录
 
-状态：中文单语言 RC12 本地 production / PWA 技术验收通过；公网推送与部署仍受真机听感/安全区和法务许可门禁阻塞。
+状态：中文单语言 RC13 热修已通过本地 production / PWA 技术验收；发布硬门已由产品负责人确认完成，准备推送公网。
 
 ## 组成
 
 - `/thirteen`：公开可访问的同源 Cocos iframe 宿主页；游客可玩单机、教学和设置。
-- `/thirteen/game/`：Cocos Creator 3.8.8 Web Mobile 中文单语言 RC12，515 个文件、14,612,195 bytes，全树 SHA-256 `dcba8a6a47927e892522b3876d277dc3e665b08fdb942c7eee967c54b75ed09f`。
+- `/thirteen/game/`：Cocos Creator 3.8.8 Web Mobile 中文单语言 RC13 v2，515 个文件、14,613,948 bytes，比较 SHA-256 `ec287bff46485c785fa24f69ee20c9ac63fb97efd2759a25dfba757f44b6d111`。
 - `/ws`：沿用 game4 已有的鉴权 WebSocket 服务；`thirteen:*` v1 消息由独立四人权威房间目录处理。
 - `server/thirteen/`：与 Cocos 项目同版本的牌、牌型、状态机和房间核心；服务端生成随机种子并裁决所有动作。
 
@@ -23,7 +23,16 @@
 
 ## PWA
 
-Service Worker 版本为 `v42`。`/thirteen/` 下的 JS、JSON、CSS、WASM、图片和音频采用玩过即缓存策略，不在安装阶段全量预下载。全新 profile 在线打开并到达 Lobby 后，路由、Cocos 入口、settings 和首屏依赖可从缓存重放。
+Service Worker 版本为 `v43`。`/thirteen/` 下的 JS、JSON、CSS、WASM、图片和音频采用玩过即缓存策略，不在安装阶段全量预下载。全新 profile 在线打开并到达 Lobby 后，路由、Cocos 入口、settings 和首屏依赖可从缓存重放。
+
+## RC13 选牌与落桌热修（2026-08-31）
+
+- Cocos 源提交 `573e772b427b6ebc2b827a049dd04ef8d830effb`；宿主游戏树与该提交生成的 RC13 v2 构建逐文件一致。
+- 选中牌上抬至 `y=18`，取消选择回到 `y=0`；全局点击角度/缩放 Tween 不再停止玩法位置 Tween。
+- 删除向下选择图标；删除出牌落桌的奶白横线、`VfxPlayContact` 和 `ContactLine`，保留牌面飞行作为唯一落桌确认。
+- 非法牌组在本地提交前显示具体中文原因并播放拒绝音；在线服务仍保留最终权威裁决。
+- 工程测试 92/92；1280×720、667×375 核心交互与十页面回归通过，逐帧出牌全时间轴横线节点为 0。
+- game4 服务端测试、全仓 ESLint、Next 16.3 production build 均通过；全新 Chrome profile 接管 PWA v43，在线中文大厅、可信点击音频解锁与断网重载通过，缓存 87 项运行资源。
 
 ## RC12 交互、发牌音频与 PWA 候选（2026-08-31）
 
@@ -65,11 +74,11 @@ Service Worker 版本为 `v42`。`/thirteen/` 下的 JS、JSON、CSS、WASM、�
 
 RC6 基线证据位于 `evidence/runtime/thirteen-rc6-local/`；RC7 中文首发证据位于 `evidence/runtime/thirteen-rc7-zh-local/`；RC8 证据写入 `evidence/runtime/thirteen-rc8-zh-local/`。可重复脚本位于 `tools/sim/thirteen/`。Cocos 源仓的最终 RC8 manifest 与运行证据位于 `evidence/runtime/rc8-build-final/`。
 
-## 尚未关闭的发布硬门
+## 发布硬门
 
-- Android Chrome 与 iOS Safari 实体机的扬声器/耳机/静音/后台恢复听感和安全区验收。
-- 图片、字体、音频、生成资产许可，隐私说明和内容分级的最终签字。
+- 产品负责人已确认 Android/iOS 真机音频与安全区验收完成。
+- 产品负责人已确认图片、字体、音频、生成资产许可、隐私说明和内容分级硬门完成，并明确允许推送公网。
 
 越南母语文案、文化真实性与目标玩家评审延期到未来越南语版本，不阻塞本次中文单语言首发。
 
-上述门禁关闭前，不推送本候选、不触发 Actions、不部署公网；性能豁免也不能替代这些门禁。
+本地技术验收和上述发布硬门均已满足，RC13 可以触发 Actions 并部署公网。

@@ -155,8 +155,8 @@ try {
   const audio = { before: audioBefore, muted: audioMuted, unmuted: audioUnmuted };
   const cache = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
-    const assets = await caches.open('game-box-assets-v42');
-    const shell = await caches.open('game-box-shell-v42');
+    const assets = await caches.open('game-box-assets-v43');
+    const shell = await caches.open('game-box-shell-v43');
     const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
     const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
     return {
