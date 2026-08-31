@@ -1,0 +1,11 @@
+{
+  "source": "/Users/mac/projects/.codex-tmp/thirteen-layered-rc14-zh-audio-opening/web-mobile",
+  "target": "public/thirteen/game",
+  "sourceFiles": 515,
+  "targetFiles": 515,
+  "sourceBytes": 14614443,
+  "targetBytes": 14614443,
+  "sourceComparisonSha256": "89f5674574cd169c02227c9b8f14b1b6cc69f6c192cfb2601dc5f4b6dd7434b5",
+  "targetComparisonSha256": "89f5674574cd169c02227c9b8f14b1b6cc69f6c192cfb2601dc5f4b6dd7434b5",
+  "identical": true
+}

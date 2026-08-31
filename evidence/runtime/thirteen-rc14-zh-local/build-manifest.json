@@ -1,0 +1,15 @@
+{
+  "release": "Thirteen RC14 zh-CN",
+  "creatorVersion": "3.8.8",
+  "sourceCommit": "1a5efe505d9fbd63940fded328e5cb1e6ee7951b",
+  "serviceWorkerVersion": "v44",
+  "fileCount": 515,
+  "totalBytes": 14614443,
+  "comparisonSha256": "89f5674574cd169c02227c9b8f14b1b6cc69f6c192cfb2601dc5f4b6dd7434b5",
+  "sourceAcceptance": {
+    "nodeTests": "92/92 accepted",
+    "trustedAudio": "accepted",
+    "openingDeal": "accepted",
+    "persistedPrimaryEntry": "functional assertions accepted; performance outlier evidence retained"
+  }
+}
