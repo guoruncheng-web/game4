@@ -1,0 +1,9 @@
+
+> game4@0.1.0 start /Users/mac/projects/cocos-game-studio/.codex-tmp/game4-thirteen-rc5-20260830
+> next start --port 3221
+
+▲ Next.js 16.3.0
+- Local:         http://localhost:3221
+- Network:       http://192.168.11.142:3221
+✓ Ready in 127ms
+✓ Running next.config.ts took 25ms

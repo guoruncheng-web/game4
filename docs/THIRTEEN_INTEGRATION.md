@@ -1,11 +1,11 @@
 # Thirteen / Chặt Heo! 集成记录
 
-状态：中文单语言 RC7 本地 production / PWA 技术验收通过；公网推送与部署仍受真机听感/安全区和法务许可门禁阻塞。
+状态：中文单语言 RC8 本地 production / PWA 技术验收通过；公网推送与部署仍受真机听感/安全区和法务许可门禁阻塞。
 
 ## 组成
 
 - `/thirteen`：公开可访问的同源 Cocos iframe 宿主页；游客可玩单机、教学和设置。
-- `/thirteen/game/`：Cocos Creator 3.8.8 Web Mobile 中文单语言 RC7，512 个文件、14,861,646 bytes，全树 SHA-256 `6a2354b608de6529657fee70e0e5eb85e6dae3ca77545ed664c28677f78ebf14`。
+- `/thirteen/game/`：Cocos Creator 3.8.8 Web Mobile 中文单语言 RC8，512 个文件、14,867,296 bytes，全树 manifest SHA-256 `fd7f72557735719a82dc3dfa3bb127d0ad02cb628a8f38efa03219be6d18b2c6`。
 - `/ws`：沿用 game4 已有的鉴权 WebSocket 服务；`thirteen:*` v1 消息由独立四人权威房间目录处理。
 - `server/thirteen/`：与 Cocos 项目同版本的牌、牌型、状态机和房间核心；服务端生成随机种子并裁决所有动作。
 
@@ -23,7 +23,16 @@
 
 ## PWA
 
-Service Worker 版本为 `v40`。`/thirteen/` 下的 JS、JSON、CSS、WASM、图片和音频采用玩过即缓存策略，不在安装阶段全量预下载。全新 profile 在线打开并到达 Lobby 后，路由、Cocos 入口、哈希 settings 和首屏依赖可从缓存重放。
+Service Worker 版本为 `v41`。`/thirteen/` 下的 JS、JSON、CSS、WASM、图片和音频采用玩过即缓存策略，不在安装阶段全量预下载。全新 profile 在线打开并到达 Lobby 后，路由、Cocos 入口、哈希 settings 和首屏依赖可从缓存重放。
+
+## RC8 UI 与逐帧出牌增量（2026-08-31）
+
+- 修复大厅模式插图压字、私人房底部提示裁切、教学正文/提示挤压、牌桌顶部状态换行和工具按钮命中框重叠。
+- 手牌与桌面牌按实际张数动态居中；单机连续 AI 行动保持权威最终状态立即落盘，同时按每个已接受 revision 逐步呈现。
+- 出牌牌面从实际手牌/席位位置飞至桌面，命中时触发接触反馈；30 个真实 RAF 样本覆盖起点、中间轨迹、落点、手牌回流与最终清理。
+- 独立 RC8 在 667×375、1280×720、2400×1080 和 393×852 通过完整流程/UI/竖屏阻断，运行错误 0；Cocos 工程测试 92/92，中文覆盖失败 0。
+- RC7 宿主树已备份到 `/Users/mac/projects/cocos-game-studio/.codex-tmp/thirteen-game4-rc7-backup-20260831-1038`；未哈希 RC8 复核树备份在 `/Users/mac/projects/cocos-game-studio/.codex-tmp/thirteen-game4-rc8-unhashed-backup-20260831`；最终 RC8 源树与 `public/thirteen/game/` 逐文件一致。
+- game4 `thirteen:test`、全仓 ESLint 和 Next 16.3 production build 通过；PWA v41 使用全新 profile 接管，缓存 87 项 Thirteen 运行资源，真实点击使 21/21 音频从锁定进入解锁，断网重载回到 `R02Lobby` 且保持 `zh-CN`，宿主遮罩不可见。
 
 ## RC7 中文首发增量（2026-08-31）
 
@@ -44,7 +53,7 @@ Service Worker 版本为 `v40`。`/thirteen/` 下的 JS、JSON、CSS、WASM、�
 - PWA：v39 基线接管；在线缓存包含 `/thirteen`、入口和哈希 settings；断网后重新进入 `R02Lobby`，Canvas/Cocos 正常且宿主遮罩不可见。
 - RC5→RC6 的 473 个 `assets/resources/native` 文件路径与字节完全一致；RC6 只改变运行脚本、main bundle/config、settings 哈希和 index 引用，因此既有多机型 UI 像素验收仍适用。
 
-RC6 基线证据位于 `evidence/runtime/thirteen-rc6-local/`；RC7 中文首发证据位于 `evidence/runtime/thirteen-rc7-zh-local/`。可重复脚本位于 `tools/sim/thirteen/`。Cocos 源仓的 RC7 manifest 与运行证据位于 `evidence/release/to-launch-rc7/`、`evidence/runtime/to-launch-rc7/`。
+RC6 基线证据位于 `evidence/runtime/thirteen-rc6-local/`；RC7 中文首发证据位于 `evidence/runtime/thirteen-rc7-zh-local/`；RC8 证据写入 `evidence/runtime/thirteen-rc8-zh-local/`。可重复脚本位于 `tools/sim/thirteen/`。Cocos 源仓的最终 RC8 manifest 与运行证据位于 `evidence/runtime/rc8-build-final/`。
 
 ## 尚未关闭的发布硬门
 
