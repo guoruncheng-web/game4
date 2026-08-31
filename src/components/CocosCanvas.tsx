@@ -42,7 +42,7 @@ export default function CocosCanvas({
         source: 'game4',
         type: 'game4:session',
         version: 1,
-        locale: navigator.language,
+        locale: 'zh-CN',
         user: user ? { id: user.username, displayName: user.username } : null,
         returnPath: '/',
       }, window.location.origin);

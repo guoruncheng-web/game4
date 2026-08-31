@@ -1,15 +1,15 @@
 # Thirteen / Chặt Heo! 集成记录
 
-状态：RC6 本地 production / PWA 技术验收通过；公网推送与部署仍受越南母语/文化、真机听感和法务许可门禁阻塞。
+状态：中文单语言 RC7 本地 production / PWA 技术验收通过；公网推送与部署仍受真机听感/安全区和法务许可门禁阻塞。
 
 ## 组成
 
 - `/thirteen`：公开可访问的同源 Cocos iframe 宿主页；游客可玩单机、教学和设置。
-- `/thirteen/game/`：Cocos Creator 3.8.8 Web Mobile RC6，512 个文件、14,862,040 bytes，全树 SHA-256 `968e078ecc42dbe0e86f5a0918e08c35c22164abb310e0a4ce193e390837dcc7`。
+- `/thirteen/game/`：Cocos Creator 3.8.8 Web Mobile 中文单语言 RC7，512 个文件、14,861,646 bytes，全树 SHA-256 `6a2354b608de6529657fee70e0e5eb85e6dae3ca77545ed664c28677f78ebf14`。
 - `/ws`：沿用 game4 已有的鉴权 WebSocket 服务；`thirteen:*` v1 消息由独立四人权威房间目录处理。
 - `server/thirteen/`：与 Cocos 项目同版本的牌、牌型、状态机和房间核心；服务端生成随机种子并裁决所有动作。
 
-宿主只通过同源 `postMessage` 传公开用户名、语言和返回路径。会话 Cookie、密码和 token 不进入 iframe 消息；WebSocket 升级继续由 game4 的 httpOnly `gb_session` Cookie、HMAC 签名和数据库 `token_version` 校验。
+宿主只通过同源 `postMessage` 传公开用户名、固定 `zh-CN` locale 和返回路径。会话 Cookie、密码和 token 不进入 iframe 消息；WebSocket 升级继续由 game4 的 httpOnly `gb_session` Cookie、HMAC 签名和数据库 `token_version` 校验。游戏端也会把 URL、浏览器和历史设置中的其他 locale 迁回简体中文。
 
 ## 运行与隐私边界
 
@@ -23,9 +23,17 @@
 
 ## PWA
 
-Service Worker 版本为 `v39`。`/thirteen/` 下的 JS、JSON、CSS、WASM、图片和音频采用玩过即缓存策略，不在安装阶段全量预下载。全新 profile 在线打开并到达 Lobby 后，路由、Cocos 入口、哈希 settings 和首屏依赖可从缓存重放。
+Service Worker 版本为 `v40`。`/thirteen/` 下的 JS、JSON、CSS、WASM、图片和音频采用玩过即缓存策略，不在安装阶段全量预下载。全新 profile 在线打开并到达 Lobby 后，路由、Cocos 入口、哈希 settings 和首屏依赖可从缓存重放。
 
-## RC6 验收结果（2026-08-31）
+## RC7 中文首发增量（2026-08-31）
+
+- 发行设置、URL locale、game4 会话 locale 和旧持久化语言全部固定 `zh-CN`；设置页语言分类只显示“简体中文”。
+- 英文、越南语和伪语言字典保留为未来开发候选，但不能从中文首发 UI、URL 或宿主消息激活。
+- Cocos 源仓 91/91 测试通过；中文覆盖检查 10 场景、135 个静态 Label、49 个动态文案，失败 0。
+- 独立 RC7 横屏完整流程与 393×852 竖屏阻断通过；后续 game4/PWA 结果记录在 `evidence/runtime/thirteen-rc7-zh-local/`。
+- game4 `thirteen:test`、全仓 ESLint 和 Next 16.3 production build 通过；PWA v40 在全新 profile 中确认在线/离线均为 `zh-CN`，真实点击解锁 Music/Ambience，离线重载回到 `R02Lobby`，命令自然以 0 退出且无残留 Chrome。
+
+## RC6 基线验收结果（2026-08-31）
 
 - `thirteen:test`：独立服务器包测试通过。
 - ESLint：全仓通过。
@@ -33,15 +41,16 @@ Service Worker 版本为 `v39`。`/thirteen/` 下的 JS、JSON、CSS、WASM、�
 - 同源宿主：无重复启动遮罩；520×953 竖屏进入 `O02RotateGuard`，1280×633 横屏进入 `R02Lobby`，运行错误 0。
 - 四客户端真人链路：4 个真实数据库鉴权会话连续完成 20 个私人房完整牌局，共 1,159 个权威动作、最长 67 动作；私有手牌隔离、逐步快照一致、四人重赛、sequence 1 首动作和每局房间回收全部通过。
 - 可信音频：21/21 M4A 已加载；真实 Canvas pointerdown 使 `unlocked:false → true`，Music 与 Ambience 同时进入 playing。为兼容同源 iframe，控制器保留 Cocos Input 并增加同步浏览器手势 fallback。
-- PWA：v39 接管；在线缓存包含 `/thirteen`、入口和哈希 settings；断网后重新进入 `R02Lobby`，Canvas/Cocos 正常且宿主遮罩不可见。
+- PWA：v39 基线接管；在线缓存包含 `/thirteen`、入口和哈希 settings；断网后重新进入 `R02Lobby`，Canvas/Cocos 正常且宿主遮罩不可见。
 - RC5→RC6 的 473 个 `assets/resources/native` 文件路径与字节完全一致；RC6 只改变运行脚本、main bundle/config、settings 哈希和 index 引用，因此既有多机型 UI 像素验收仍适用。
 
-本地候选证据位于 `evidence/runtime/thirteen-rc6-local/`；可重复脚本位于 `tools/sim/thirteen/`。Cocos 源仓的 RC6 manifest 与运行证据位于 `evidence/release/to-launch-rc6/`、`evidence/runtime/to-launch-rc6/`。
+RC6 基线证据位于 `evidence/runtime/thirteen-rc6-local/`；RC7 中文首发证据位于 `evidence/runtime/thirteen-rc7-zh-local/`。可重复脚本位于 `tools/sim/thirteen/`。Cocos 源仓的 RC7 manifest 与运行证据位于 `evidence/release/to-launch-rc7/`、`evidence/runtime/to-launch-rc7/`。
 
 ## 尚未关闭的发布硬门
 
-- 越南母语文案审校、文化真实性复核与目标玩家盲测。
 - Android Chrome 与 iOS Safari 实体机的扬声器/耳机/静音/后台恢复听感和安全区验收。
 - 图片、字体、音频、生成资产许可，隐私说明和内容分级的最终签字。
+
+越南母语文案、文化真实性与目标玩家评审延期到未来越南语版本，不阻塞本次中文单语言首发。
 
 上述门禁关闭前，不推送本候选、不触发 Actions、不部署公网；性能豁免也不能替代这些门禁。
