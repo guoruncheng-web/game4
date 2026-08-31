@@ -1,11 +1,11 @@
 # Thirteen / Chặt Heo! 集成记录
 
-状态：中文单语言 RC14 音频/首次开局热修已通过本地 production / PWA 技术验收；发布硬门已由产品负责人确认完成，准备推送公网。
+状态：中文单语言 RC15 浏览器音频上下文热修已通过独立运行验收；发布硬门已由产品负责人确认完成，准备推送公网。
 
 ## 组成
 
 - `/thirteen`：公开可访问的同源 Cocos iframe 宿主页；游客可玩单机、教学和设置。
-- `/thirteen/game/`：Cocos Creator 3.8.8 Web Mobile 中文单语言 RC14，515 个文件、14,614,443 bytes，比较 SHA-256 `89f5674574cd169c02227c9b8f14b1b6cc69f6c192cfb2601dc5f4b6dd7434b5`。
+- `/thirteen/game/`：Cocos Creator 3.8.8 Web Mobile 中文单语言 RC15，515 个文件、14,615,966 bytes，比较 SHA-256 `5c3de7d446cb81c14a96d3ad41b085db9a6e181b6fdf0d797224a1702abd7fd1`。
 - `/ws`：沿用 game4 已有的鉴权 WebSocket 服务；`thirteen:*` v1 消息由独立四人权威房间目录处理。
 - `server/thirteen/`：与 Cocos 项目同版本的牌、牌型、状态机和房间核心；服务端生成随机种子并裁决所有动作。
 
@@ -23,7 +23,14 @@
 
 ## PWA
 
-Service Worker 版本为 `v44`。`/thirteen/` 下的 JS、JSON、CSS、WASM、图片和音频采用玩过即缓存策略，不在安装阶段全量预下载。全新 profile 在线打开并到达 Lobby 后，路由、Cocos 入口、settings 和首屏依赖可从缓存重放。
+Service Worker 版本为 `v45`。`/thirteen/` 下的 JS、JSON、CSS、WASM、图片和音频采用玩过即缓存策略，不在安装阶段全量预下载。全新 profile 在线打开并到达 Lobby 后，路由、Cocos 入口、settings 和首屏依赖可从缓存重放。
+
+## RC15 浏览器音频上下文热修（2026-08-31）
+
+- Cocos 源提交 `6eea4f79c6033076ecc836b195ac5330f8abfffc`。
+- Web 模板在引擎创建 AudioContext 时记录真实上下文；每次可信游戏内点击都显式调用 `resume()`，不再只依赖 Cocos `AudioSource.playing` 标志。
+- 新版本一次性把旧版本遗留的全静音设置迁移为开启；之后用户仍可在设置页自行关闭。
+- 独立运行实测 21/21 音频就绪，首次可信点击后底层 `contextState=running`，Music/Ambience playing，全部短音路由通过，运行错误 0。
 
 ## RC14 首击音频与首次开局热修（2026-08-31）
 
