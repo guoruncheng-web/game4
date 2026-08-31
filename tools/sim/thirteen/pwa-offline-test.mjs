@@ -12,6 +12,8 @@ const lobbyTimeoutMs = Number(process.env.THIRTEEN_PWA_LOBBY_TIMEOUT_MS || 30_00
 if (!Number.isFinite(lobbyTimeoutMs) || lobbyTimeoutMs < 5_000 || lobbyTimeoutMs > 180_000) {
   throw new Error('invalid_THIRTEEN_PWA_LOBBY_TIMEOUT_MS');
 }
+const viewport = process.env.THIRTEEN_PWA_VIEWPORT || '1280,720';
+if (!/^\d{3,4},\d{3,4}$/.test(viewport)) throw new Error('invalid_THIRTEEN_PWA_VIEWPORT');
 const chromePath = process.env.COCOS_CHROME
   || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -78,7 +80,7 @@ const chrome = spawn(chromePath, [
   '--disable-extensions',
   '--use-angle=swiftshader',
   '--enable-unsafe-swiftshader',
-  '--window-size=1280,720',
+  `--window-size=${viewport}`,
 ], { stdio: ['ignore', 'ignore', 'pipe'] });
 let ws;
 
