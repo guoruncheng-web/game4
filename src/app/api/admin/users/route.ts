@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getSql } from '@/lib/db';
-import { getCurrentUser } from '@/lib/session';
+import { getRequestUser } from '@/lib/session';
 import { clientIp, rateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
 export async function PATCH(request: Request) {
-  const admin = await getCurrentUser();
+  const admin = await getRequestUser(request);
   if (!admin?.isAdmin) return NextResponse.json({ error: '无权操作' }, { status: 403 });
   if (!rateLimit(`admin-user:${admin.id}:${clientIp(request)}`, 60, 60_000)) {
     return NextResponse.json({ error: '操作太频繁' }, { status: 429 });

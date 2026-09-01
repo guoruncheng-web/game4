@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { SESSION_COOKIE, cookieOptions } from '@/lib/auth';
 import { getSql } from '@/lib/db';
-import { getCurrentUser } from '@/lib/session';
+import { getRequestUser } from '@/lib/session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -12,12 +12,13 @@ export const dynamic = 'force-dynamic';
  * 除了清 cookie,还把库里的 token_version +1 —— 否则那条已经发出去的签名 token
  * 在 30 天内一直有效,谁抄走了它就一直登着,"退出登录"只是本机眼不见为净。
  */
-export async function POST() {
+export async function POST(request: Request) {
   const response = NextResponse.json({ ok: true });
   response.cookies.set(SESSION_COOKIE, '', cookieOptions(0));
 
   try {
-    const user = await getCurrentUser();
+    const user = await getRequestUser(request);
+    if (!user) return NextResponse.json({ error: '身份票据无效' }, { status: 401 });
     if (user) {
       const sql = getSql();
       await sql`update users set token_version = token_version + 1 where id = ${user.id}`;

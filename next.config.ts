@@ -16,6 +16,13 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/:path*",
+        headers: [
+          // 游戏 URL 按产品要求携带短期 token；禁止浏览器把完整地址带给第三方资源。
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
+      {
         // Service Worker 必须每次都回源校验:它被缓存住的话,
         // 改了缓存策略也推不下去,用户会一直跑着旧的那份。
         source: "/sw.js",

@@ -3,11 +3,12 @@
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, Copy, KeyRound, LogOut, RefreshCw, ShieldAlert, X } from 'lucide-react';
+import { apiFetch } from '@/lib/api-client';
 
 export type AuthMode = 'register' | 'login' | 'account';
-type User = { username: string; avatar: string; isAdmin?: boolean } | null;
+type User = { uid: number; username: string; avatar: string; isAdmin?: boolean } | null;
 /** 一键开号成功后拿到的明文凭据,只在这一次出现 */
-type Credentials = { username: string; password: string };
+type Credentials = { uid: number; username: string; password: string };
 
 /**
  * 账号弹窗:一键注册 + 登录 + 改密码。
@@ -24,7 +25,7 @@ export default function AuthDialog({
 }: {
   initialMode: AuthMode;
   user: User;
-  onAuthed: (user: User) => void;
+  onAuthed: (user: Exclude<User, null>, token: string) => void;
   onClose: () => void;
   onLogout: () => void | Promise<void>;
 }) {
@@ -84,8 +85,8 @@ export default function AuthDialog({
         refreshCaptcha();
         return;
       }
-      setCredentials({ username: data.username, password: data.password });
-      onAuthed({ username: data.username, avatar: data.avatar, isAdmin: data.isAdmin });
+      setCredentials({ uid: data.uid, username: data.username, password: data.password });
+      onAuthed({ uid: data.uid, username: data.username, avatar: data.avatar, isAdmin: data.isAdmin }, data.token);
     } catch {
       setError('网络不太好,再试一次');
       refreshCaptcha();
@@ -112,7 +113,7 @@ export default function AuthDialog({
         if (loginNeedsCaptcha || data.requireCaptcha) refreshCaptcha();
         return;
       }
-      onAuthed({ username: data.username, avatar: data.avatar, isAdmin: data.isAdmin });
+      onAuthed({ uid: data.uid, username: data.username, avatar: data.avatar, isAdmin: data.isAdmin }, data.token);
       setLoginNeedsCaptcha(false);
       setPassword('');
       onClose();
@@ -133,7 +134,7 @@ export default function AuthDialog({
     setError('');
     setNotice('');
     try {
-      const res = await fetch('/api/auth/password', {
+      const res = await apiFetch('/api/auth/password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ newPassword }),
@@ -143,6 +144,7 @@ export default function AuthDialog({
         setError(data.error ?? '修改失败');
         return;
       }
+      if (user && data.token) onAuthed(user, data.token);
       setNotice('密码改好了,其他设备上的登录状态已经失效');
       setNewPassword('');
       setConfirmPassword('');
@@ -155,7 +157,7 @@ export default function AuthDialog({
 
   async function copyCredentials() {
     if (!credentials) return;
-    const text = `账号 ${credentials.username}\n密码 ${credentials.password}`;
+    const text = `UID ${credentials.uid}\n账号 ${credentials.username}\n密码 ${credentials.password}`;
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -286,6 +288,7 @@ export default function AuthDialog({
                     </p>
                   </div>
                 </div>
+                <p className="px-1 font-mono text-xs font-bold text-emerald-600">UID {user?.uid}</p>
                 <div className="flex items-center gap-2 px-1 pt-1 text-sm font-black text-[#173366]">
                   <KeyRound size={16} className="text-emerald-500" />
                   修改密码
@@ -358,6 +361,10 @@ function CredentialsCard({
 
       <dl className="space-y-2 rounded-2xl border-2 border-slate-200 bg-white p-4">
         <div className="flex items-baseline gap-3">
+          <dt className="w-10 shrink-0 text-xs font-bold text-slate-400">UID</dt>
+          <dd className="select-all font-mono text-base font-bold text-emerald-700">{credentials.uid}</dd>
+        </div>
+        <div className="flex items-baseline gap-3">
           <dt className="w-10 shrink-0 text-xs font-bold text-slate-400">账号</dt>
           <dd className="select-all break-all font-mono text-base font-bold text-slate-800">{credentials.username}</dd>
         </div>
@@ -373,7 +380,7 @@ function CredentialsCard({
         className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-emerald-200 bg-emerald-50 text-base font-bold text-emerald-700 transition active:scale-[0.99]"
       >
         {copied ? <Check size={18} /> : <Copy size={18} />}
-        {copied ? '已复制到剪贴板' : '复制账号和密码'}
+        {copied ? '已复制到剪贴板' : '复制 UID、账号和密码'}
       </button>
 
       <label className="flex cursor-pointer items-center gap-2.5 px-1 text-sm font-bold text-slate-600">

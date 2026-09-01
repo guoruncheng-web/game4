@@ -13,6 +13,31 @@ create table if not exists users (
 -- 这是"登出即时生效"和"密码泄露后能踢掉别人"的唯一手段。
 alter table users add column if not exists token_version integer not null default 0;
 
+-- 面向玩家与游戏公开的六位数字身份标识。数据库内部仍用 bigserial id 做外键，
+-- uid 只用于用户展示、PWA API 与游戏接入，避免把内部表主键暴露给客户端。
+-- 老账号首次迁移时从尚未占用的六位数中顺序回填；新账号由注册接口随机生成。
+alter table users add column if not exists uid integer;
+
+with missing as (
+  select id, row_number() over (order by id) as sequence
+  from users
+  where uid is null
+), available as (
+  select candidate, row_number() over (order by candidate) as sequence
+  from generate_series(100000, 999999) as candidate
+  where not exists (select 1 from users where uid = candidate)
+)
+update users
+set uid = available.candidate
+from missing
+join available using (sequence)
+where users.id = missing.id;
+
+alter table users alter column uid set not null;
+alter table users drop constraint if exists users_uid_six_digits_check;
+alter table users add constraint users_uid_six_digits_check check (uid between 100000 and 999999);
+create unique index if not exists users_uid_unique_idx on users (uid);
+
 -- 每个账号都有一个可直接展示的头像。先用 emoji 做默认头像；以后开放换头像时，
 -- 仍然复用这个字段，不需要让前端根据用户名临时猜一个。
 alter table users add column if not exists avatar text not null default '🎮';

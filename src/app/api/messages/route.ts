@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSql } from '@/lib/db';
-import { getCurrentUser } from '@/lib/session';
+import { getRequestUser } from '@/lib/session';
 import { clientIp, rateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -18,7 +18,7 @@ async function areFriends(userId: number, friendId: number) {
 }
 
 export async function GET(request: Request) {
-  const user = await getCurrentUser();
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: '请先登录' }, { status: 401 });
   const friendId = Number(new URL(request.url).searchParams.get('friendId'));
   if (!Number.isSafeInteger(friendId) || friendId <= 0 || !(await areFriends(user.id, friendId))) {
@@ -54,7 +54,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const user = await getCurrentUser();
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: '请先登录' }, { status: 401 });
   if (!rateLimit(`message-send:${user.id}:${clientIp(request)}`, 40, 60_000)) {
     return NextResponse.json({ error: '发送太频繁了' }, { status: 429 });

@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getSql } from '@/lib/db';
 import { GAMES } from '@/games/registry';
+import { getRequestUser } from '@/lib/session';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const user = await getRequestUser(request);
+  if (!user) return NextResponse.json({ error: '请先登录' }, { status: 401 });
   try {
     const sql = getSql();
     const rows = await sql`select slug, enabled, sort_order from game_settings order by sort_order`;

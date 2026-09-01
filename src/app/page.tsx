@@ -18,6 +18,7 @@ import { useAuth } from '@/components/AuthProvider';
 import ChatPanel from '@/components/ChatPanel';
 import ProfilePanel from '@/components/ProfilePanel';
 import type { ReactNode } from 'react';
+import { apiFetch, withGameCredentials } from '@/lib/api-client';
 
 const upcomingGames = [
   {
@@ -33,7 +34,7 @@ const upcomingGames = [
 ];
 
 export default function Home() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   /**
    * 首页喇叭是全站的总开关,所以它看的是"实际有没有声音",而不只是 muted 那一个键。
    * 游戏里的音量滑条能拖到 0,拖到 0 之后 muted 仍然是 false ——
@@ -95,7 +96,7 @@ export default function Home() {
         return;
       }
       try {
-        const response = await fetch('/api/friends');
+        const response = await apiFetch('/api/friends');
         const data = await response.json();
         if (!cancelled && response.ok) {
           const total = (data.friends as Array<{ unreadCount?: number }>).reduce(
@@ -117,8 +118,9 @@ export default function Home() {
   }, [user]);
 
   useEffect(() => {
+    if (authLoading || !user) return undefined;
     let cancelled = false;
-    fetch('/api/games')
+    apiFetch('/api/games')
       .then((response) => response.json())
       .then((data: { games?: Array<{ slug: string; enabled: boolean }> }) => {
         if (!cancelled) {
@@ -127,7 +129,7 @@ export default function Home() {
       })
       .catch(() => undefined);
     return () => { cancelled = true; };
-  }, []);
+  }, [authLoading, user]);
 
   useEffect(() => {
     function openMessages() { setActiveTab('messages'); }
@@ -455,7 +457,7 @@ export default function Home() {
 function GameLink({ href, className, children, enabled = true, requiresAuth = true }: {
   href: string; className: string; children: ReactNode; enabled?: boolean; requiresAuth?: boolean;
 }) {
-  const { user, loading, openPanel } = useAuth();
+  const { user, credentials, loading, openPanel } = useAuth();
   if (!enabled) {
     return (
       <div aria-disabled="true" className={`${className} relative overflow-hidden opacity-60`}>
@@ -465,7 +467,7 @@ function GameLink({ href, className, children, enabled = true, requiresAuth = tr
     );
   }
   if (user || !requiresAuth) {
-    return <Link href={href} className={className}>{children}</Link>;
+    return <Link href={withGameCredentials(href, credentials)} className={className}>{children}</Link>;
   }
   return (
     <button

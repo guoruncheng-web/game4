@@ -14,7 +14,9 @@
     "ludo:test": "node --import ./server/ts-register.mjs tools/sim/ludo/rules-test.mjs",
     "umo:test": "node --experimental-strip-types --import ./server/ts-register.mjs tools/sim/umo/room-test.mts",
     "umo:pwa-test": "node tools/sim/umo/pwa-offline-test.mjs",
-    "thirteen:test": "node --experimental-strip-types --import ./server/ts-register.mjs tools/sim/thirteen/room-test.mjs"
+    "thirteen:test": "node --experimental-strip-types --import ./server/ts-register.mjs tools/sim/thirteen/room-test.mjs",
+    "auth:token-test": "node --experimental-strip-types --import ./server/ts-register.mjs tools/sim/auth-uid-token-test.mts",
+    "auth:game-link-test": "node tools/sim/auth-game-link-test.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.20.0",

@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from './AuthProvider';
+import { withGameCredentials } from '@/lib/api-client';
 
 type Props = {
   src: string;
@@ -29,8 +30,20 @@ export default function CocosCanvas({
 }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
-  const { user } = useAuth();
+  const { user, credentials } = useAuth();
   const router = useRouter();
+  const gameSrc = useMemo(() => {
+    const authenticated = withGameCredentials(src, credentials);
+    if (!credentials || gameId !== 'umo' || typeof window === 'undefined') return authenticated;
+    const pageUrl = new URL(authenticated, window.location.origin);
+    const socketUrl = new URL('/ws', window.location.origin);
+    socketUrl.protocol = socketUrl.protocol === 'https:' ? 'wss:' : 'ws:';
+    socketUrl.searchParams.set('game', 'umo');
+    socketUrl.searchParams.set('uid', String(credentials.uid));
+    socketUrl.searchParams.set('token', credentials.token);
+    pageUrl.searchParams.set('umoWs', socketUrl.toString());
+    return `${pageUrl.pathname}${pageUrl.search}${pageUrl.hash}`;
+  }, [credentials, gameId, src]);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -43,7 +56,9 @@ export default function CocosCanvas({
         type: 'game4:session',
         version: 1,
         locale: 'zh-CN',
-        user: user ? { id: user.username, displayName: user.username } : null,
+        user: user && credentials ? {
+          id: String(user.uid), uid: user.uid, displayName: user.username, token: credentials.token,
+        } : null,
         returnPath: '/',
       }, window.location.origin);
     }
@@ -63,7 +78,7 @@ export default function CocosCanvas({
     window.addEventListener('message', onMessage);
     if (ready) sendThirteenSession();
     return () => window.removeEventListener('message', onMessage);
-  }, [gameId, ready, router, user]);
+  }, [credentials, gameId, ready, router, user]);
 
   return (
     <div className={`relative size-full overflow-hidden ${backdropClassName}`}>
@@ -74,9 +89,10 @@ export default function CocosCanvas({
       )}
       <iframe
         ref={iframeRef}
-        src={src}
+        src={gameSrc}
         title={title}
         allow="autoplay; fullscreen"
+        referrerPolicy="no-referrer"
         className="block size-full border-0"
         onLoad={() => { if (readyOnLoad) setReady(true); }}
       />

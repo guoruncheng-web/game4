@@ -3,15 +3,21 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AuthDialog, { type AuthMode } from './AuthDialog';
+import {
+  apiFetch, setApiCredentials, type ApiCredentials, withGameCredentials,
+} from '@/lib/api-client';
+import { API_UID_HEADER } from '@/lib/api-contract';
 
-export type AuthUser = { username: string; avatar: string; isAdmin?: boolean } | null;
+export type AuthUser = { uid: number; username: string; avatar: string; isAdmin?: boolean } | null;
 
 type AuthContextValue = {
   user: AuthUser;
+  credentials: ApiCredentials | null;
   /** 首次 /me 还没回来。这一小段时间里别急着把界面渲染成"未登录",会闪 */
   loading: boolean;
   openPanel: (mode?: AuthMode) => void;
   logout: () => Promise<void>;
+  updateAccessToken: (token: string) => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -33,6 +39,7 @@ export function useAuth() {
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [user, setUser] = useState<AuthUser>(null);
+  const [credentials, setCredentials] = useState<ApiCredentials | null>(null);
   const [loading, setLoading] = useState(true);
   /** null = 关着 */
   const [mode, setMode] = useState<AuthMode | null>(null);
@@ -41,12 +48,26 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/api/auth/me')
+    const params = new URLSearchParams(window.location.search);
+    const linkedUid = params.get('uid');
+    const linkedToken = params.get('token');
+    fetch('/api/auth/me', {
+      headers: linkedUid && linkedToken ? {
+        [API_UID_HEADER]: linkedUid,
+        Authorization: `Bearer ${linkedToken}`,
+      } : undefined,
+    })
       .then((res) => res.json())
-      .then((data: { user: AuthUser }) => { if (!cancelled) setUser(data.user); })
+      .then((data: { user: AuthUser; token?: string | null }) => {
+        if (cancelled) return;
+        setUser(data.user);
+        const next = data.user && data.token ? { uid: data.user.uid, token: data.token } : null;
+        setCredentials(next);
+        setApiCredentials(next);
+      })
       .catch(() => undefined)
       .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+    return () => { cancelled = true; setApiCredentials(null); };
   }, []);
 
   // middleware 拦下未登录的游戏路由后会带 ?login=1&from=/xxx 弹回首页。
@@ -68,15 +89,27 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
   const openPanel = useCallback((next: AuthMode = 'register') => setMode(next), []);
 
-  const handleAuthed = useCallback((nextUser: AuthUser) => {
+  const handleAuthed = useCallback((nextUser: Exclude<AuthUser, null>, token: string) => {
+    const nextCredentials = { uid: nextUser.uid, token };
     setUser(nextUser);
+    setCredentials(nextCredentials);
+    setApiCredentials(nextCredentials);
     // /admin 是服务端权限页，登录成功后立即让它重新读取新会话。
     router.refresh();
   }, [router]);
 
+  const updateAccessToken = useCallback((token: string) => {
+    if (!user) return;
+    const nextCredentials = { uid: user.uid, token };
+    setCredentials(nextCredentials);
+    setApiCredentials(nextCredentials);
+  }, [user]);
+
   const logout = useCallback(async () => {
-    await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
+    await apiFetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
     setUser(null);
+    setCredentials(null);
+    setApiCredentials(null);
     setMode(null);
     // 可能正站在需要登录的页面上,刷一下让 middleware 把人送回首页
     router.refresh();
@@ -88,13 +121,13 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     if (redirectTo && user) {
       const target = redirectTo;
       setRedirectTo(null);
-      router.push(target);
+      router.push(withGameCredentials(target, credentials));
     }
-  }, [redirectTo, user, router]);
+  }, [credentials, redirectTo, user, router]);
 
   const value = useMemo(
-    () => ({ user, loading, openPanel, logout }),
-    [user, loading, openPanel, logout],
+    () => ({ user, credentials, loading, openPanel, logout, updateAccessToken }),
+    [user, credentials, loading, openPanel, logout, updateAccessToken],
   );
 
   return (

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSql } from '@/lib/db';
-import { getCurrentUser } from '@/lib/session';
+import { getRequestUser } from '@/lib/session';
 import { clientIp, rateLimit } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -8,6 +8,7 @@ export const dynamic = 'force-dynamic';
 
 type FriendRow = {
   id: string;
+  uid: number;
   username: string;
   avatar: string;
   last_message: string | null;
@@ -15,14 +16,15 @@ type FriendRow = {
   unread_count: string | number;
 };
 
-export async function GET() {
-  const user = await getCurrentUser();
+export async function GET(request: Request) {
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: '请先登录' }, { status: 401 });
 
   const sql = getSql();
   const rows = (await sql`
     select
       friend.id,
+      friend.uid,
       friend.username,
       friend.avatar,
       latest.content as last_message,
@@ -50,6 +52,7 @@ export async function GET() {
   return NextResponse.json({
     friends: rows.map((row) => ({
       id: Number(row.id),
+      uid: row.uid,
       username: row.username,
       avatar: row.avatar,
       lastMessage: row.last_message,
@@ -60,7 +63,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const user = await getCurrentUser();
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: '请先登录' }, { status: 401 });
   if (!rateLimit(`friend-add:${user.id}:${clientIp(request)}`, 20, 10 * 60_000)) {
     return NextResponse.json({ error: '添加得太频繁了，稍后再试' }, { status: 429 });
@@ -79,8 +82,8 @@ export async function POST(request: Request) {
 
   const sql = getSql();
   const target = (await sql`
-    select id, username, avatar from users where id = ${targetId} limit 1
-  `) as Array<{ id: string; username: string; avatar: string }>;
+    select id, uid, username, avatar from users where id = ${targetId} limit 1
+  `) as Array<{ id: string; uid: number; username: string; avatar: string }>;
   if (!target[0]) return NextResponse.json({ error: '用户不存在' }, { status: 404 });
 
   const friendship = await sql`
@@ -112,7 +115,10 @@ export async function POST(request: Request) {
   return NextResponse.json({
     request: {
       id: Number(requests[0].id),
-      recipient: { id: Number(target[0].id), username: target[0].username, avatar: target[0].avatar },
+      recipient: {
+        id: Number(target[0].id), uid: target[0].uid,
+        username: target[0].username, avatar: target[0].avatar,
+      },
     },
   });
 }

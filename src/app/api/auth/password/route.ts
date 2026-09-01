@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import {
   SESSION_COOKIE, SESSION_MAX_AGE, cookieOptions, createSessionToken,
-  hashPassword, validatePassword, verifyPassword,
+  createApiAccessToken, hashPassword, validatePassword, verifyPassword,
 } from '@/lib/auth';
 import { getSql } from '@/lib/db';
-import { getCurrentUser } from '@/lib/session';
+import { getRequestUser } from '@/lib/session';
 import { clientIp, rateLimit, sweepRateLimits } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: '操作太频繁了,过几分钟再试' }, { status: 429 });
   }
 
-  const user = await getCurrentUser();
+  const user = await getRequestUser(request);
   if (!user) return NextResponse.json({ error: '请先登录' }, { status: 401 });
 
   let body: { newPassword?: unknown };
@@ -58,7 +58,11 @@ export async function POST(request: Request) {
     returning token_version
   `) as Array<{ token_version: number }>;
 
-  const response = NextResponse.json({ ok: true });
+  const response = NextResponse.json({
+    ok: true,
+    token: createApiAccessToken(user.id, user.uid, updated[0].token_version),
+  });
+  response.headers.set('Cache-Control', 'no-store');
   // 自己这条会话刚被上面那次 +1 作废了,重新下发一条
   response.cookies.set(
     SESSION_COOKIE,

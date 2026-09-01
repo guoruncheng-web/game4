@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from './AuthProvider';
+import { withGameCredentials } from '@/lib/api-client';
 
 /**
  * 全站的联机连接。
@@ -15,7 +16,7 @@ import { useAuth } from './AuthProvider';
  * 连上去只是白占一个连接。
  */
 
-export type CoopUser = { id: number; username: string };
+export type CoopUser = { id: number; uid: number; username: string };
 export type CoopRoom = {
   id: number;
   game: string;
@@ -75,7 +76,7 @@ const RECONNECT_MAX = 15000;
 const FAIL_THRESHOLD = 3;
 
 export default function CoopProvider({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
+  const { user, credentials } = useAuth();
   const router = useRouter();
   const wsRef = useRef<WebSocket | null>(null);
   const retryRef = useRef(RECONNECT_MIN);
@@ -119,7 +120,7 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
     const connect = () => {
       if (disposed) return;
       const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-      const ws = new WebSocket(`${proto}://${window.location.host}/ws`);
+      const ws = new WebSocket(withGameCredentials(`${proto}://${window.location.host}/ws`, credentials));
       wsRef.current = ws;
 
       ws.onopen = () => {
@@ -198,7 +199,7 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
       wsRef.current?.close();
       wsRef.current = null;
     };
-  }, [user]);
+  }, [credentials, user]);
 
   // 收到开局信号就把两个人一起送进游戏。房主点了「开始」之后,
   // 客人那边不需要任何操作 —— 这是「由邀请方开始游戏」的落地方式
@@ -208,8 +209,8 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
     // 点「开始」时两个人都在 /neon-strike-2d/lobby,而它正好以 /neon-strike-2d 开头 ——
     // 用前缀判断会认为「已经在游戏里了」而跳过跳转,表现就是点了没反应。
     if (window.location.pathname === `/${start.game}`) return;
-    router.push(`/${start.game}?coop=${start.roomId}&role=${start.role}`);
-  }, [start, router]);
+    router.push(withGameCredentials(`/${start.game}?coop=${start.roomId}&role=${start.role}`, credentials));
+  }, [credentials, start, router]);
 
   /**
    * 捕鱼房**没有开局信号**:占到座位就该在池边了(DESIGN §4.2)。
@@ -218,8 +219,8 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (room?.game !== 'fish-hunter') return;
     if (window.location.pathname === '/fish-hunter') return;
-    router.push('/fish-hunter');
-  }, [room, router]);
+    router.push(withGameCredentials('/fish-hunter', credentials));
+  }, [credentials, room, router]);
 
   const value = useMemo<CoopValue>(() => ({
     connected, me, online, room, fishRooms, invite, error, start, send,
@@ -229,7 +230,7 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
       // 捕鱼是直接坐下,没有匹配页;霓虹突击要先去匹配页等房主点开始
       const game = invite?.game;
       if (game === 'fish-hunter') send({ t: 'join', roomId });
-      else { send({ t: 'accept', roomId }); router.push('/neon-strike-2d/lobby'); }
+      else { send({ t: 'accept', roomId }); router.push(withGameCredentials('/neon-strike-2d/lobby', credentials)); }
     },
     decline: (roomId) => { setInvite(null); send({ t: 'decline', roomId }); },
     leave: () => { send({ t: 'leave' }); setRoom(null); setStart(null); },
@@ -240,7 +241,7 @@ export default function CoopProvider({ children }: { children: React.ReactNode }
     sendGame: (data) => send({ t: 'game', data }),
     onGame,
     clearStart: () => setStart(null),
-  }), [connected, me, online, room, fishRooms, invite, error, start, send, onGame, router]);
+  }), [connected, credentials, me, online, room, fishRooms, invite, error, start, send, onGame, router]);
 
   return (
     <Ctx.Provider value={value}>

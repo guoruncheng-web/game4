@@ -3,10 +3,11 @@
 import Link from 'next/link';
 import { Ban, Gamepad2, MessageCircle, RefreshCw, Search, ShieldCheck, Users, UserX } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { apiFetch } from '@/lib/api-client';
 
 type Stats = { users: number; suspended: number; friendships: number; messages: number };
 type ManagedUser = {
-  id: number; username: string; avatar: string; isAdmin: boolean;
+  id: number; uid: number; username: string; avatar: string; isAdmin: boolean;
   suspendedAt: string | null; createdAt: string; lastLoginAt: string | null;
 };
 type ManagedGame = { slug: string; title: string; tagline: string; enabled: boolean; sortOrder: number };
@@ -23,7 +24,7 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(`/api/admin/overview?q=${encodeURIComponent(search)}`);
+      const response = await apiFetch(`/api/admin/overview?q=${encodeURIComponent(search)}`);
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? '加载失败');
       setStats(data.stats);
@@ -44,7 +45,7 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
   async function updateUser(user: ManagedUser) {
     const action = user.suspendedAt ? 'restore' : 'suspend';
     if (action === 'suspend' && !window.confirm(`确认封禁 ${user.username}？其现有会话会立即失效。`)) return;
-    const response = await fetch('/api/admin/users', {
+    const response = await apiFetch('/api/admin/users', {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: user.id, action }),
     });
@@ -56,7 +57,7 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
   async function updateGame(game: ManagedGame, patch: Partial<ManagedGame>) {
     const next = { ...game, ...patch };
     setGames((current) => current.map((item) => item.slug === game.slug ? next : item));
-    const response = await fetch('/api/admin/games', {
+    const response = await apiFetch('/api/admin/games', {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ slug: next.slug, enabled: next.enabled, sortOrder: next.sortOrder }),
     });
@@ -120,7 +121,11 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
               <tbody className="divide-y divide-slate-100">
                 {users.map((user) => (
                   <tr key={user.id}>
-                    <td className="py-3"><span className="mr-2 text-xl">{user.avatar}</span><span className="font-mono font-bold">{user.username}</span></td>
+                    <td className="py-3">
+                      <span className="mr-2 text-xl">{user.avatar}</span>
+                      <span className="font-mono font-bold">{user.username}</span>
+                      <span className="ml-2 font-mono text-xs font-bold text-emerald-600">UID {user.uid}</span>
+                    </td>
                     <td>{user.isAdmin ? <span className="text-emerald-600">管理员</span> : user.suspendedAt ? <span className="text-rose-500">已封禁</span> : '玩家'}</td>
                     <td>{new Date(user.createdAt).toLocaleDateString('zh-CN')}</td>
                     <td>{user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('zh-CN') : '从未'}</td>

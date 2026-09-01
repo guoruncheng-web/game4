@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { getSql } from '@/lib/db';
-import { getCurrentUser } from '@/lib/session';
+import { getRequestUser } from '@/lib/session';
 import { getGame } from '@/games/registry';
 
 export const runtime = 'nodejs';
 
 export async function PATCH(request: Request) {
-  const admin = await getCurrentUser();
+  const admin = await getRequestUser(request);
   if (!admin?.isAdmin) return NextResponse.json({ error: '无权操作' }, { status: 403 });
   let body: { slug?: unknown; enabled?: unknown; sortOrder?: unknown };
   try { body = await request.json(); } catch {

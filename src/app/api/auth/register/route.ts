@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import {
   CAPTCHA_COOKIE, SESSION_COOKIE, SESSION_MAX_AGE, cookieOptions, createSessionToken,
-  generateAvatar, generatePassword, generateUsername, hashPassword, readCookie,
+  createApiAccessToken, generateAvatar, generatePassword, generateUid, generateUsername,
+  hashPassword, readCookie,
 } from '@/lib/auth';
 import { verifyCaptcha } from '@/lib/captcha';
 import { getSql } from '@/lib/db';
@@ -39,20 +40,23 @@ export async function POST(request: Request) {
 
   // 用户名是随机生成的,极小概率撞库,撞了就换一个再来
   let username = '';
+  let uid = 0;
   let avatar = '';
   let userId: number | null = null;
   let tokenVersion = 0;
-  for (let attempt = 0; attempt < 5 && userId === null; attempt++) {
+  for (let attempt = 0; attempt < 20 && userId === null; attempt++) {
     username = generateUsername();
+    uid = generateUid();
     try {
       const rows = (await sql`
-        insert into users (username, password_hash, avatar, last_login_at)
-        values (${username}, ${passwordHash}, ${generatedAvatar}, now())
-        returning id, avatar, token_version
-      `) as Array<{ id: string; avatar: string; token_version: number }>;
+        insert into users (uid, username, password_hash, avatar, last_login_at)
+        values (${uid}, ${username}, ${passwordHash}, ${generatedAvatar}, now())
+        returning id, uid, avatar, token_version
+      `) as Array<{ id: string; uid: number; avatar: string; token_version: number }>;
       // bigserial 回来是字符串
       userId = rows[0] ? Number(rows[0].id) : null;
       avatar = rows[0]?.avatar ?? '';
+      uid = rows[0]?.uid ?? 0;
       tokenVersion = rows[0]?.token_version ?? 0;
     } catch (error) {
       const message = error instanceof Error ? error.message : '';
@@ -67,7 +71,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: '生成账号失败,请重试' }, { status: 500 });
   }
 
-  const response = NextResponse.json({ username, password, avatar, isAdmin: false });
+  const response = NextResponse.json({
+    uid,
+    username,
+    password,
+    avatar,
+    isAdmin: false,
+    token: createApiAccessToken(userId, uid, tokenVersion),
+  });
+  response.headers.set('Cache-Control', 'no-store');
   response.cookies.set(
     SESSION_COOKIE,
     createSessionToken(userId, tokenVersion),

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { SESSION_COOKIE } from '@/lib/auth';
-import { resolveSession } from '@/lib/session';
+import { createApiAccessToken, SESSION_COOKIE } from '@/lib/auth';
+import { resolveGameCredentials, resolveSession } from '@/lib/session';
 import { getSql } from '@/lib/db';
 import { GAMES } from '@/games/registry';
 
@@ -30,11 +30,35 @@ const GAME_SLUGS = new Set(GAMES.map((game) => game.slug));
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const slug = pathname.split('/')[1];
+  const isGame = GAME_SLUGS.has(slug);
+  const rawUid = request.nextUrl.searchParams.get('uid');
+  const rawToken = request.nextUrl.searchParams.get('token');
+  const hasGameCredential = rawUid !== null || rawToken !== null;
+  const urlUser = hasGameCredential
+    ? await resolveGameCredentials(rawUid, rawToken).catch(() => null)
+    : null;
+  if (hasGameCredential && !urlUser) {
+    const target = new URL('/', request.url);
+    target.searchParams.set('login', '1');
+    target.searchParams.set('from', pathname);
+    target.searchParams.set('reason', 'invalid-game-token');
+    return NextResponse.redirect(target);
+  }
+  const cookieUser = await resolveSession(request.cookies.get(SESSION_COOKIE)?.value).catch(() => null);
+  const user = urlUser ?? cookieUser;
+
+  // 直接输入游戏地址时，也把当前登录用户规范化到带 uid/token 的游戏 URL。
+  if (isGame && user && !hasGameCredential) {
+    const target = request.nextUrl.clone();
+    target.searchParams.set('uid', String(user.uid));
+    target.searchParams.set('token', createApiAccessToken(user.id, user.uid, user.tokenVersion));
+    return NextResponse.redirect(target);
+  }
+
   if (PUBLIC_PATHS.has(pathname)) return NextResponse.next();
 
-  const user = await resolveSession(request.cookies.get(SESSION_COOKIE)?.value).catch(() => null);
   if (user) {
-    const slug = pathname.split('/')[1];
     if (GAME_SLUGS.has(slug)) {
       try {
         const sql = getSql();

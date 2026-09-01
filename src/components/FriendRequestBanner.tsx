@@ -4,10 +4,11 @@ import { UserPlus, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { useAuth } from './AuthProvider';
+import { apiFetch } from '@/lib/api-client';
 
 type FriendRequest = {
   id: number;
-  sender: { id: number; username: string; avatar: string };
+  sender: { id: number; uid: number; username: string; avatar: string };
 };
 
 /** 全站好友申请横幅。PWA 页面仍存活时，每 5 秒检查一次新申请。 */
@@ -22,7 +23,7 @@ export default function FriendRequestBanner() {
     let cancelled = false;
     async function poll() {
       try {
-        const response = await fetch('/api/friend-requests');
+        const response = await apiFetch('/api/friend-requests');
         const data = await response.json();
         if (cancelled || !response.ok) return;
         const next = (data.requests as FriendRequest[]).find((item) => !dismissedRef.current.has(item.id));

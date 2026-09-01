@@ -4,9 +4,10 @@ import Link from 'next/link';
 import { CheckCircle2, KeyRound, LayoutDashboard, LogIn, LogOut, ShieldCheck, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from './AuthProvider';
+import { apiFetch } from '@/lib/api-client';
 
 export default function ProfilePanel() {
-  const { user, openPanel, logout } = useAuth();
+  const { user, openPanel, logout, updateAccessToken } = useAuth();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,7 +24,7 @@ export default function ProfilePanel() {
     setError('');
     setNotice('');
     try {
-      const response = await fetch('/api/auth/password', {
+      const response = await apiFetch('/api/auth/password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ newPassword }),
@@ -33,6 +34,7 @@ export default function ProfilePanel() {
         setError(data.error ?? '修改失败');
         return;
       }
+      if (data.token) updateAccessToken(data.token);
       setNewPassword('');
       setConfirmPassword('');
       setNotice('密码已修改，其他设备上的登录状态已失效');
@@ -71,6 +73,7 @@ export default function ProfilePanel() {
           <div className="min-w-0">
             <p className="text-xs font-black text-white/75">游戏账号</p>
             <p className="mt-1 truncate font-mono text-xl font-black">{user.username}</p>
+            <p className="mt-1 font-mono text-sm font-black text-white/80">UID {user.uid}</p>
             <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-xs font-bold"><CheckCircle2 size={13} /> 已登录</p>
           </div>
         </div>

@@ -18,12 +18,12 @@ if (process.argv.includes('--clean')) {
 } else {
   const passwordHash = hashPassword('Testpass123');
   const rows = (await sql`
-    insert into users (username, password_hash, last_login_at)
+    insert into users (uid, username, password_hash, last_login_at)
     values
-      ('test-e2e-1', ${passwordHash}, now()),
-      ('test-e2e-2', ${passwordHash}, now())
-    returning id, username
-  `) as Array<{ id: string; username: string }>;
-  console.log('测试账号已就绪 %s', rows.map((row) => `${row.username}(id=${row.id})`).join(', '));
+      (880001, 'test-e2e-1', ${passwordHash}, now()),
+      (880002, 'test-e2e-2', ${passwordHash}, now())
+    returning id, uid, username
+  `) as Array<{ id: string; uid: number; username: string }>;
+  console.log('测试账号已就绪 %s', rows.map((row) => `${row.username}(uid=${row.uid},id=${row.id})`).join(', '));
 }
 process.exit(0);

@@ -4,9 +4,11 @@ import { ArrowLeft, MessageCircle, Plus, Search, Send, Users } from 'lucide-reac
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { useCoop } from './CoopProvider';
+import { apiFetch } from '@/lib/api-client';
 
 type Friend = {
   id: number;
+  uid: number;
   username: string;
   avatar: string;
   lastMessage?: string | null;
@@ -41,13 +43,13 @@ export default function ChatPanel() {
 
   const loadFriends = useCallback(async () => {
     if (!user) return;
-    const res = await fetch('/api/friends');
+    const res = await apiFetch('/api/friends');
     const data = await res.json();
     if (res.ok) setFriends(data.friends);
   }, [user]);
 
   const loadMessages = useCallback(async (friendId: number, quiet = false) => {
-    const res = await fetch(`/api/messages?friendId=${friendId}`);
+    const res = await apiFetch(`/api/messages?friendId=${friendId}`);
     const data = await res.json();
     if (res.ok) setMessages(data.messages);
     else if (!quiet) setError(data.error ?? '消息加载失败');
@@ -55,7 +57,7 @@ export default function ChatPanel() {
 
   const loadRequests = useCallback(async () => {
     if (!user) return;
-    const res = await fetch('/api/friend-requests');
+    const res = await apiFetch('/api/friend-requests');
     const data = await res.json();
     if (res.ok) setRequests(data.requests);
   }, [user]);
@@ -97,7 +99,7 @@ export default function ChatPanel() {
     setSearching(true);
     setError('');
     try {
-      const res = await fetch(`/api/friends/search?q=${encodeURIComponent(value)}`);
+      const res = await apiFetch(`/api/friends/search?q=${encodeURIComponent(value)}`);
       const data = await res.json();
       if (!res.ok) setError(data.error ?? '搜索失败');
       else setResults(data.users);
@@ -110,7 +112,7 @@ export default function ChatPanel() {
 
   async function addFriend(person: SearchUser) {
     setError('');
-    const res = await fetch('/api/friends', {
+    const res = await apiFetch('/api/friends', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ userId: person.id }),
@@ -127,7 +129,7 @@ export default function ChatPanel() {
 
   async function respondToRequest(request: FriendRequest, action: 'accept' | 'reject') {
     setError('');
-    const res = await fetch('/api/friend-requests', {
+    const res = await apiFetch('/api/friend-requests', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ requestId: request.id, action }),
@@ -150,7 +152,7 @@ export default function ChatPanel() {
     if (!activeFriend || !content) return;
     setDraft('');
     setError('');
-    const res = await fetch('/api/messages', {
+    const res = await apiFetch('/api/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ friendId: activeFriend.id, content }),
@@ -254,7 +256,7 @@ export default function ChatPanel() {
       <form className="flex gap-2" onSubmit={(event) => { event.preventDefault(); void searchUsers(); }}>
         <label className="flex min-h-12 flex-1 items-center gap-2 rounded-2xl border-2 border-white bg-white/80 px-3 shadow-sm">
           <Search size={18} className="text-slate-400" />
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索用户昵称" className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索用户名或六位 UID" className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none" />
         </label>
         <button type="submit" disabled={searching} className="rounded-2xl bg-emerald-500 px-4 text-sm font-black text-white disabled:bg-slate-300">
           {searching ? '搜索中' : '搜索'}
@@ -268,7 +270,10 @@ export default function ChatPanel() {
           {results.map((person) => (
             <div key={person.id} className="flex items-center gap-3 rounded-2xl bg-white p-3">
               <span className="grid size-11 place-items-center rounded-xl bg-emerald-50 text-2xl">{person.avatar}</span>
-              <span className="min-w-0 flex-1 truncate text-sm font-black text-[#173366]">{person.username}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-black text-[#173366]">{person.username}</span>
+                <span className="block font-mono text-[10px] font-bold text-emerald-600">UID {person.uid}</span>
+              </span>
               <button type="button" disabled={person.isFriend || person.requestSent || person.requestReceived} onClick={() => { void addFriend(person); }} className="flex min-h-9 items-center gap-1 rounded-xl bg-emerald-50 px-3 text-xs font-black text-emerald-600 disabled:text-slate-400">
                 {person.isFriend ? '已是好友' : person.requestSent ? '已发送' : person.requestReceived ? '待你处理' : <><Plus size={15} /> 加好友</>}
               </button>
@@ -315,6 +320,7 @@ export default function ChatPanel() {
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-black text-[#173366]">{friend.username}</span>
+              <span className="block font-mono text-[10px] font-bold text-emerald-600">UID {friend.uid}</span>
               <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs font-semibold text-slate-400">
                 <span className={connected && onlineIds.has(friend.id) ? 'text-emerald-500' : 'text-slate-400'}>
                   {!connected ? '连接中' : onlineIds.has(friend.id) ? '在线' : '离线'}

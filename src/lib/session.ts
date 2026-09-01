@@ -1,14 +1,17 @@
 import { cookies } from 'next/headers';
-import { readSessionToken, SESSION_COOKIE } from './auth';
+import {
+  bearerToken, readApiAccessToken, readSessionToken, SESSION_COOKIE,
+} from './auth';
+import { API_UID_HEADER } from './api-contract';
 import { getSql } from './db';
 
 export type CurrentUser = {
-  id: number; username: string; avatar: string; tokenVersion: number; isAdmin: boolean;
+  id: number; uid: number; username: string; avatar: string; tokenVersion: number; isAdmin: boolean;
 };
 
 // bigserial 经 neon 回来是字符串,拿到手先转成 number(账号量远到不了 2^53)
 type UserRow = {
-  id: string | number; username: string; avatar: string; token_version: number;
+  id: string | number; uid: number; username: string; avatar: string; token_version: number;
   is_admin: boolean; suspended_at: string | null;
 };
 
@@ -36,7 +39,7 @@ export async function resolveSession(token: string | undefined): Promise<Current
   if (!claims) return null;
   const sql = getSql();
   const rows = (await sql`
-    select id, username, avatar, token_version, is_admin, suspended_at
+    select id, uid, username, avatar, token_version, is_admin, suspended_at
     from users where id = ${claims.userId} limit 1
   `) as UserRow[];
   const row = rows[0];
@@ -45,9 +48,52 @@ export async function resolveSession(token: string | undefined): Promise<Current
   if (row.token_version !== claims.tokenVersion) return null;
   return {
     id: Number(row.id),
+    uid: row.uid,
     username: row.username,
     avatar: row.avatar,
     tokenVersion: row.token_version,
     isAdmin: row.is_admin,
   };
+}
+
+/**
+ * 受保护 API 与游戏服务的统一身份入口：请求必须同时携带六位 uid 和 Bearer token。
+ * Cookie 只负责 `/api/auth/me` 的启动续签，不能单独绕过这里。
+ */
+export async function resolveApiCredentials(
+  rawUid: string | null | undefined,
+  token: string | undefined,
+): Promise<CurrentUser | null> {
+  const uid = Number(rawUid);
+  if (!/^\d{6}$/.test(rawUid ?? '') || !Number.isInteger(uid)) return null;
+  const claims = readApiAccessToken(token);
+  if (!claims || claims.uid !== uid) return null;
+
+  const sql = getSql();
+  const rows = (await sql`
+    select id, uid, username, avatar, token_version, is_admin, suspended_at
+    from users where id = ${claims.userId} and uid = ${uid} limit 1
+  `) as UserRow[];
+  const row = rows[0];
+  if (!row || row.suspended_at || row.token_version !== claims.tokenVersion) return null;
+  return {
+    id: Number(row.id),
+    uid: row.uid,
+    username: row.username,
+    avatar: row.avatar,
+    tokenVersion: row.token_version,
+    isAdmin: row.is_admin,
+  };
+}
+
+export async function getRequestUser(request: Request): Promise<CurrentUser | null> {
+  return resolveApiCredentials(request.headers.get(API_UID_HEADER), bearerToken(request));
+}
+
+/** 游戏 URL / WebSocket query 的认证入口。 */
+export async function resolveGameCredentials(
+  uid: string | null | undefined,
+  token: string | null | undefined,
+): Promise<CurrentUser | null> {
+  return resolveApiCredentials(uid, token ?? undefined);
 }

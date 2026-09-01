@@ -2,6 +2,7 @@
 const ORIGIN = process.argv[2] ?? 'http://127.0.0.1:3000';
 const BASE = ORIGIN + '/api/auth';
 const jar = new Map();
+const credentials = new Map();
 
 function cookieHeader(name = 'a') {
   const store = jar.get(name) ?? {};
@@ -19,17 +20,28 @@ function absorb(res, name = 'a') {
   jar.set(name, store);
 }
 async function call(path, { method = 'GET', body, jarName = 'a', absorbInto } = {}) {
+  const identity = credentials.get(jarName);
   const res = await fetch((path.startsWith('/api/') ? ORIGIN : BASE) + path, {
     method,
     headers: {
       ...(body ? { 'Content-Type': 'application/json' } : {}),
       ...(cookieHeader(jarName) ? { cookie: cookieHeader(jarName) } : {}),
+      ...(identity ? {
+        'X-Game-UID': String(identity.uid),
+        Authorization: `Bearer ${identity.token}`,
+      } : {}),
     },
     body: body ? JSON.stringify(body) : undefined,
   });
   absorb(res, absorbInto ?? jarName);
   const type = res.headers.get('content-type') ?? '';
   const payload = type.includes('json') ? await res.json() : `<${type} ${(await res.arrayBuffer()).byteLength}B>`;
+  const target = absorbInto ?? jarName;
+  if (payload?.uid && payload?.token) credentials.set(target, { uid: payload.uid, token: payload.token });
+  if (payload?.user?.uid && payload?.token) credentials.set(target, { uid: payload.user.uid, token: payload.token });
+  if (payload?.token && credentials.has(target)) {
+    credentials.set(target, { ...credentials.get(target), token: payload.token });
+  }
   return { status: res.status, payload, headers: res.headers };
 }
 
@@ -40,14 +52,22 @@ function check(label, ok, detail) {
 }
 
 let r = await call('/login', { method: 'POST', body: { username: 'test-e2e-1', password: 'Testpass123' } });
-check('1 正确密码登录并返回头像',
-  r.status === 200 && r.payload.username === 'test-e2e-1' && r.payload.avatar === '🎮',
+check('1 正确密码登录并返回六位 UID、头像和访问 token',
+  r.status === 200 && r.payload.uid === 880001 && r.payload.username === 'test-e2e-1'
+    && r.payload.avatar === '🎮' && /^gbapi1\./.test(r.payload.token),
   JSON.stringify(r.payload));
 
 r = await call('/me');
-check('2 /me 认得这条会话和头像',
-  r.payload?.user?.username === 'test-e2e-1' && r.payload?.user?.avatar === '🎮',
+check('2 /me 认得这条会话并续签访问 token',
+  r.payload?.user?.uid === 880001 && r.payload?.user?.username === 'test-e2e-1'
+    && r.payload?.user?.avatar === '🎮' && /^gbapi1\./.test(r.payload.token),
   JSON.stringify(r.payload));
+
+jar.set('cookie-only', { ...(jar.get('a') ?? {}) });
+r = await call('/api/friends', { jarName: 'cookie-only' });
+check('2b 受保护 API 不能只带 cookie', r.status === 401, JSON.stringify(r.payload));
+r = await call('/api/games', { jarName: 'cookie-only' });
+check('2c 游戏目录接口也要求 UID/token', r.status === 401, JSON.stringify(r.payload));
 
 r = await call('/login', {
   method: 'POST', body: { username: 'test-e2e-2', password: 'Testpass123' }, jarName: 'friend',
@@ -105,17 +125,24 @@ r = await call('/password', { method: 'POST', body: { newPassword: 'Testpass123'
 check('8 新密码不能和旧的一样', r.status === 400, JSON.stringify(r.payload));
 
 const before = { ...(jar.get('a') ?? {}) };
+const beforeToken = credentials.get('a')?.token;
 r = await call('/password', { method: 'POST', body: { newPassword: 'Newpass456' } });
-check('9 改密码成功', r.status === 200, JSON.stringify(r.payload));
+check('9 改密码成功并轮换访问 token',
+  r.status === 200 && /^gbapi1\./.test(r.payload.token) && r.payload.token !== beforeToken,
+  JSON.stringify(r.payload));
 const after = jar.get('a') ?? {};
 check('10 改密码后重新下发了会话', before.gb_session !== after.gb_session);
 
 jar.set('old', { gb_session: before.gb_session });
+credentials.set('old-token', { uid: 880001, token: beforeToken });
 r = await call('/me', { jarName: 'old' });
 check('11 改密码作废了旧会话', r.payload.user === null, JSON.stringify(r.payload));
 
 r = await call('/me');
 check('12 当前设备还登着', r.payload?.user?.username === 'test-e2e-1', JSON.stringify(r.payload));
+
+r = await call('/api/friends', { jarName: 'old-token' });
+check('12b 改密码也作废旧访问 token', r.status === 401, JSON.stringify(r.payload));
 
 const live = { ...(jar.get('a') ?? {}) };
 r = await call('/logout', { method: 'POST' });

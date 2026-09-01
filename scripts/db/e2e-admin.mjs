@@ -1,20 +1,29 @@
 /** 后台管理冒烟测试。先 seed-e2e，再把 test-e2e-1 提升为管理员。 */
 const ORIGIN = process.argv[2] ?? 'http://127.0.0.1:3000';
 const jars = new Map();
+const credentials = new Map();
 let failed = 0;
 
 async function call(path, { method = 'GET', body, jar = 'admin' } = {}) {
+  const identity = credentials.get(jar);
   const response = await fetch(ORIGIN + path, {
     method,
     headers: {
       ...(body ? { 'Content-Type': 'application/json' } : {}),
       ...(jars.get(jar) ? { cookie: jars.get(jar) } : {}),
+      ...(identity ? {
+        'X-Game-UID': String(identity.uid),
+        Authorization: `Bearer ${identity.token}`,
+      } : {}),
     },
     body: body ? JSON.stringify(body) : undefined,
   });
   const cookie = response.headers.getSetCookie?.().find((item) => item.startsWith('gb_session='));
   if (cookie) jars.set(jar, cookie.split(';')[0]);
-  return { status: response.status, data: await response.json() };
+  const data = await response.json();
+  if (data?.uid && data?.token) credentials.set(jar, { uid: data.uid, token: data.token });
+  if (data?.user?.uid && data?.token) credentials.set(jar, { uid: data.user.uid, token: data.token });
+  return { status: response.status, data };
 }
 function check(label, ok, detail) {
   console.log(`${ok ? '✓' : '✗'} ${label}${detail ? ` ${detail}` : ''}`);
@@ -22,13 +31,13 @@ function check(label, ok, detail) {
 }
 
 let result = await call('/api/auth/login', { method: 'POST', body: { username: 'test-e2e-1', password: 'Testpass123' } });
-check('管理员登录', result.status === 200 && result.data.isAdmin === true, JSON.stringify(result.data));
+check('管理员登录', result.status === 200 && result.data.uid === 880001 && result.data.isAdmin === true, JSON.stringify(result.data));
 result = await call('/api/auth/login', { method: 'POST', body: { username: 'test-e2e-2', password: 'Testpass123' }, jar: 'user' });
 check('普通用户登录', result.status === 200 && !result.data.isAdmin, JSON.stringify(result.data));
 
 result = await call('/api/admin/overview');
 const managedUser = result.data.users?.find((user) => user.username === 'test-e2e-2');
-check('管理员读取概览', result.status === 200 && managedUser && result.data.games?.length >= 8);
+check('管理员读取概览', result.status === 200 && managedUser?.uid === 880002 && result.data.games?.length >= 8);
 result = await call('/api/admin/overview', { jar: 'user' });
 check('普通用户被后台拒绝', result.status === 403);
 

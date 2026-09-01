@@ -26,6 +26,8 @@ export const SESSION_COOKIE = 'gb_session';
 export const CAPTCHA_COOKIE = 'gb_captcha';
 /** 会话有效期 30 天 */
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
+/** JS 可读的 API/游戏票据只给短期权限，不能替代 30 天 httpOnly 会话。 */
+export const API_TOKEN_MAX_AGE = 60 * 60 * 2;
 
 /**
  * 密码长度上限。
@@ -102,6 +104,11 @@ export function generateAvatar(): string {
   return DEFAULT_AVATARS[randomInt(DEFAULT_AVATARS.length)];
 }
 
+/** 六位数字公开身份标识；上界对 randomInt 是排他的。唯一性最终由数据库保证。 */
+export function generateUid(): number {
+  return randomInt(100000, 1000000);
+}
+
 export function normalizeUsername(input: unknown): string {
   return typeof input === 'string' ? input.trim().toLowerCase() : '';
 }
@@ -110,6 +117,12 @@ export function normalizeUsername(input: unknown): string {
 
 function sign(payload: string) {
   return createHmac('sha256', secret()).update(payload).digest('base64url');
+}
+
+function safeSignature(payload: string, signature: string): boolean {
+  const expected = sign(payload);
+  return signature.length === expected.length
+    && timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
 }
 
 /** payload 是 `用户id.版本号.过期时间`,版本号对不上就是被登出/改过密码的旧 token */
@@ -127,15 +140,56 @@ export function readSessionToken(token: string | undefined): SessionClaims | nul
   if (parts.length !== 4) return null;
   const [rawId, rawVersion, rawExpires, signature] = parts;
   const payload = `${rawId}.${rawVersion}.${rawExpires}`;
-  const expected = sign(payload);
-  if (signature.length !== expected.length) return null;
-  if (!timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
+  if (!safeSignature(payload, signature)) return null;
   if (Number(rawExpires) * 1000 < Date.now()) return null;
   const userId = Number(rawId);
   const tokenVersion = Number(rawVersion);
   if (!Number.isInteger(userId) || userId <= 0) return null;
   if (!Number.isInteger(tokenVersion) || tokenVersion < 0) return null;
   return { userId, tokenVersion };
+}
+
+export type ApiTokenClaims = {
+  userId: number;
+  uid: number;
+  tokenVersion: number;
+  expiresAt: number;
+};
+
+/**
+ * 给 PWA fetch、游戏 iframe 与 WebSocket 使用的作用域票据。
+ * `gbapi1` 是显式版本/用途前缀，避免它和会话 cookie 在任何地方互换使用。
+ */
+export function createApiAccessToken(userId: number, uid: number, tokenVersion: number): string {
+  const expires = Math.floor(Date.now() / 1000) + API_TOKEN_MAX_AGE;
+  const payload = `gbapi1.${userId}.${uid}.${tokenVersion}.${expires}`;
+  return `${payload}.${sign(`api:${payload}`)}`;
+}
+
+export function readApiAccessToken(token: string | undefined): ApiTokenClaims | null {
+  if (!token) return null;
+  const parts = token.split('.');
+  if (parts.length !== 6 || parts[0] !== 'gbapi1') return null;
+  const [prefix, rawId, rawUid, rawVersion, rawExpires, signature] = parts;
+  const payload = `${prefix}.${rawId}.${rawUid}.${rawVersion}.${rawExpires}`;
+  if (!safeSignature(`api:${payload}`, signature)) return null;
+
+  const userId = Number(rawId);
+  const uid = Number(rawUid);
+  const tokenVersion = Number(rawVersion);
+  const expiresAt = Number(rawExpires);
+  if (!Number.isSafeInteger(userId) || userId <= 0) return null;
+  if (!Number.isInteger(uid) || uid < 100000 || uid > 999999) return null;
+  if (!Number.isInteger(tokenVersion) || tokenVersion < 0) return null;
+  if (!Number.isInteger(expiresAt) || expiresAt * 1000 < Date.now()) return null;
+  return { userId, uid, tokenVersion, expiresAt };
+}
+
+export function bearerToken(request: Request): string | undefined {
+  const authorization = request.headers.get('authorization')?.trim();
+  if (!authorization?.startsWith('Bearer ')) return undefined;
+  const value = authorization.slice('Bearer '.length).trim();
+  return value || undefined;
 }
 
 /** 签名用的 HMAC 也给验证码复用,省一套密钥管理 */

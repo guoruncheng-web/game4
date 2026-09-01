@@ -5,8 +5,8 @@
  * - `next start` 保持原样,部署和 systemd 不用为它改动;
  * - 它崩了不会把网站一起带崩。
  *
- * nginx 把 `/ws` 反代到这里。**同域名下浏览器会自动带上会话 cookie**,
- * 所以鉴权直接复用现有账号体系,不需要另发一套票据。
+ * nginx 把 `/ws` 反代到这里。登录用户必须在握手 URL 中同时携带六位 uid 与
+ * 短期 game token；不再把长期 httpOnly 会话 cookie 当作游戏协议凭据。
  *
  * 承担四件事；在线连接是内存态，UMO 与十三张权威房间使用加密恢复快照:
  *   1. 在线状态 —— 谁登录着、在不在游戏里
@@ -20,7 +20,7 @@
  */
 
 import { createServer } from 'node:http';
-import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { WebSocketServer } from 'ws';
@@ -30,9 +30,9 @@ import { AuthoritativeGateway } from './umo/gateway.ts';
 import { UmoWsAdapter } from './umo/ws-adapter.ts';
 import { RoomDirectory } from './thirteen/server/room-directory.ts';
 import { ThirteenWsAdapter } from './thirteen/server/ws-adapter.ts';
+import { readApiAccessToken } from '../src/lib/auth.ts';
 
 const PORT = Number(process.env.WS_PORT || 7011);
-const SESSION_COOKIE = 'gb_session';
 
 /** 心跳。超过这个时间没有任何往来就断开,防止半开连接一直占着在线名额 */
 const PING_INTERVAL_MS = 30_000;
@@ -44,44 +44,26 @@ const sql = postgres(process.env.DATABASE_URL, {
 
 // ---------------------------------------------------------------- 会话
 
-function secret() {
-  const value = process.env.AUTH_SECRET;
-  if (!value) throw new Error('AUTH_SECRET 未配置');
-  return value;
-}
-
 /**
- * 校验会话 token。和 src/lib/auth.ts 的 readSessionToken 是同一套格式:
- * `用户id.版本号.过期时间.签名`。
+ * 校验游戏访问 token。签名解析复用 src/lib/auth.ts，避免 WS 与 REST 出现两套格式。
  *
  * **必须连库比对 token_version** —— 登出和改密码是靠把库里的版本号 +1 来作废
  * 已经发出去的 token 的,只验签名的话,登出的人照样能连上来。
  * 数据库现在和应用同机,这次查询是 1ms 级,不心疼。
  */
-async function resolveUser(cookieHeader) {
-  const raw = cookieHeader || '';
-  let token;
-  for (const part of raw.split(';')) {
-    const i = part.indexOf('=');
-    if (i > 0 && part.slice(0, i).trim() === SESSION_COOKIE) token = part.slice(i + 1).trim();
-  }
-  if (!token) return null;
+async function resolveUser(requestUrl) {
+  const rawUid = requestUrl.searchParams.get('uid');
+  const uid = Number(rawUid);
+  const claims = readApiAccessToken(requestUrl.searchParams.get('token') ?? undefined);
+  if (!/^\d{6}$/.test(rawUid ?? '') || !claims || claims.uid !== uid) return null;
 
-  const parts = token.split('.');
-  if (parts.length !== 4) return null;
-  const [rawId, rawVersion, rawExpires, signature] = parts;
-  const payload = `${rawId}.${rawVersion}.${rawExpires}`;
-  const expected = createHmac('sha256', secret()).update(payload).digest('base64url');
-  if (signature.length !== expected.length) return null;
-  if (!timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) return null;
-  if (Number(rawExpires) * 1000 < Date.now()) return null;
-
-  const id = Number(rawId);
-  if (!Number.isInteger(id) || id <= 0) return null;
-  const rows = await sql`select id, username, avatar, token_version from users where id = ${id} limit 1`;
+  const rows = await sql`
+    select id, uid, username, avatar, token_version, suspended_at
+    from users where id = ${claims.userId} and uid = ${uid} limit 1
+  `;
   const row = rows[0];
-  if (!row || row.token_version !== Number(rawVersion)) return null;
-  return { id: Number(row.id), username: row.username, avatar: row.avatar };
+  if (!row || row.suspended_at || row.token_version !== claims.tokenVersion) return null;
+  return { id: Number(row.id), uid: row.uid, username: row.username, avatar: row.avatar };
 }
 
 // ---------------------------------------------------------------- 状态
@@ -220,7 +202,7 @@ function invitableList(exceptId) {
   const out = [];
   for (const [id, c] of clients) {
     if (id !== exceptId && !c.roomId && !thirteenDirectory.assignmentFor(String(id))) {
-      out.push({ id, username: c.username });
+      out.push({ id, uid: c.uid, username: c.username });
     }
   }
   return out.slice(0, 50);
@@ -519,10 +501,15 @@ server.on('upgrade', async (req, socket, head) => {
   try {
     const requestUrl = new URL(req.url || '/ws', 'http://127.0.0.1');
     if (requestUrl.pathname === '/ws' && requestUrl.searchParams.get('game') === 'umo') {
+      const hasIdentity = requestUrl.searchParams.has('uid') || requestUrl.searchParams.has('token');
+      if (hasIdentity && !await resolveUser(requestUrl)) {
+        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+        return socket.destroy();
+      }
       umoWss.handleUpgrade(req, socket, head, (ws) => umoAdapter.attach(ws));
       return;
     }
-    const user = await resolveUser(req.headers.cookie);
+    const user = await resolveUser(requestUrl);
     if (!user) {
       // 没登录直接拒,不要升级成 WebSocket 再断 —— 前端分不清"没登录"和"服务挂了"
       socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
@@ -536,12 +523,14 @@ server.on('upgrade', async (req, socket, head) => {
         try { old.ws.close(); } catch { /* 已经关了 */ }
       }
       const client = {
-        ws, userId: user.id, username: user.username, avatar: user.avatar,
+        ws, userId: user.id, uid: user.uid, username: user.username, avatar: user.avatar,
         roomId: old?.roomId ?? null, alive: true,
       };
       clients.set(user.id, client);
 
-      send(ws, { t: 'ready', me: { id: user.id, username: user.username, avatar: user.avatar } });
+      send(ws, { t: 'ready', me: {
+        id: user.id, uid: user.uid, username: user.username, avatar: user.avatar,
+      } });
       // 继承来的房间已经解散了就把标记清掉,否则这个人会永远"在房间里"、
       // 既收不到在线列表也进不了新房间
       if (client.roomId && !rooms.has(client.roomId)) client.roomId = null;

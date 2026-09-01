@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import {
   CAPTCHA_COOKIE, MAX_PASSWORD_LENGTH, SESSION_COOKIE, SESSION_MAX_AGE,
-  cookieOptions, createSessionToken, normalizeUsername, readCookie, verifyPassword,
+  cookieOptions, createApiAccessToken, createSessionToken, normalizeUsername, readCookie, verifyPassword,
 } from '@/lib/auth';
 import { verifyCaptcha } from '@/lib/captcha';
 import { getSql } from '@/lib/db';
@@ -68,9 +68,9 @@ export async function POST(request: Request) {
 
   const sql = getSql();
   const rows = (await sql`
-    select id, password_hash, avatar, token_version, is_admin from users where username = ${username} limit 1
+    select id, uid, password_hash, avatar, token_version, is_admin from users where username = ${username} limit 1
   `) as Array<{
-    id: string; password_hash: string; avatar: string; token_version: number; is_admin: boolean;
+    id: string; uid: number; password_hash: string; avatar: string; token_version: number; is_admin: boolean;
   }>;
 
   const user = rows[0];
@@ -92,7 +92,14 @@ export async function POST(request: Request) {
   clearFailures(userKey);
   resetRateLimit(`login:${ip}`);
 
-  const response = NextResponse.json({ username, avatar: user.avatar, isAdmin: user.is_admin });
+  const response = NextResponse.json({
+    uid: user.uid,
+    username,
+    avatar: user.avatar,
+    isAdmin: user.is_admin,
+    token: createApiAccessToken(Number(user.id), user.uid, user.token_version),
+  });
+  response.headers.set('Cache-Control', 'no-store');
   response.cookies.set(
     SESSION_COOKIE,
     createSessionToken(Number(user.id), user.token_version),

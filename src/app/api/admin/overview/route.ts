@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getSql } from '@/lib/db';
-import { getCurrentUser } from '@/lib/session';
+import { getRequestUser } from '@/lib/session';
 import { GAMES } from '@/games/registry';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-  const admin = await getCurrentUser();
+  const admin = await getRequestUser(request);
   if (!admin?.isAdmin) return NextResponse.json({ error: '无权访问后台' }, { status: 403 });
   const query = new URL(request.url).searchParams.get('q')?.trim().toLowerCase() ?? '';
   const sql = getSql();
@@ -20,7 +20,7 @@ export async function GET(request: Request) {
         (select count(*)::int from direct_messages) as messages
     `,
     sql`
-      select id, username, avatar, is_admin, suspended_at, created_at, last_login_at
+      select id, uid, username, avatar, is_admin, suspended_at, created_at, last_login_at
       from users
       where ${query === ''} or strpos(username, ${query}) > 0
       order by created_at desc
@@ -32,7 +32,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     stats: counts[0],
     users: users.map((row) => ({
-      id: Number(row.id), username: row.username, avatar: row.avatar,
+      id: Number(row.id), uid: row.uid, username: row.username, avatar: row.avatar,
       isAdmin: row.is_admin, suspendedAt: row.suspended_at,
       createdAt: row.created_at, lastLoginAt: row.last_login_at,
     })),

@@ -18,7 +18,7 @@
  * 装个桌面图标就替用户吃掉这么多流量是不礼貌的。
  */
 
-const VERSION = 'v48';
+const VERSION = 'v49';
 const SHELL_CACHE = `game-box-shell-${VERSION}`;
 const STATIC_CACHE = `game-box-static-${VERSION}`;
 const ASSET_CACHE = `game-box-assets-${VERSION}`;
@@ -78,6 +78,12 @@ async function cacheFirst(request, cacheName) {
 
 async function networkFirst(request) {
   const cache = await caches.open(SHELL_CACHE);
+  const cacheUrl = new URL(request.url);
+  // 游戏链接必须携带 uid/token，但 Cache Storage 不能长期保存凭据字符串。
+  cacheUrl.searchParams.delete('uid');
+  cacheUrl.searchParams.delete('token');
+  cacheUrl.searchParams.delete('umoWs');
+  const cacheKey = cacheUrl.toString();
   try {
     const response = await fetch(request);
     /*
@@ -86,10 +92,10 @@ async function networkFirst(request) {
      * 之后离线打开游戏页会看到首页。而且 redirected 的响应再拿去应答导航请求,
      * 浏览器本身就会报错(redirect mode 不是 follow)。
      */
-    if (response.ok && !response.redirected) cache.put(request, response.clone());
+    if (response.ok && !response.redirected) cache.put(cacheKey, response.clone());
     return response;
   } catch (error) {
-    const hit = await cache.match(request);
+    const hit = await cache.match(cacheKey);
     if (hit) return hit;
     const offline = await cache.match('/offline');
     if (offline) return offline;
