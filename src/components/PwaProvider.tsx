@@ -14,6 +14,7 @@ import { Download, RefreshCw, Share, SquarePlus, X } from 'lucide-react';
 /** 用户手动关掉横幅后,这么久之内不再打扰 */
 const SNOOZE_DAYS = 14;
 const DISMISS_KEY = 'game-box-install-dismissed-at';
+const DEV_SW_CLEANUP_KEY = 'game-box-dev-sw-cleaned';
 
 type InstallEvent = Event & {
   prompt: () => Promise<void>;
@@ -48,8 +49,33 @@ export default function PwaProvider() {
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
     // 开发模式不注册:dev 下的 chunk 每次编译都换名字,缓存它们只会让 HMR 拿到旧文件。
-    // 要验证离线效果就跑 pnpm build && pnpm start。
-    if (process.env.NODE_ENV !== 'production') return;
+    // 仅仅 return 还不够:同一端口之前跑过 production 时,旧 SW 会继续控制 dev 页面，
+    // 并从 game-box-assets-* 返回旧 Cocos 包。进入 dev 后主动注销并清掉本产品缓存；
+    // 若当前页仍受旧 SW 控制，只刷新一次，让下一次导航真正脱离它。
+    if (process.env.NODE_ENV !== 'production') {
+      let disposed = false;
+      void (async () => {
+        const controlled = Boolean(navigator.serviceWorker.controller);
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        const cacheNames = 'caches' in window ? await caches.keys() : [];
+        await Promise.all([
+          ...registrations.map((registration) => registration.unregister()),
+          ...cacheNames
+            .filter((name) => name.startsWith('game-box-'))
+            .map((name) => caches.delete(name)),
+        ]);
+        if (disposed) return;
+        if (!controlled) {
+          sessionStorage.removeItem(DEV_SW_CLEANUP_KEY);
+          return;
+        }
+        if (sessionStorage.getItem(DEV_SW_CLEANUP_KEY) !== '1') {
+          sessionStorage.setItem(DEV_SW_CLEANUP_KEY, '1');
+          window.location.reload();
+        }
+      })().catch(() => { /* 清理失败不阻断开发页面。 */ });
+      return () => { disposed = true; };
+    }
 
     let disposed = false;
     let timer = 0;
