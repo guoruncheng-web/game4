@@ -1,13 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { CheckCircle2, KeyRound, LayoutDashboard, LogIn, LogOut, ShieldCheck, UserRound } from 'lucide-react';
+import { CheckCircle2, Coins, Gem, KeyRound, LayoutDashboard, LogIn, LogOut, ShieldCheck, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { apiFetch } from '@/lib/api-client';
 
 export default function ProfilePanel() {
-  const { user, openPanel, logout, updateAccessToken } = useAuth();
+  const { user, wallet, openPanel, logout, updateAccessToken } = useAuth();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -78,6 +78,19 @@ export default function ProfilePanel() {
           </div>
         </div>
       </div>
+
+      {wallet && (
+        <div className="grid grid-cols-2 gap-3" aria-label="游戏资产">
+          <div className="rounded-3xl border-2 border-cyan-100 bg-cyan-50 p-4 text-cyan-800 shadow-sm">
+            <p className="flex items-center gap-1.5 text-xs font-black"><Gem size={16} />钻石</p>
+            <p className="mt-1 text-xl font-black tabular-nums">{wallet.diamonds.toLocaleString()}</p>
+          </div>
+          <div className="rounded-3xl border-2 border-amber-100 bg-amber-50 p-4 text-amber-800 shadow-sm">
+            <p className="flex items-center gap-1.5 text-xs font-black"><Coins size={16} />十三张牌注</p>
+            <p className="mt-1 text-xl font-black tabular-nums">{wallet.thirteen.total.toLocaleString()}</p>
+          </div>
+        </div>
+      )}
 
       <div className="rounded-3xl border-2 border-white bg-white/80 p-4 shadow-sm">
         <div className="flex items-center gap-2 text-base font-black text-[#173366]"><ShieldCheck size={19} className="text-emerald-500" />账号安全</div>

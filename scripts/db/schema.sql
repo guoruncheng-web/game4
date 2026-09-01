@@ -53,6 +53,64 @@ where avatar = '🎮';
 -- 登录时按用户名精确查,用户名统一小写存,唯一索引已经够用
 create index if not exists users_created_at_idx on users (created_at desc);
 
+-- ---------------------------------------------------------------- 双层钱包
+-- 平台钻石与具体游戏的牌注严格分表；余额只由服务端事务改写，客户端只显示快照。
+create table if not exists platform_wallets (
+  user_id             bigint      primary key references users(id) on delete cascade,
+  diamonds_available  bigint      not null default 0 check (diamonds_available >= 0),
+  updated_at           timestamptz not null default now()
+);
+
+create table if not exists game_wallets (
+  user_id          bigint      not null references users(id) on delete cascade,
+  game_slug        text        not null,
+  balance          bigint      not null default 0 check (balance >= 0),
+  reserved         bigint      not null default 0 check (reserved >= 0),
+  updated_at       timestamptz not null default now(),
+  primary key (user_id, game_slug)
+);
+
+create table if not exists wallet_transactions (
+  id                 bigserial   primary key,
+  idempotency_key    text        not null unique,
+  user_id            bigint      not null references users(id) on delete cascade,
+  scope              text        not null check (scope in ('platform', 'game')),
+  game_slug          text,
+  currency           text        not null check (currency in ('diamond', 'chip')),
+  kind               text        not null check (kind in ('grant', 'exchange_debit', 'exchange_credit', 'reserve', 'refund', 'settle')),
+  available_delta    bigint      not null default 0,
+  reserved_delta     bigint      not null default 0,
+  metadata           jsonb       not null default '{}'::jsonb,
+  created_at         timestamptz not null default now(),
+  check ((scope = 'platform' and game_slug is null) or (scope = 'game' and game_slug is not null))
+);
+
+create index if not exists wallet_transactions_user_idx
+  on wallet_transactions (user_id, created_at desc, id desc);
+
+-- 老账号与未来被其他受控流程创建的账号都获得同样的一次性欢迎额度。
+insert into platform_wallets (user_id, diamonds_available)
+select id, 10000 from users
+on conflict (user_id) do nothing;
+
+insert into game_wallets (user_id, game_slug, balance, reserved)
+select id, 'thirteen', 10000, 0 from users
+on conflict (user_id, game_slug) do nothing;
+
+insert into wallet_transactions
+  (idempotency_key, user_id, scope, game_slug, currency, kind, available_delta, metadata)
+select 'welcome:platform:' || id, id, 'platform', null, 'diamond', 'grant', 10000,
+  jsonb_build_object('reason', 'registration_welcome_v1')
+from users
+on conflict (idempotency_key) do nothing;
+
+insert into wallet_transactions
+  (idempotency_key, user_id, scope, game_slug, currency, kind, available_delta, metadata)
+select 'welcome:thirteen:' || id, id, 'game', 'thirteen', 'chip', 'grant', 10000,
+  jsonb_build_object('reason', 'first_entry_welcome_v1')
+from users
+on conflict (idempotency_key) do nothing;
+
 -- ---------------------------------------------------------------- 好友与私聊
 -- 好友关系只存一条无方向边，较小的用户 ID 永远放 user_a，避免 A/B 与 B/A 重复。
 create table if not exists friendships (

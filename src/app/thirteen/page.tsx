@@ -4,7 +4,7 @@ import Link from 'next/link';
 import CocosCanvas from '@/components/CocosCanvas';
 
 const INTERACTIVE_SCENES = [
-  'R02Lobby', 'R03Room', 'R04Match', 'R05Tutorial', 'R06Settings', 'R07Result',
+  'R02Lobby', 'R03Room', 'R04Match', 'R05Tutorial', 'R06Settings', 'R07Result', 'R08Stake',
   'O01ReconnectAutoplay', 'O03BlockingError',
 ] as const;
 

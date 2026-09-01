@@ -17,7 +17,10 @@
     "thirteen:test": "node --experimental-strip-types --import ./server/ts-register.mjs tools/sim/thirteen/room-test.mjs",
     "thirteen:host-test": "node tools/sim/thirteen/host-bridge-test.mjs",
     "auth:token-test": "node --experimental-strip-types --import ./server/ts-register.mjs tools/sim/auth-uid-token-test.mts",
-    "auth:game-link-test": "node tools/sim/auth-game-link-test.mjs"
+    "auth:game-link-test": "node tools/sim/auth-game-link-test.mjs",
+    "wallet:test": "node --env-file=.env.local --experimental-strip-types --import ./server/ts-register.mjs tools/sim/wallet-v1-test.mts",
+    "wallet:pwa-test": "node --env-file=.env.local --experimental-strip-types --import ./server/ts-register.mjs tools/sim/thirteen/authenticated-pwa-test.mts",
+    "wallet:thirteen-test": "node --env-file=.env.local --experimental-strip-types --import ./server/ts-register.mjs tools/sim/thirteen/wallet-store-test.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.20.0",

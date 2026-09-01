@@ -1,5 +1,5 @@
 export const DEFAULT_VIRTUAL_BALANCE = 10_000;
-export const ALLOWED_TABLE_STAKES = [100, 500, 1_000] as const;
+export const ALLOWED_TABLE_STAKES = [100, 200, 300, 400, 500, 600] as const;
 
 export type TableStake = typeof ALLOWED_TABLE_STAKES[number];
 
@@ -7,8 +7,9 @@ export interface WalletView {
   readonly balance: number;
   readonly reserved: number;
   readonly total: number;
-  readonly currency: 'practice-chip';
+  readonly currency: 'chip';
 }
+
 export interface LedgerEntry {
   readonly id: string;
   readonly kind: 'reserve' | 'refund' | 'settle';
@@ -68,15 +69,23 @@ export class BettingLedger {
       balance: wallet.balance,
       reserved: wallet.reserved,
       total: wallet.balance + wallet.reserved,
-      currency: 'practice-chip',
+      currency: 'chip',
     };
+  }
+
+  /** Reconciles the runtime cache from the authenticated Postgres wallet. */
+  syncWallet(userId: string, balance: number, reserved: number): WalletView {
+    assertMoney(balance, 'wallet_balance');
+    assertMoney(reserved, 'wallet_reserved');
+    this.wallets.set(userId, { balance, reserved });
+    return this.view(userId);
   }
 
   reserve(userId: string, roomId: string, matchNumber: number, stake: TableStake): LedgerEntry {
     const active = this.activeReservationEntry(userId, roomId, matchNumber);
     if (active) return active;
     const wallet = this.wallet(userId);
-    if (wallet.balance < stake) throw new Error('insufficient_practice_chips');
+    if (wallet.balance < stake) throw new Error('insufficient_chips');
     wallet.balance -= stake;
     wallet.reserved += stake;
     const cycle = this.reservationCycles(userId, roomId, matchNumber) + 1;

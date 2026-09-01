@@ -14,6 +14,7 @@ if (!Number.isFinite(lobbyTimeoutMs) || lobbyTimeoutMs < 5_000 || lobbyTimeoutMs
 }
 const viewport = process.env.THIRTEEN_PWA_VIEWPORT || '1280,720';
 if (!/^\d{3,4},\d{3,4}$/.test(viewport)) throw new Error('invalid_THIRTEEN_PWA_VIEWPORT');
+const sessionCookie = process.env.THIRTEEN_PWA_SESSION_COOKIE || '';
 const chromePath = process.env.COCOS_CHROME
   || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -107,6 +108,17 @@ try {
   await cdp.send('Runtime.enable');
   await cdp.send('Page.enable');
   await cdp.send('Network.enable');
+  if (sessionCookie) {
+    const cookie = await cdp.send('Network.setCookie', {
+      url: origin,
+      name: 'gb_session',
+      value: sessionCookie,
+      httpOnly: true,
+      secure: origin.startsWith('https:'),
+      sameSite: 'Lax',
+    });
+    if (cookie.result?.success !== true) throw new Error('session_cookie_install_failed');
+  }
   await cdp.send('Page.navigate', { url });
   await waitForLobby(cdp, lobbyTimeoutMs);
   const registered = await evaluate(cdp, `(async () => {
@@ -124,8 +136,8 @@ try {
   await waitForLobby(cdp, lobbyTimeoutMs);
   const online = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
-    const assets = await caches.open('game-box-assets-v50');
-    const shell = await caches.open('game-box-shell-v50');
+    const assets = await caches.open('game-box-assets-v51');
+    const shell = await caches.open('game-box-shell-v51');
     const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
     const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
     const frame = document.querySelector('iframe');
@@ -207,6 +219,92 @@ try {
   })()`);
   online.trustedAudio = { before: audioBefore, after: audioAfter, clickPoint, inputProbe };
 
+  if (sessionCookie) {
+    const opened = await evaluate(cdp, `(() => {
+      const frame = document.querySelector('iframe');
+      const gameWindow = frame?.contentWindow;
+      const lobby = gameWindow?.cc?.director?.getScene?.()?.getChildByPath?.('Canvas/R02LobbyRoot');
+      window.__thirteenWalletBridgeProbe = [];
+      gameWindow.__thirteenEconomyFetchProbe = [];
+      const originalFetch = gameWindow.fetch.bind(gameWindow);
+      gameWindow.fetch = async (input, init) => {
+        const response = await originalFetch(input, init);
+        const requestUrl = new URL(typeof input === 'string' ? input : input.url, gameWindow.location.href);
+        if (requestUrl.pathname.startsWith('/api/games/thirteen/')) {
+          const headers = new Headers(init?.headers);
+          gameWindow.__thirteenEconomyFetchProbe.push({
+            path: requestUrl.pathname,
+            method: init?.method || 'GET',
+            status: response.status,
+            uidHeader: /^\\d{6}$/.test(headers.get('x-game-uid') || ''),
+            bearerHeader: Boolean(headers.get('authorization')),
+          });
+        }
+        return response;
+      };
+      window.addEventListener('game4:wallet-updated', (event) => {
+        window.__thirteenWalletBridgeProbe.push(event.detail);
+      });
+      lobby?.emit?.('r02-exchange');
+      const frameUrl = new URL(frame?.src || location.href);
+      return {
+        iframeHasUid: /^\\d{6}$/.test(frameUrl.searchParams.get('uid') || ''),
+        iframeHasToken: Boolean(frameUrl.searchParams.get('token')),
+        requested: Boolean(lobby),
+      };
+    })()`);
+    if (!opened.requested) throw new Error('economy_modal_open_failed');
+    let exchangeCallbackDispatched = false;
+    for (let attempt = 0; attempt < 50 && !exchangeCallbackDispatched; attempt += 1) {
+      exchangeCallbackDispatched = await evaluate(cdp, `(() => {
+        const frame = document.querySelector('iframe');
+        const gameWindow = frame?.contentWindow;
+        const modal = gameWindow?.cc?.director?.getScene?.()
+          ?.getChildByPath?.('Canvas/R02LobbyRoot/O04ExchangeOverlay');
+        const Modal = gameWindow?.cc?.js?.getClassByName?.('ChipExchangeModal');
+        const component = Modal ? modal?.getComponent?.(Modal) : null;
+        if (typeof component?.onExchange !== 'function') return false;
+        component.setBusy?.(true);
+        component.onExchange(10);
+        return true;
+      })()`);
+      if (!exchangeCallbackDispatched) await sleep(100);
+    }
+    if (!exchangeCallbackDispatched) throw new Error('economy_exchange_callback_missing');
+    let exchanged = null;
+    for (let attempt = 0; attempt < 160; attempt += 1) {
+      exchanged = await evaluate(cdp, `(() => {
+        const frame = document.querySelector('iframe');
+        const gameWindow = frame?.contentWindow;
+        const flow = gameWindow?.cc?.director?.getScene?.()?.getChildByName?.('ThirteenFlow')?.components
+          ?.find?.((component) => typeof component.getAcceptanceState === 'function');
+        const lobby = gameWindow?.cc?.director?.getScene?.()?.getChildByPath?.('Canvas/R02LobbyRoot');
+        const modal = lobby?.getChildByName?.('O04ExchangeOverlay');
+        const Modal = gameWindow?.cc?.js?.getClassByName?.('ChipExchangeModal');
+        const modalComponent = Modal ? modal?.getComponent?.(Modal) : null;
+        const state = modalComponent?.getAcceptanceState?.() || null;
+        const wallet = flow?.getAcceptanceState?.().online?.economyWallet || null;
+        const bridge = window.__thirteenWalletBridgeProbe?.at?.(-1) || null;
+        return {
+          wallet,
+          bridge,
+          modalOpen: Boolean(state?.open),
+          modalState: state,
+          exchangeCallbackDispatched: true,
+          economyAuthenticated: Boolean(flow?.economy?.authenticated),
+          hasExchangeHandler: typeof modalComponent?.onExchange === 'function',
+          confirmInteractable: modal?.getChildByPath?.('ExchangePanel/Confirm')
+            ?.getComponent?.(gameWindow.cc.Button)?.interactable ?? null,
+          fetchProbe: gameWindow?.__thirteenEconomyFetchProbe || [],
+        };
+      })()`);
+      if (exchanged?.wallet?.diamonds === 9_990 && exchanged?.wallet?.chips === 11_000
+        && exchanged?.bridge?.diamonds === 9_990 && exchanged?.bridge?.chips === 11_000) break;
+      await sleep(100);
+    }
+    online.authenticatedEconomy = { ...opened, ...exchanged };
+  }
+
   await cdp.send('Page.navigate', { url: `${origin}/offline` });
   await sleep(2_000);
   await cdp.send('Network.emulateNetworkConditions', {
@@ -258,7 +356,15 @@ try {
     && online.trustedAudio.after?.missingSources?.length === 0
     && online.trustedAudio.after?.contextState === 'running'
     && online.trustedAudio.after?.musicPlaying === true
-    && online.trustedAudio.after?.ambiencePlaying === true;
+    && online.trustedAudio.after?.ambiencePlaying === true
+    && (!sessionCookie || (
+      online.authenticatedEconomy?.iframeHasUid === true
+      && online.authenticatedEconomy?.iframeHasToken === true
+      && online.authenticatedEconomy?.wallet?.diamonds === 9_990
+      && online.authenticatedEconomy?.wallet?.chips === 11_000
+      && online.authenticatedEconomy?.bridge?.diamonds === 9_990
+      && online.authenticatedEconomy?.bridge?.chips === 11_000
+    ));
   const report = { feature: 'Thirteen PWA offline replay', online, offline, accepted };
   if (resultPath) {
     await mkdir(dirname(resultPath), { recursive: true });

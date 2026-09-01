@@ -125,6 +125,10 @@ export class RoomDirectory {
     return this.ledger.view(userId);
   }
 
+  syncWallet(userId: string, balance: number, reserved: number): WalletView {
+    return this.ledger.syncWallet(userId, balance, reserved);
+  }
+
   createPrivate(userId: string, stake: number = 100): DirectoryAssignment {
     this.assertAvailable(userId);
     const checkedStake = this.requireStake(stake);
@@ -348,6 +352,7 @@ export class RoomDirectory {
     snapshot: RoomDirectorySnapshot,
     randomUint32: () => number,
     now: () => number = Date.now,
+    options: { readonly disconnectAll?: boolean } = {},
   ): RoomDirectory {
     if (snapshot?.version !== 2 || !Array.isArray(snapshot.rooms)
       || !Array.isArray(snapshot.userRooms) || !Array.isArray(snapshot.profiles)) {
@@ -363,7 +368,7 @@ export class RoomDirectory {
         () => directory.randomUint32() >>> 0,
         now,
       );
-      room.disconnectAll();
+      if (options.disconnectAll !== false) room.disconnectAll();
       const entry: DirectoryRoom = {
         code: saved.code,
         mode: saved.mode,

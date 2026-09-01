@@ -10,14 +10,21 @@ import { API_UID_HEADER } from '@/lib/api-contract';
 
 export type AuthUser = { uid: number; username: string; avatar: string; isAdmin?: boolean } | null;
 
+export type WalletSummary = {
+  diamonds: number;
+  thirteen: { chips: number; reserved: number; total: number };
+};
+
 type AuthContextValue = {
   user: AuthUser;
   credentials: ApiCredentials | null;
+  wallet: WalletSummary | null;
   /** 首次 /me 还没回来。这一小段时间里别急着把界面渲染成"未登录",会闪 */
   loading: boolean;
   openPanel: (mode?: AuthMode) => void;
   logout: () => Promise<void>;
   updateAccessToken: (token: string) => void;
+  refreshWallet: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -40,6 +47,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   const router = useRouter();
   const [user, setUser] = useState<AuthUser>(null);
   const [credentials, setCredentials] = useState<ApiCredentials | null>(null);
+  const [wallet, setWallet] = useState<WalletSummary | null>(null);
   const [loading, setLoading] = useState(true);
   /** null = 关着 */
   const [mode, setMode] = useState<AuthMode | null>(null);
@@ -89,6 +97,54 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 
   const openPanel = useCallback((next: AuthMode = 'register') => setMode(next), []);
 
+  const refreshWallet = useCallback(async () => {
+    if (!credentials) return;
+    const response = await apiFetch('/api/wallet', { cache: 'no-store' });
+    if (!response.ok) throw new Error('wallet_refresh_failed');
+    const data = await response.json() as {
+      diamonds: number;
+      games: { thirteen: { chips: number; reserved: number; total: number } };
+    };
+    if (!Number.isSafeInteger(data.diamonds) || data.diamonds < 0
+      || !Number.isSafeInteger(data.games?.thirteen?.chips) || data.games.thirteen.chips < 0
+      || !Number.isSafeInteger(data.games.thirteen.reserved) || data.games.thirteen.reserved < 0
+      || !Number.isSafeInteger(data.games.thirteen.total) || data.games.thirteen.total < 0) {
+      throw new Error('invalid_wallet_payload');
+    }
+    setWallet({ diamonds: data.diamonds, thirteen: data.games.thirteen });
+  }, [credentials]);
+
+  useEffect(() => {
+    if (!credentials) return undefined;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void refreshWallet().catch(() => {
+        if (!cancelled) setWallet(null);
+      });
+    }, 0);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [credentials, refreshWallet]);
+
+  useEffect(() => {
+    function onWalletUpdated(event: Event) {
+      const value = (event as CustomEvent<unknown>).detail as {
+        diamonds?: unknown; chips?: unknown; reserved?: unknown; totalChips?: unknown;
+      } | null;
+      if (!value || !Number.isSafeInteger(value.diamonds) || Number(value.diamonds) < 0
+        || !Number.isSafeInteger(value.chips) || Number(value.chips) < 0
+        || !Number.isSafeInteger(value.reserved) || Number(value.reserved) < 0
+        || !Number.isSafeInteger(value.totalChips) || Number(value.totalChips) < 0) return;
+      setWallet({
+        diamonds: Number(value.diamonds),
+        thirteen: {
+          chips: Number(value.chips), reserved: Number(value.reserved), total: Number(value.totalChips),
+        },
+      });
+    }
+    window.addEventListener('game4:wallet-updated', onWalletUpdated);
+    return () => window.removeEventListener('game4:wallet-updated', onWalletUpdated);
+  }, []);
+
   const handleAuthed = useCallback((nextUser: Exclude<AuthUser, null>, token: string) => {
     const nextCredentials = { uid: nextUser.uid, token };
     setUser(nextUser);
@@ -109,6 +165,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     await apiFetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
     setUser(null);
     setCredentials(null);
+    setWallet(null);
     setApiCredentials(null);
     setMode(null);
     // 可能正站在需要登录的页面上,刷一下让 middleware 把人送回首页
@@ -126,8 +183,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   }, [credentials, redirectTo, user, router]);
 
   const value = useMemo(
-    () => ({ user, credentials, loading, openPanel, logout, updateAccessToken }),
-    [user, credentials, loading, openPanel, logout, updateAccessToken],
+    () => ({ user, credentials, wallet, loading, openPanel, logout, updateAccessToken, refreshWallet }),
+    [user, credentials, wallet, loading, openPanel, logout, updateAccessToken, refreshWallet],
   );
 
   return (

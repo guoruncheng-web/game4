@@ -1,6 +1,6 @@
 'use client';
 
-import { LogOut, UserRound } from 'lucide-react';
+import { Gem, LogOut, UserRound } from 'lucide-react';
 import { useAuth } from './AuthProvider';
 
 /**
@@ -8,7 +8,7 @@ import { useAuth } from './AuthProvider';
  * 登录后点用户名进账号设置(改密码在那里)。
  */
 export default function AuthPanel() {
-  const { user, loading, openPanel, logout } = useAuth();
+  const { user, wallet, loading, openPanel, logout } = useAuth();
 
   // /me 还没回来时先占位,别先渲染"登录"再闪成用户名
   if (loading) {
@@ -30,6 +30,14 @@ export default function AuthPanel() {
 
   return (
     <div className="flex items-center gap-1.5">
+      {wallet && (
+        <span
+          aria-label={`钻石 ${wallet.diamonds.toLocaleString()}`}
+          className="hidden min-h-9 items-center gap-1 rounded-full border border-cyan-200 bg-cyan-50 px-2.5 text-xs font-black text-cyan-700 sm:flex"
+        >
+          <Gem size={14} aria-hidden="true" />{wallet.diamonds.toLocaleString()}
+        </span>
+      )}
       <button
         type="button"
         onClick={() => openPanel('account')}

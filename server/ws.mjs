@@ -30,6 +30,7 @@ import { AuthoritativeGateway } from './umo/gateway.ts';
 import { UmoWsAdapter } from './umo/ws-adapter.ts';
 import { RoomDirectory } from './thirteen/server/room-directory.ts';
 import { ThirteenWsAdapter } from './thirteen/server/ws-adapter.ts';
+import { createThirteenWalletStore } from './thirteen-wallet-store.mjs';
 import { readApiAccessToken } from '../src/lib/auth.ts';
 
 const PORT = Number(process.env.WS_PORT || 7011);
@@ -90,32 +91,83 @@ function sendTo(userId, msg) {
 }
 
 // Thirteen is a four-seat authoritative game, isolated from legacy relay rooms.
-// Its room snapshots, command sequences and practice-chip ledger survive process restarts.
+// Its room snapshots and command sequences use an encrypted recovery file; wallet funds are durable in PostgreSQL.
 const thirteenStateFile = process.env.THIRTEEN_STATE_FILE;
 const thirteenStateSecret = process.env.THIRTEEN_STATE_KEY;
 if (thirteenStateFile && (!thirteenStateSecret || thirteenStateSecret.length < 32)) {
   throw new Error('THIRTEEN_STATE_KEY must contain at least 32 characters when THIRTEEN_STATE_FILE is enabled');
 }
 let thirteenStateHealthy = true;
-const thirteenDirectory = thirteenStateFile && existsSync(thirteenStateFile)
+let thirteenDirectory = thirteenStateFile && existsSync(thirteenStateFile)
   ? RoomDirectory.restore(
     JSON.parse(decryptThirteenState(readFileSync(thirteenStateFile, 'utf8'), thirteenStateSecret)),
     () => randomBytes(4).readUInt32LE(0),
   )
   : new RoomDirectory(() => randomBytes(4).readUInt32LE(0));
-const thirteenAdapter = new ThirteenWsAdapter(
-  thirteenDirectory,
-  (userId, message) => sendTo(Number(userId), message),
-  thirteenStateFile ? () => {
+const thirteenWalletStore = createThirteenWalletStore(sql);
+let thirteenSendBuffer = null;
+let thirteenQueue = Promise.resolve();
+let thirteenPendingMutations = 0;
+let thirteenTickQueued = false;
+const thirteenHydratedUsers = new Set();
+
+function makeThirteenAdapter() {
+  return new ThirteenWsAdapter(thirteenDirectory, (userId, message) => {
+    if (thirteenSendBuffer) thirteenSendBuffer.push({ userId: Number(userId), message });
+    else sendTo(Number(userId), message);
+  });
+}
+
+let thirteenAdapter = makeThirteenAdapter();
+
+function persistCurrentThirteenState() {
+  if (!thirteenStateFile) return;
+  persistThirteenAtomically(thirteenStateFile, thirteenDirectory.snapshotJson(), thirteenStateSecret);
+}
+
+function queueThirteenMutation(task, failureUserId = null) {
+  thirteenPendingMutations += 1;
+  thirteenQueue = thirteenQueue.then(async () => {
+    const before = thirteenDirectory.snapshot();
+    const buffered = [];
+    thirteenSendBuffer = buffered;
     try {
-      persistThirteenAtomically(thirteenStateFile, thirteenDirectory.snapshotJson(), thirteenStateSecret);
+      await task();
+      const after = thirteenDirectory.snapshot();
+      const changed = JSON.stringify(before) !== JSON.stringify(after);
+      if (changed) {
+        await thirteenWalletStore.persistLedgerDiff(before.ledger, after.ledger);
+        persistCurrentThirteenState();
+      }
       thirteenStateHealthy = true;
+      thirteenSendBuffer = null;
+      for (const item of buffered) sendTo(item.userId, item.message);
     } catch (error) {
+      thirteenSendBuffer = null;
+      thirteenDirectory = RoomDirectory.restore(
+        before,
+        () => randomBytes(4).readUInt32LE(0),
+        Date.now,
+        { disconnectAll: false },
+      );
+      thirteenAdapter = makeThirteenAdapter();
       thirteenStateHealthy = false;
-      console.error('[thirteen] encrypted state persistence failed', error);
+      console.error('[thirteen] authoritative mutation rolled back', error);
+      if (failureUserId !== null) {
+        sendTo(failureUserId, { t: 'thirteen:error', v: 2, code: 'wallet_persistence_failed' });
+      }
     }
-  } : null,
-);
+  }).catch((error) => console.error('[thirteen] mutation queue failed', error)).finally(() => {
+    thirteenPendingMutations = Math.max(0, thirteenPendingMutations - 1);
+  });
+  return thirteenQueue;
+}
+
+async function hydrateThirteenWallets(userId) {
+  const assignment = thirteenDirectory.assignmentFor(String(userId));
+  const members = assignment ? thirteenDirectory.members(assignment.room.roomId) : [];
+  await thirteenWalletStore.hydrate(thirteenDirectory, [String(userId), ...members]);
+}
 
 function persistThirteenAtomically(path, snapshotJson, secret) {
   mkdirSync(dirname(path), { recursive: true });
@@ -150,7 +202,7 @@ function thirteenStateKey(secret) {
 
 if (thirteenStateFile && existsSync(thirteenStateFile)) {
   // Persist the restore-time disconnect normalization before accepting sockets.
-  persistThirteenAtomically(thirteenStateFile, thirteenDirectory.snapshotJson(), thirteenStateSecret);
+      persistThirteenAtomically(thirteenStateFile, thirteenDirectory.snapshotJson(), thirteenStateSecret);
 }
 
 const umoStateFile = process.env.UMO_STATE_FILE;
@@ -345,11 +397,21 @@ function handle(client, msg) {
       send(client.ws, { t: 'thirteen:error', v: 2, code: 'user_already_in_other_game' });
       return;
     }
-    thirteenAdapter.handle({
-      userId: String(me),
-      displayName: client.username,
-      avatar: client.avatar,
-    }, msg);
+    queueThirteenMutation(async () => {
+      // PostgreSQL is authoritative at session entry and after a REST exchange.
+      // Between those boundaries the serialized room directory already contains
+      // the latest persisted balance, so rehydrating on every card action only
+      // adds latency and lets scheduler ticks pile up behind a database round trip.
+      if (!thirteenHydratedUsers.has(me) || msg.t === 'thirteen:hello' || msg.t === 'thirteen:wallet') {
+        await hydrateThirteenWallets(me);
+        thirteenHydratedUsers.add(me);
+      }
+      thirteenAdapter.handle({
+        userId: String(me),
+        displayName: client.username,
+        avatar: client.avatar,
+      }, msg);
+    }, me);
     return;
   }
   if (thirteenDirectory.assignmentFor(String(me)) && msg?.t !== 'hello') {
@@ -488,6 +550,7 @@ const server = createServer((req, res) => {
       umoRooms: umoAdapter.roomCount,
       umoConnections: umoAdapter.connectionCount,
       thirteenRooms: thirteenDirectory.roomIds().length,
+      thirteenPendingMutations,
       thirteenPersistence: thirteenStateFile ? (thirteenStateHealthy ? 'encrypted-ready' : 'error') : 'memory-only',
     }));
   }
@@ -546,7 +609,7 @@ server.on('upgrade', async (req, socket, head) => {
       ws.on('close', () => {
         if (clients.get(user.id) !== client) return; // 已经被新连接顶掉了
         clients.delete(user.id);
-        thirteenAdapter.disconnect(String(user.id));
+        queueThirteenMutation(() => thirteenAdapter.disconnect(String(user.id)));
         const room = client.roomId ? rooms.get(client.roomId) : null;
         if (room?.fish) leaveFishRoom(room, user.id);
         else if (room) closeRoom(room.id, 'peer-left', client.username);
@@ -571,7 +634,10 @@ setInterval(() => {
 
 // Gameplay uses authoritative actions; this lightweight scheduler only handles deadlines and bot takeover.
 setInterval(() => {
-  try { thirteenAdapter.tick(Date.now()); } catch (error) { console.error('[thirteen] tick 出错', error); }
+  if (thirteenTickQueued) return;
+  thirteenTickQueued = true;
+  queueThirteenMutation(() => thirteenAdapter.tick(Date.now()))
+    .finally(() => { thirteenTickQueued = false; });
 }, 250).unref();
 
 server.listen(PORT, '127.0.0.1', () => {

@@ -95,7 +95,7 @@ console.log(JSON.stringify({
   realProfiles: true,
   fourPrivacySnapshots: true,
   explicitReady: true,
-  practiceChipStake: 500,
+  chipStake: 500,
   zeroSumSettlement: true,
   restartRecovery: true,
   rematchReservation: true,

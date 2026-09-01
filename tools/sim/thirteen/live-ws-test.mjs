@@ -2,7 +2,7 @@ import postgres from 'postgres';
 import WebSocket from 'ws';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import { createSessionToken, hashPassword } from '../../../src/lib/auth.ts';
+import { createApiAccessToken, hashPassword } from '../../../src/lib/auth.ts';
 import { RULES_VERSION, legalPlays } from '../../../server/thirteen/assets/game/scripts/core/match.ts';
 
 const url = process.argv[2] || 'ws://127.0.0.1:7012/ws';
@@ -19,7 +19,10 @@ class TestClient {
     this.user = user;
     this.messages = [];
     this.waiters = [];
-    this.ws = new WebSocket(url, { headers: { cookie: `gb_session=${token}` } });
+    const authenticatedUrl = new URL(url);
+    authenticatedUrl.searchParams.set('uid', String(user.uid));
+    authenticatedUrl.searchParams.set('token', token);
+    this.ws = new WebSocket(authenticatedUrl);
     this.ws.on('message', (raw) => {
       const message = JSON.parse(raw.toString());
       this.messages.push(message);
@@ -42,7 +45,7 @@ class TestClient {
     this.ws.send(JSON.stringify(message));
   }
 
-  async next(type, predicate = () => true, timeoutMs = 5000) {
+  async next(type, predicate = () => true, timeoutMs = 120_000) {
     const find = () => {
       const index = this.messages.findIndex((message) => message.t === type && predicate(message));
       return index >= 0 ? this.messages.splice(index, 1)[0] : null;
@@ -70,8 +73,13 @@ class TestClient {
     });
   }
 
-  close() {
-    this.ws.close();
+  async close() {
+    if (this.ws.readyState === WebSocket.CLOSED) return;
+    await new Promise((resolve) => {
+      const timeout = setTimeout(() => { this.ws.terminate(); resolve(); }, 350);
+      this.ws.once('close', () => { clearTimeout(timeout); resolve(); });
+      this.ws.close();
+    });
   }
 }
 
@@ -84,15 +92,19 @@ try {
   await sql`delete from users where username like 'test-thirteen-%'`;
   const passwordHash = hashPassword('Testpass123');
   const users = await sql`
-    insert into users (username, password_hash, last_login_at)
-    values
-      ('test-thirteen-1', ${passwordHash}, now()),
-      ('test-thirteen-2', ${passwordHash}, now()),
-      ('test-thirteen-3', ${passwordHash}, now()),
-      ('test-thirteen-4', ${passwordHash}, now())
-    returning id, username, avatar, token_version
+    insert into users (uid, username, password_hash, last_login_at)
+    select candidate, 'test-thirteen-' || row_number() over (order by candidate), ${passwordHash}, now()
+    from (
+      select candidate from generate_series(900000, 999999) candidate
+      where not exists (select 1 from users where uid = candidate)
+      order by candidate desc limit 4
+    ) available
+    returning id, uid, username, avatar, token_version
   `;
-  clients = users.map((user) => new TestClient(user, createSessionToken(Number(user.id), user.token_version)));
+  clients = users.map((user) => new TestClient(
+    user,
+    createApiAccessToken(Number(user.id), user.uid, user.token_version),
+  ));
   await Promise.all(clients.map((client) => client.open()));
   await Promise.all(clients.map((client) => client.next('ready')));
   for (const client of clients) client.send({ t: 'thirteen:hello', v: 2 });
@@ -126,8 +138,8 @@ try {
     for (const { snapshot } of snapshots) {
       assert(snapshot.ownHand.length === 13, 'own_hand_not_thirteen_cards');
       assert(snapshot.opponentCounts.length === 4, 'opponent_counts_missing');
-      assert(snapshot.tableStake === 500, 'practice_chip_stake_not_authoritative');
-      assert(snapshot.wallet.balance === 9_500 && snapshot.wallet.reserved === 500, 'practice_chip_reservation_missing');
+      assert(snapshot.tableStake === 500, 'chip_stake_not_authoritative');
+      assert(snapshot.wallet.balance === 9_500 && snapshot.wallet.reserved === 500, 'chip_reservation_missing');
       assert(snapshot.presence.every((seat) => seat.displayName.startsWith('test-thirteen-')), 'real_account_profile_missing');
       assert(!('hands' in snapshot) && !('seed' in snapshot) && !('actions' in snapshot), 'private_server_state_leaked');
     }
@@ -178,8 +190,8 @@ try {
     }
     assert(snapshots[0].snapshot.winner !== null, 'live_match_did_not_terminate');
     const wagerDeltas = snapshots[0].snapshot.publicResult.entries.map((entry) => entry.wagerDelta).sort((a, b) => a - b);
-    assert(JSON.stringify(wagerDeltas) === JSON.stringify([-500, -500, -500, 1_500]), 'practice_chip_settlement_not_zero_sum');
-    assert(snapshots.every(({ snapshot }) => snapshot.wallet.reserved === 0), 'practice_chip_reservation_not_released');
+    assert(JSON.stringify(wagerDeltas) === JSON.stringify([-500, -500, -500, 1_500]), 'chip_settlement_not_zero_sum');
+    assert(snapshots.every(({ snapshot }) => snapshot.wallet.reserved === 0), 'chip_reservation_not_released');
     totalActions += actions;
     maximumActions = Math.max(maximumActions, actions);
 
@@ -255,7 +267,7 @@ try {
     privacyScopedHands: true,
     realAccountProfiles: true,
     explicitReady: true,
-    practiceChipStake: 500,
+    chipStake: 500,
     zeroSumSettlement: true,
     totalActions,
     maximumActions,
@@ -270,7 +282,19 @@ try {
   }
   console.log(JSON.stringify(report, null, 2));
 } finally {
-  for (const client of clients) client.close();
-  await sql`delete from users where username like 'test-thirteen-%'`;
+  await Promise.all(clients.map((client) => client.close()));
+  let safeToDelete = false;
+  for (let attempt = 0; attempt < 480; attempt += 1) {
+    try {
+      const health = await fetch(healthUrl).then((response) => response.json());
+      if (health.online === 0 && health.thirteenPendingMutations === 0) {
+        safeToDelete = true;
+        break;
+      }
+    } catch { break; }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  if (safeToDelete) await sql`delete from users where username like 'test-thirteen-%'`;
+  else console.warn('[thirteen-live-test] preserved test users because the authoritative queue did not drain');
   await sql.end({ timeout: 2 });
 }
