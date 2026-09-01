@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from './AuthProvider';
 import { withGameCredentials } from '@/lib/api-client';
@@ -13,6 +13,8 @@ type Props = {
   backdropClassName?: string;
   loadingText?: string;
   showLoadingOverlay?: boolean;
+  interactiveScenes?: readonly string[];
+  children?: ReactNode;
 };
 
 /**
@@ -27,9 +29,10 @@ export default function CocosCanvas({
   backdropClassName = 'bg-[#040816]',
   loadingText = '正在摆好牌桌…',
   showLoadingOverlay = true,
+  interactiveScenes,
+  children,
 }: Props) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [ready, setReady] = useState(false);
   const { user, credentials } = useAuth();
   const router = useRouter();
   const gameSrc = useMemo(() => {
@@ -44,6 +47,8 @@ export default function CocosCanvas({
     pageUrl.searchParams.set('umoWs', socketUrl.toString());
     return `${pageUrl.pathname}${pageUrl.search}${pageUrl.hash}`;
   }, [credentials, gameId, src]);
+  const [readiness, setReadiness] = useState({ source: gameSrc, ready: false });
+  const ready = readiness.source === gameSrc && readiness.ready;
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -65,11 +70,18 @@ export default function CocosCanvas({
 
     function onMessage(event: MessageEvent<unknown>) {
       if (event.origin !== window.location.origin || event.source !== iframe?.contentWindow) return;
-      const value = event.data as { source?: string; type?: string; version?: number } | null;
+      const value = event.data as {
+        source?: string; type?: string; version?: number; scene?: string; phase?: string;
+      } | null;
       if (!value || value.source !== gameId || value.version !== 1) return;
       if (value.type === `${gameId}:ready`) {
-        setReady(true);
         sendThirteenSession();
+        if (!interactiveScenes) setReadiness({ source: gameSrc, ready: true });
+      } else if (value.type === `${gameId}:scene` && interactiveScenes) {
+        const interactive = value.phase === 'ready'
+          && typeof value.scene === 'string'
+          && interactiveScenes.includes(value.scene);
+        setReadiness({ source: gameSrc, ready: interactive });
       } else if (value.type === `${gameId}:exit`) {
         router.push('/');
       }
@@ -78,7 +90,7 @@ export default function CocosCanvas({
     window.addEventListener('message', onMessage);
     if (ready) sendThirteenSession();
     return () => window.removeEventListener('message', onMessage);
-  }, [credentials, gameId, ready, router, user]);
+  }, [credentials, gameId, gameSrc, interactiveScenes, ready, router, user]);
 
   return (
     <div className={`relative size-full overflow-hidden ${backdropClassName}`}>
@@ -94,8 +106,9 @@ export default function CocosCanvas({
         allow="autoplay; fullscreen"
         referrerPolicy="no-referrer"
         className="block size-full border-0"
-        onLoad={() => { if (readyOnLoad) setReady(true); }}
+        onLoad={() => setReadiness({ source: gameSrc, ready: readyOnLoad })}
       />
+      {ready && children}
     </div>
   );
 }

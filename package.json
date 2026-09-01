@@ -15,6 +15,7 @@
     "umo:test": "node --experimental-strip-types --import ./server/ts-register.mjs tools/sim/umo/room-test.mts",
     "umo:pwa-test": "node tools/sim/umo/pwa-offline-test.mjs",
     "thirteen:test": "node --experimental-strip-types --import ./server/ts-register.mjs tools/sim/thirteen/room-test.mjs",
+    "thirteen:host-test": "node tools/sim/thirteen/host-bridge-test.mjs",
     "auth:token-test": "node --experimental-strip-types --import ./server/ts-register.mjs tools/sim/auth-uid-token-test.mts",
     "auth:game-link-test": "node tools/sim/auth-game-link-test.mjs"
   },
