@@ -171,6 +171,39 @@ registry 现在只服务于 `manifest.ts` 的快捷方式(取前 4 条)和各游
 - 接口冒烟测试:起 dev server 后
   `node --experimental-strip-types --env-file=.env.local scripts/db/seed-e2e.mts` 铺测试账号,
   `node scripts/db/e2e-auth.mjs http://127.0.0.1:3000` 跑,跑完 `seed-e2e.mts --clean` 清掉。
+  头像那套单独有一个:`node tools/sim/avatar-upload-test.mjs http://127.0.0.1:3000`。
+
+### 头像
+
+每个账号都有 `users.avatar`(注册时随机发的 emoji,永远不为空),再叠一层可选的上传图片。
+
+| 位置 | 作用 |
+| --- | --- |
+| `user_avatars` 表 | 图片字节(bytea)、mime、宽高 |
+| `users.avatar_version` | 进 URL 的版本号,决定缓存 |
+| `src/lib/avatar.ts` | 服务端校验:按魔数认格式、读文件头拿尺寸 |
+| `src/lib/avatar-encode.ts` | 浏览器端裁方 + 缩放 + 编码 |
+| `src/app/api/avatar/route.ts` | POST 上传 / DELETE 还原 |
+| `src/app/api/avatar/[uid]/route.ts` | 公开读图 |
+| `src/components/Avatar.tsx` | 站内统一渲染(有图用图,没图用 emoji) |
+| `src/components/AvatarUploader.tsx` | "我的"页里的换头像控件 |
+
+守住这几条:
+
+- **缩放裁剪在浏览器里做,服务端只校验。** 服务端做这件事要 sharp / node-canvas 这类
+  原生依赖,而 node_modules 是 Mac 和 Linux 共用的,原生包必然在其中一边缺文件
+  (和验证码手写 PNG 编码器是同一个理由)。
+- **认格式只认魔数,不信 Content-Type。** 并且必须从文件头解析真实宽高 ——
+  20000×20000 的纯色 PNG 压完只有几十 KB,能过字节数检查,却会撑爆每个渲染它的浏览器。
+- **`avatar_version` 的编码是"正数 = 有图,绝对值 = 换过几次;≤0 = 用 emoji"。**
+  删头像时取负而不是清零:清零的话下次再传又是 `?v=1`,而浏览器里那条 immutable
+  缓存还在,新头像会被旧图顶掉,且过不了期、用户自己刷新也没用。
+- **`/api/avatar/[uid]` 是公开接口**(`<img>` 带不上 Bearer 头),版本号对不上时 302 到正确 URL,
+  不能直接把新图塞给旧 URL —— 那等于让旧 URL 把新图缓存住。
+- 新增任何"返回用户"的接口,记得跟着带 `avatarUrl`,并用 `<Avatar>` 渲染,
+  别再手写 `{user.avatar}` —— 头像出现在六个地方,散着写必然漏。
+- **Cocos 游戏(十三张 / UMO)里的座位头像仍然只吃 emoji**:它们的房间协议把 avatar
+  截断到 16 字符,要支持图片得改 ws 协议和两个 Cocos 工程,是单独一件事。
 
 ## 资源约定
 

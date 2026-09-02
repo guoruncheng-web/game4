@@ -9,6 +9,7 @@ import {
   LOGIN_CAPTCHA_THRESHOLD, clearFailures, clientIp, failureCount,
   rateLimit, recordFailure, resetRateLimit, sweepRateLimits,
 } from '@/lib/rate-limit';
+import { avatarUrlFor } from '@/lib/api-contract';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -68,9 +69,11 @@ export async function POST(request: Request) {
 
   const sql = getSql();
   const rows = (await sql`
-    select id, uid, password_hash, avatar, token_version, is_admin from users where username = ${username} limit 1
+    select id, uid, password_hash, avatar, avatar_version, token_version, is_admin
+    from users where username = ${username} limit 1
   `) as Array<{
-    id: string; uid: number; password_hash: string; avatar: string; token_version: number; is_admin: boolean;
+    id: string; uid: number; password_hash: string; avatar: string; avatar_version: number;
+    token_version: number; is_admin: boolean;
   }>;
 
   const user = rows[0];
@@ -96,6 +99,7 @@ export async function POST(request: Request) {
     uid: user.uid,
     username,
     avatar: user.avatar,
+    avatarUrl: avatarUrlFor(user.uid, user.avatar_version),
     isAdmin: user.is_admin,
     token: createApiAccessToken(Number(user.id), user.uid, user.token_version),
   });

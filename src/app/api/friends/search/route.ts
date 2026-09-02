@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSql } from '@/lib/db';
 import { getRequestUser } from '@/lib/session';
 import { clientIp, rateLimit } from '@/lib/rate-limit';
+import { avatarUrlFor } from '@/lib/api-contract';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,6 +26,7 @@ export async function GET(request: Request) {
       u.uid,
       u.username,
       u.avatar,
+      u.avatar_version,
       exists (
         select 1 from friendships f
         where f.user_a = least(${user.id}, u.id)
@@ -44,13 +46,14 @@ export async function GET(request: Request) {
     order by case when u.uid::text = ${query} or u.username = ${query} then 0 else 1 end, u.username
     limit 20
   `) as Array<{
-    id: string; uid: number; username: string; avatar: string; is_friend: boolean;
-    request_sent: boolean; request_received: boolean;
+    id: string; uid: number; username: string; avatar: string; avatar_version: number;
+    is_friend: boolean; request_sent: boolean; request_received: boolean;
   }>;
 
   return NextResponse.json({
     users: rows.map((row) => ({
       id: Number(row.id), uid: row.uid, username: row.username, avatar: row.avatar,
+      avatarUrl: avatarUrlFor(row.uid, row.avatar_version),
       isFriend: row.is_friend, requestSent: row.request_sent, requestReceived: row.request_received,
     })),
   });

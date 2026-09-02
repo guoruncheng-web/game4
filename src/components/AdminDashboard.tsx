@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { Ban, Gamepad2, MessageCircle, RefreshCw, Search, ShieldCheck, Users, UserX } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { apiFetch } from '@/lib/api-client';
+import Avatar from './Avatar';
 
 type Stats = { users: number; suspended: number; friendships: number; messages: number };
 type ManagedUser = {
-  id: number; uid: number; username: string; avatar: string; isAdmin: boolean;
+  id: number; uid: number; username: string; avatar: string; avatarUrl?: string | null; isAdmin: boolean;
   suspendedAt: string | null; createdAt: string; lastLoginAt: string | null;
 };
 type ManagedGame = { slug: string; title: string; tagline: string; enabled: boolean; sortOrder: number };
@@ -122,7 +123,7 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
                 {users.map((user) => (
                   <tr key={user.id}>
                     <td className="py-3">
-                      <span className="mr-2 text-xl">{user.avatar}</span>
+                      <Avatar emoji={user.avatar} url={user.avatarUrl} className="mr-2 inline-grid size-7 rounded-lg align-middle text-xl" />
                       <span className="font-mono font-bold">{user.username}</span>
                       <span className="ml-2 font-mono text-xs font-bold text-emerald-600">UID {user.uid}</span>
                     </td>

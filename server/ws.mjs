@@ -32,6 +32,7 @@ import { RoomDirectory } from './thirteen/server/room-directory.ts';
 import { ThirteenWsAdapter } from './thirteen/server/ws-adapter.ts';
 import { createThirteenWalletStore } from './thirteen-wallet-store.mjs';
 import { readApiAccessToken } from '../src/lib/auth.ts';
+import { avatarUrlFor } from '../src/lib/api-contract.ts';
 
 const PORT = Number(process.env.WS_PORT || 7011);
 
@@ -59,12 +60,17 @@ async function resolveUser(requestUrl) {
   if (!/^\d{6}$/.test(rawUid ?? '') || !claims || claims.uid !== uid) return null;
 
   const rows = await sql`
-    select id, uid, username, avatar, token_version, suspended_at
+    select id, uid, username, avatar, avatar_version, token_version, suspended_at
     from users where id = ${claims.userId} and uid = ${uid} limit 1
   `;
   const row = rows[0];
   if (!row || row.suspended_at || row.token_version !== claims.tokenVersion) return null;
-  return { id: Number(row.id), uid: row.uid, username: row.username, avatar: row.avatar };
+  return {
+    id: Number(row.id), uid: row.uid, username: row.username, avatar: row.avatar,
+    // 十三张 / UMO 的座位标识仍然只吃 emoji(协议里 avatar 被截到 16 字符),
+    // 这里的 avatarUrl 只给站内的 ready.me 用
+    avatarUrl: avatarUrlFor(row.uid, row.avatar_version),
+  };
 }
 
 // ---------------------------------------------------------------- 状态
@@ -587,12 +593,13 @@ server.on('upgrade', async (req, socket, head) => {
       }
       const client = {
         ws, userId: user.id, uid: user.uid, username: user.username, avatar: user.avatar,
-        roomId: old?.roomId ?? null, alive: true,
+        avatarUrl: user.avatarUrl, roomId: old?.roomId ?? null, alive: true,
       };
       clients.set(user.id, client);
 
       send(ws, { t: 'ready', me: {
         id: user.id, uid: user.uid, username: user.username, avatar: user.avatar,
+        avatarUrl: user.avatarUrl,
       } });
       // 继承来的房间已经解散了就把标记清掉,否则这个人会永远"在房间里"、
       // 既收不到在线列表也进不了新房间

@@ -8,7 +8,15 @@ import {
 } from '@/lib/api-client';
 import { API_UID_HEADER } from '@/lib/api-contract';
 
-export type AuthUser = { uid: number; username: string; avatar: string; isAdmin?: boolean } | null;
+export type AuthUser = {
+  uid: number;
+  username: string;
+  /** 注册时发的 emoji,一直在,是自定义头像的兜底 */
+  avatar: string;
+  /** 自定义头像地址;null = 没上传过,用 emoji */
+  avatarUrl?: string | null;
+  isAdmin?: boolean;
+} | null;
 
 export type WalletSummary = {
   diamonds: number;
@@ -24,6 +32,8 @@ type AuthContextValue = {
   openPanel: (mode?: AuthMode) => void;
   logout: () => Promise<void>;
   updateAccessToken: (token: string) => void;
+  /** 换/删头像后就地更新,不用重拉 /me —— 头像出现在好几个挂在这个 context 上的地方 */
+  setAvatarUrl: (url: string | null) => void;
   refreshWallet: () => Promise<void>;
 };
 
@@ -154,6 +164,10 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     router.refresh();
   }, [router]);
 
+  const setAvatarUrl = useCallback((url: string | null) => {
+    setUser((current) => (current ? { ...current, avatarUrl: url } : current));
+  }, []);
+
   const updateAccessToken = useCallback((token: string) => {
     if (!user) return;
     const nextCredentials = { uid: user.uid, token };
@@ -183,8 +197,14 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   }, [credentials, redirectTo, user, router]);
 
   const value = useMemo(
-    () => ({ user, credentials, wallet, loading, openPanel, logout, updateAccessToken, refreshWallet }),
-    [user, credentials, wallet, loading, openPanel, logout, updateAccessToken, refreshWallet],
+    () => ({
+      user, credentials, wallet, loading, openPanel, logout,
+      updateAccessToken, setAvatarUrl, refreshWallet,
+    }),
+    [
+      user, credentials, wallet, loading, openPanel, logout,
+      updateAccessToken, setAvatarUrl, refreshWallet,
+    ],
   );
 
   return (

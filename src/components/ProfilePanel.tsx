@@ -5,6 +5,8 @@ import { CheckCircle2, Coins, Gem, KeyRound, LayoutDashboard, LogIn, LogOut, Shi
 import { useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { apiFetch } from '@/lib/api-client';
+import Avatar from './Avatar';
+import AvatarUploader from './AvatarUploader';
 
 export default function ProfilePanel() {
   const { user, wallet, openPanel, logout, updateAccessToken } = useAuth();
@@ -69,13 +71,21 @@ export default function ProfilePanel() {
 
       <div className="overflow-hidden rounded-[2rem] border-4 border-white bg-gradient-to-br from-emerald-400 to-cyan-500 p-5 text-white shadow-[0_16px_40px_rgba(47,180,135,0.24)]">
         <div className="flex items-center gap-4">
-          <span className="grid size-20 shrink-0 place-items-center rounded-[1.6rem] border-4 border-white/70 bg-white text-4xl shadow-lg">{user.avatar}</span>
+          <Avatar
+            emoji={user.avatar}
+            url={user.avatarUrl}
+            alt="我的头像"
+            className="size-20 rounded-[1.6rem] border-4 border-white/70 bg-white text-4xl shadow-lg"
+          />
           <div className="min-w-0">
             <p className="text-xs font-black text-white/75">游戏账号</p>
             <p className="mt-1 truncate font-mono text-xl font-black">{user.username}</p>
             <p className="mt-1 font-mono text-sm font-black text-white/80">UID {user.uid}</p>
             <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-xs font-bold"><CheckCircle2 size={13} /> 已登录</p>
           </div>
+        </div>
+        <div className="mt-5 border-t border-white/25 pt-4">
+          <AvatarUploader />
         </div>
       </div>
 

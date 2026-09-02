@@ -4,9 +4,10 @@ import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, Copy, KeyRound, LogOut, RefreshCw, ShieldAlert, X } from 'lucide-react';
 import { apiFetch } from '@/lib/api-client';
+import Avatar from './Avatar';
 
 export type AuthMode = 'register' | 'login' | 'account';
-type User = { uid: number; username: string; avatar: string; isAdmin?: boolean } | null;
+type User = { uid: number; username: string; avatar: string; avatarUrl?: string | null; isAdmin?: boolean } | null;
 /** 一键开号成功后拿到的明文凭据,只在这一次出现 */
 type Credentials = { uid: number; username: string; password: string };
 
@@ -86,7 +87,10 @@ export default function AuthDialog({
         return;
       }
       setCredentials({ uid: data.uid, username: data.username, password: data.password });
-      onAuthed({ uid: data.uid, username: data.username, avatar: data.avatar, isAdmin: data.isAdmin }, data.token);
+      onAuthed({
+        uid: data.uid, username: data.username, avatar: data.avatar,
+        avatarUrl: data.avatarUrl ?? null, isAdmin: data.isAdmin,
+      }, data.token);
     } catch {
       setError('网络不太好,再试一次');
       refreshCaptcha();
@@ -113,7 +117,10 @@ export default function AuthDialog({
         if (loginNeedsCaptcha || data.requireCaptcha) refreshCaptcha();
         return;
       }
-      onAuthed({ uid: data.uid, username: data.username, avatar: data.avatar, isAdmin: data.isAdmin }, data.token);
+      onAuthed({
+        uid: data.uid, username: data.username, avatar: data.avatar,
+        avatarUrl: data.avatarUrl ?? null, isAdmin: data.isAdmin,
+      }, data.token);
       setLoginNeedsCaptcha(false);
       setPassword('');
       onClose();
@@ -277,12 +284,12 @@ export default function AuthDialog({
                 <div className="rounded-2xl border-2 border-slate-200 bg-white p-4">
                   <p className="text-xs font-bold text-slate-400">当前账号</p>
                   <div className="mt-2 flex items-center gap-3">
-                    <span
-                      className="grid size-12 shrink-0 place-items-center rounded-2xl bg-emerald-50 text-2xl"
-                      aria-label="账号头像"
-                    >
-                      {user?.avatar}
-                    </span>
+                    <Avatar
+                      emoji={user?.avatar ?? ''}
+                      url={user?.avatarUrl}
+                      alt="账号头像"
+                      className="size-12 rounded-2xl bg-emerald-50 text-2xl"
+                    />
                     <p className="select-all break-all font-mono text-base font-bold text-slate-800">
                       {user?.username}
                     </p>

@@ -19,6 +19,7 @@ import ChatPanel from '@/components/ChatPanel';
 import ProfilePanel from '@/components/ProfilePanel';
 import type { ReactNode } from 'react';
 import { apiFetch, withGameCredentials } from '@/lib/api-client';
+import Avatar from '@/components/Avatar';
 
 const upcomingGames = [
   {
@@ -435,7 +436,7 @@ export default function Home() {
             aria-label="我的个人资料"
           >
             {user ? (
-              <span className="text-2xl leading-none" aria-hidden="true">{user.avatar}</span>
+              <Avatar emoji={user.avatar} url={user.avatarUrl} className="size-7 rounded-lg text-2xl leading-none" />
             ) : (
               <UserRound size={24} />
             )}

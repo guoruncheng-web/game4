@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSql } from '@/lib/db';
 import { getRequestUser } from '@/lib/session';
 import { clientIp, rateLimit } from '@/lib/rate-limit';
+import { avatarUrlFor } from '@/lib/api-contract';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,6 +12,7 @@ type FriendRow = {
   uid: number;
   username: string;
   avatar: string;
+  avatar_version: number;
   last_message: string | null;
   last_message_at: string | null;
   unread_count: string | number;
@@ -27,6 +29,7 @@ export async function GET(request: Request) {
       friend.uid,
       friend.username,
       friend.avatar,
+      friend.avatar_version,
       latest.content as last_message,
       latest.created_at as last_message_at,
       (
@@ -55,6 +58,7 @@ export async function GET(request: Request) {
       uid: row.uid,
       username: row.username,
       avatar: row.avatar,
+      avatarUrl: avatarUrlFor(row.uid, row.avatar_version),
       lastMessage: row.last_message,
       lastMessageAt: row.last_message_at,
       unreadCount: Number(row.unread_count),
@@ -82,8 +86,10 @@ export async function POST(request: Request) {
 
   const sql = getSql();
   const target = (await sql`
-    select id, uid, username, avatar from users where id = ${targetId} limit 1
-  `) as Array<{ id: string; uid: number; username: string; avatar: string }>;
+    select id, uid, username, avatar, avatar_version from users where id = ${targetId} limit 1
+  `) as Array<{
+    id: string; uid: number; username: string; avatar: string; avatar_version: number;
+  }>;
   if (!target[0]) return NextResponse.json({ error: '用户不存在' }, { status: 404 });
 
   const friendship = await sql`
@@ -118,6 +124,7 @@ export async function POST(request: Request) {
       recipient: {
         id: Number(target[0].id), uid: target[0].uid,
         username: target[0].username, avatar: target[0].avatar,
+        avatarUrl: avatarUrlFor(target[0].uid, target[0].avatar_version),
       },
     },
   });

@@ -97,6 +97,8 @@ export async function POST(request: Request) {
     username,
     password,
     avatar,
+    // 一键开号发的是随机 emoji,这一刻不可能有自定义头像
+    avatarUrl: null,
     isAdmin: false,
     wallet: { diamonds: 10_000, thirteenChips: 10_000, thirteenReserved: 0 },
     token: createApiAccessToken(userId, uid, tokenVersion),

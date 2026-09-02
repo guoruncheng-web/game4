@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSql } from '@/lib/db';
 import { getRequestUser } from '@/lib/session';
 import { GAMES } from '@/games/registry';
+import { avatarUrlFor } from '@/lib/api-contract';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
         (select count(*)::int from direct_messages) as messages
     `,
     sql`
-      select id, uid, username, avatar, is_admin, suspended_at, created_at, last_login_at
+      select id, uid, username, avatar, avatar_version, is_admin, suspended_at, created_at, last_login_at
       from users
       where ${query === ''} or strpos(username, ${query}) > 0
       order by created_at desc
@@ -33,6 +34,7 @@ export async function GET(request: Request) {
     stats: counts[0],
     users: users.map((row) => ({
       id: Number(row.id), uid: row.uid, username: row.username, avatar: row.avatar,
+      avatarUrl: avatarUrlFor(Number(row.uid), Number(row.avatar_version)),
       isAdmin: row.is_admin, suspendedAt: row.suspended_at,
       createdAt: row.created_at, lastLoginAt: row.last_login_at,
     })),

@@ -7,12 +7,14 @@ import { getSql } from './db';
 
 export type CurrentUser = {
   id: number; uid: number; username: string; avatar: string; tokenVersion: number; isAdmin: boolean;
+  /** 自定义头像版本号,>0 才有图;emoji 兜底在 avatar 里。编码见 scripts/db/schema.sql */
+  avatarVersion: number;
 };
 
 // bigserial 经 neon 回来是字符串,拿到手先转成 number(账号量远到不了 2^53)
 type UserRow = {
   id: string | number; uid: number; username: string; avatar: string; token_version: number;
-  is_admin: boolean; suspended_at: string | null;
+  is_admin: boolean; suspended_at: string | null; avatar_version: number;
 };
 
 /**
@@ -39,7 +41,7 @@ export async function resolveSession(token: string | undefined): Promise<Current
   if (!claims) return null;
   const sql = getSql();
   const rows = (await sql`
-    select id, uid, username, avatar, token_version, is_admin, suspended_at
+    select id, uid, username, avatar, avatar_version, token_version, is_admin, suspended_at
     from users where id = ${claims.userId} limit 1
   `) as UserRow[];
   const row = rows[0];
@@ -51,6 +53,7 @@ export async function resolveSession(token: string | undefined): Promise<Current
     uid: row.uid,
     username: row.username,
     avatar: row.avatar,
+    avatarVersion: row.avatar_version,
     tokenVersion: row.token_version,
     isAdmin: row.is_admin,
   };
@@ -71,7 +74,7 @@ export async function resolveApiCredentials(
 
   const sql = getSql();
   const rows = (await sql`
-    select id, uid, username, avatar, token_version, is_admin, suspended_at
+    select id, uid, username, avatar, avatar_version, token_version, is_admin, suspended_at
     from users where id = ${claims.userId} and uid = ${uid} limit 1
   `) as UserRow[];
   const row = rows[0];
@@ -81,6 +84,7 @@ export async function resolveApiCredentials(
     uid: row.uid,
     username: row.username,
     avatar: row.avatar,
+    avatarVersion: row.avatar_version,
     tokenVersion: row.token_version,
     isAdmin: row.is_admin,
   };

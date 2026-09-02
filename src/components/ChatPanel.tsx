@@ -5,12 +5,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { useCoop } from './CoopProvider';
 import { apiFetch } from '@/lib/api-client';
+import Avatar from './Avatar';
 
 type Friend = {
   id: number;
   uid: number;
   username: string;
   avatar: string;
+  avatarUrl?: string | null;
   lastMessage?: string | null;
   lastMessageAt?: string | null;
   unreadCount?: number;
@@ -196,7 +198,7 @@ export default function ChatPanel() {
           <button type="button" onClick={() => setActiveFriend(null)} className="grid size-10 place-items-center rounded-full bg-white text-slate-500" aria-label="返回好友列表">
             <ArrowLeft size={21} />
           </button>
-          <span className="grid size-11 place-items-center rounded-2xl bg-white text-2xl">{activeFriend.avatar}</span>
+          <Avatar emoji={activeFriend.avatar} url={activeFriend.avatarUrl} className="size-11 rounded-2xl bg-white text-2xl" />
           <div>
             <h1 className="font-black text-[#173366]">{activeFriend.username}</h1>
             <p className={`text-xs font-bold ${friendOnline ? 'text-emerald-500' : 'text-slate-400'}`}>
@@ -210,17 +212,13 @@ export default function ChatPanel() {
           {messages.map((message) => (
             <div key={message.id} className={`flex items-end gap-2 ${message.mine ? 'justify-end' : 'justify-start'}`}>
               {!message.mine && (
-                <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-white text-lg shadow-sm" aria-hidden="true">
-                  {activeFriend.avatar}
-                </span>
+                <Avatar emoji={activeFriend.avatar} url={activeFriend.avatarUrl} className="size-8 rounded-xl bg-white text-lg shadow-sm" />
               )}
               <div className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm font-semibold leading-relaxed ${message.mine ? 'rounded-br-md bg-emerald-500 text-white' : 'rounded-bl-md bg-white text-slate-700 shadow-sm'}`}>
                 {message.content}
               </div>
               {message.mine && (
-                <span className="grid size-8 shrink-0 place-items-center rounded-xl bg-emerald-50 text-lg shadow-sm" aria-hidden="true">
-                  {user.avatar}
-                </span>
+                <Avatar emoji={user.avatar} url={user.avatarUrl} className="size-8 rounded-xl bg-emerald-50 text-lg shadow-sm" />
               )}
             </div>
           ))}
@@ -269,7 +267,7 @@ export default function ChatPanel() {
           <p className="px-1 text-xs font-black text-slate-400">搜索结果</p>
           {results.map((person) => (
             <div key={person.id} className="flex items-center gap-3 rounded-2xl bg-white p-3">
-              <span className="grid size-11 place-items-center rounded-xl bg-emerald-50 text-2xl">{person.avatar}</span>
+              <Avatar emoji={person.avatar} url={person.avatarUrl} className="size-11 rounded-xl bg-emerald-50 text-2xl" />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-black text-[#173366]">{person.username}</span>
                 <span className="block font-mono text-[10px] font-bold text-emerald-600">UID {person.uid}</span>
@@ -288,7 +286,7 @@ export default function ChatPanel() {
           <div className="space-y-2">
             {requests.map((request) => (
               <div key={request.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm">
-                <span className="grid size-11 place-items-center rounded-xl bg-emerald-50 text-2xl">{request.sender.avatar}</span>
+                <Avatar emoji={request.sender.avatar} url={request.sender.avatarUrl} className="size-11 rounded-xl bg-emerald-50 text-2xl" />
                 <span className="min-w-0 flex-1 truncate text-sm font-black text-[#173366]">{request.sender.username}</span>
                 <button type="button" onClick={() => { void respondToRequest(request, 'reject'); }} className="min-h-9 rounded-xl bg-slate-100 px-3 text-xs font-black text-slate-500">拒绝</button>
                 <button type="button" onClick={() => { void respondToRequest(request, 'accept'); }} className="min-h-9 rounded-xl bg-emerald-500 px-3 text-xs font-black text-white">同意</button>
@@ -312,7 +310,7 @@ export default function ChatPanel() {
             setActiveFriend(friend);
           }} className="flex w-full items-center gap-3 rounded-2xl border border-white bg-white/85 p-3 text-left shadow-sm transition active:scale-[0.99]">
             <span className="relative grid size-12 place-items-center rounded-2xl bg-emerald-50 text-2xl">
-              {friend.avatar}
+              <Avatar emoji={friend.avatar} url={friend.avatarUrl} className="size-full rounded-2xl text-2xl" />
               <span
                 className={`absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border-2 border-white ${connected && onlineIds.has(friend.id) ? 'bg-emerald-400' : 'bg-slate-300'}`}
                 aria-label={!connected ? '状态连接中' : onlineIds.has(friend.id) ? '在线' : '离线'}

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getSql } from '@/lib/db';
 import { getRequestUser } from '@/lib/session';
 import { clientIp, rateLimit } from '@/lib/rate-limit';
+import { avatarUrlFor } from '@/lib/api-contract';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,19 +12,23 @@ export async function GET(request: Request) {
   if (!user) return NextResponse.json({ error: '请先登录' }, { status: 401 });
   const sql = getSql();
   const rows = (await sql`
-    select r.id, r.created_at, u.id as sender_id, u.uid, u.username, u.avatar
+    select r.id, r.created_at, u.id as sender_id, u.uid, u.username, u.avatar, u.avatar_version
     from friend_requests r
     join users u on u.id = r.sender_id
     where r.recipient_id = ${user.id} and r.status = 'pending'
     order by r.created_at desc
     limit 50
   `) as Array<{
-    id: string; created_at: string; sender_id: string; uid: number; username: string; avatar: string;
+    id: string; created_at: string; sender_id: string; uid: number; username: string;
+    avatar: string; avatar_version: number;
   }>;
   return NextResponse.json({
     requests: rows.map((row) => ({
       id: Number(row.id), createdAt: row.created_at,
-      sender: { id: Number(row.sender_id), uid: row.uid, username: row.username, avatar: row.avatar },
+      sender: {
+        id: Number(row.sender_id), uid: row.uid, username: row.username, avatar: row.avatar,
+        avatarUrl: avatarUrlFor(row.uid, row.avatar_version),
+      },
     })),
   });
 }
@@ -73,12 +78,15 @@ export async function PATCH(request: Request) {
   if (action === 'reject') return NextResponse.json({ ok: true });
 
   const friends = (await sql`
-    select id, uid, username, avatar from users where id = ${rows[0].sender_id} limit 1
-  `) as Array<{ id: string; uid: number; username: string; avatar: string }>;
+    select id, uid, username, avatar, avatar_version from users where id = ${rows[0].sender_id} limit 1
+  `) as Array<{
+    id: string; uid: number; username: string; avatar: string; avatar_version: number;
+  }>;
   return NextResponse.json({
     friend: {
       id: Number(friends[0].id), uid: friends[0].uid,
       username: friends[0].username, avatar: friends[0].avatar,
+      avatarUrl: avatarUrlFor(friends[0].uid, friends[0].avatar_version),
     },
   });
 }

@@ -177,3 +177,32 @@ on conflict (slug) do nothing;
 --
 -- 自托管之后改成了常驻的 WebSocket 进程(server/ws.mjs),这些状态回到了内存里,
 -- 三张表随之废弃。老库里如果还有,可以手工 drop,留着也不影响。
+
+
+-- ---------------------------------------------------------------- 自定义头像
+-- users.avatar 仍是 emoji 兜底(注册就有,永远不为空)。上传的图片单独放这张表,
+-- 原因是绝大多数查询(登录、好友列表、后台、ws 握手)都只需要那个 emoji,
+-- 把几十 KB 的 bytea 混进 users 会让每一次 select * 级别的查询都白读一遍图。
+--
+-- **为什么存库而不是存磁盘**:部署是 rsync --delete 同步整个仓库目录,
+-- 写进仓库里的上传文件下次部署就没了;写到仓库外(像 UMO_STATE_FILE 那样)
+-- 则要在服务器上手工建目录、配环境变量、再让 rsync 排除 —— 多一步运维,
+-- 而头像被限制在 256×256 / 200KB 以内,存库的代价小于那一步运维成本。
+create table if not exists user_avatars (
+  user_id    bigint      primary key references users(id) on delete cascade,
+  mime       text        not null check (mime in ('image/webp', 'image/png', 'image/jpeg')),
+  bytes      bytea       not null,
+  width      integer     not null,
+  height     integer     not null,
+  updated_at timestamptz not null default now()
+);
+
+-- 头像版本号。它进 URL 的 query(/api/avatar/123456?v=3),
+-- 于是图片本身可以发 immutable 长缓存,换头像又能立刻在所有端生效 ——
+-- 没有这个版本号就只能给头像发 no-cache,每次列表滚动都要回源。
+--
+-- 编码方式:**正数 = 当前有自定义头像,绝对值是换过几次;<= 0 = 用 emoji**。
+-- 删除头像时取负(-3)而不是清零,是因为幅度必须单调递增:
+-- 清零的话下次再传又是 v=1,而浏览器里 ?v=1 那条 immutable 缓存还在,
+-- 新头像会被旧图顶掉,而且这个缓存过不了期、用户自己刷新也没用。
+alter table users add column if not exists avatar_version integer not null default 0;

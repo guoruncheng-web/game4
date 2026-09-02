@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createApiAccessToken } from '@/lib/auth';
 import { getCurrentUser, getRequestUser } from '@/lib/session';
+import { avatarUrlFor } from '@/lib/api-contract';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -10,7 +11,8 @@ export async function GET(request: Request) {
   const user = await getRequestUser(request) ?? await getCurrentUser();
   const response = NextResponse.json({
     user: user ? {
-      uid: user.uid, username: user.username, avatar: user.avatar, isAdmin: user.isAdmin,
+      uid: user.uid, username: user.username, avatar: user.avatar,
+      avatarUrl: avatarUrlFor(user.uid, user.avatarVersion), isAdmin: user.isAdmin,
     } : null,
     token: user ? createApiAccessToken(user.id, user.uid, user.tokenVersion) : null,
   });
