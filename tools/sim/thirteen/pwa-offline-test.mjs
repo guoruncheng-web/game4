@@ -15,6 +15,7 @@ if (!Number.isFinite(lobbyTimeoutMs) || lobbyTimeoutMs < 5_000 || lobbyTimeoutMs
 const viewport = process.env.THIRTEEN_PWA_VIEWPORT || '1280,720';
 if (!/^\d{3,4},\d{3,4}$/.test(viewport)) throw new Error('invalid_THIRTEEN_PWA_VIEWPORT');
 const sessionCookie = process.env.THIRTEEN_PWA_SESSION_COOKIE || '';
+const onlineScreenshot = process.env.THIRTEEN_PWA_ONLINE_SCREENSHOT || '';
 const chromePath = process.env.COCOS_CHROME
   || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -136,8 +137,8 @@ try {
   await waitForLobby(cdp, lobbyTimeoutMs);
   const online = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
-    const assets = await caches.open('game-box-assets-v52');
-    const shell = await caches.open('game-box-shell-v52');
+    const assets = await caches.open('game-box-assets-v53');
+    const shell = await caches.open('game-box-shell-v53');
     const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
     const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
     const frame = document.querySelector('iframe');
@@ -220,6 +221,131 @@ try {
   online.trustedAudio = { before: audioBefore, after: audioAfter, clickPoint, inputProbe };
 
   if (sessionCookie) {
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      online.accountIdentity = await evaluate(cdp, `(() => {
+        const frame = document.querySelector('iframe');
+        const gameWindow = frame?.contentWindow;
+        const lobby = gameWindow?.cc?.director?.getScene?.()?.getChildByPath?.('Canvas/R02LobbyRoot');
+        const view = lobby?.components?.find?.((component) => typeof component.getAcceptanceState === 'function');
+        const state = view?.getAcceptanceState?.() || null;
+        const avatar = lobby?.getChildByPath?.('PlayerProfile/Avatar')
+          ?.getComponent?.(gameWindow?.cc?.Sprite)?.spriteFrame;
+        const frameUuid = avatar?._uuid || avatar?.uuid || '';
+        return {
+          playerName: state?.playerName || null,
+          avatarSource: state?.avatarSource || null,
+          runtimeAvatarFrame: Boolean(avatar && !frameUuid),
+          textureWidth: avatar?.texture?.width || 0,
+        };
+      })()`);
+      if (/^\/api\/avatar\/\d{6}\?v=\d+$/.test(online.accountIdentity?.avatarSource || '')
+        && online.accountIdentity?.runtimeAvatarFrame === true
+        && online.accountIdentity?.textureWidth > 0) break;
+      await sleep(100);
+    }
+    if (onlineScreenshot) {
+      await mkdir(dirname(onlineScreenshot), { recursive: true });
+      const shot = await cdp.send('Page.captureScreenshot', { format: 'png' });
+      await writeFile(onlineScreenshot, Buffer.from(shot.result.data, 'base64'));
+    }
+    online.accountRooms = await evaluate(cdp, `(async () => {
+      const frame = document.querySelector('iframe');
+      const gameWindow = frame?.contentWindow;
+      const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      const flow = () => gameWindow?.cc?.director?.getScene?.()?.getChildByName?.('ThirteenFlow')
+        ?.components?.find?.((component) => typeof component.getAcceptanceState === 'function');
+      const sceneName = () => gameWindow?.cc?.director?.getScene?.()?.name || null;
+      const roomState = () => {
+        const room = gameWindow?.cc?.director?.getScene?.()?.getChildByPath?.('Canvas/R03RoomRoot');
+        const view = room?.components?.find?.((component) => typeof component.getAcceptanceState === 'function');
+        return { root: room, state: view?.getAcceptanceState?.() || null };
+      };
+      const waitUntil = async (read, accepted, label, timeoutMs = 10_000) => {
+        const deadline = Date.now() + timeoutMs;
+        let value = null;
+        while (Date.now() < deadline) {
+          value = read();
+          if (accepted(value)) return value;
+          await wait(50);
+        }
+        throw new Error(label + ':' + JSON.stringify(value));
+      };
+      const identity = flow()?.hostBridge?.current?.().user || {};
+      const selfName = identity.displayName || '当前玩家';
+      const selfAvatar = identity.avatar || '';
+      class AccountRoomSocket {
+        constructor() {
+          this.readyState = 0;
+          this.onopen = null;
+          this.onmessage = null;
+          this.onclose = null;
+          this.onerror = null;
+          setTimeout(() => {
+            this.readyState = 1;
+            this.onopen?.();
+          }, 0);
+        }
+        emit(message) {
+          setTimeout(() => this.onmessage?.({ data: JSON.stringify(message) }), 0);
+        }
+        send(serialized) {
+          const message = JSON.parse(serialized);
+          if (message.t === 'thirteen:hello') {
+            this.emit({ t: 'thirteen:ready', v: 2 });
+          } else if (message.t === 'thirteen:create-private') {
+            this.emit({
+              t: 'thirteen:room', v: 2, seat: 0,
+              room: {
+                code: 'A1B2C3', started: false, stake: message.stake,
+                readyCount: 0, playerCount: 2,
+                players: [
+                  { seat: 0, userId: 'account-self', displayName: selfName, avatar: selfAvatar, connected: true, ready: false },
+                  { seat: 1, userId: 'account-peer', displayName: '真实对手', avatar: selfAvatar, connected: true, ready: false },
+                ],
+              },
+            });
+          } else if (message.t === 'thirteen:matchmake') {
+            this.emit({ t: 'thirteen:matchmaking', v: 2, playerCount: 2, stake: message.stake });
+          } else if (message.t === 'thirteen:leave') {
+            this.emit({ t: 'thirteen:left', v: 2 });
+          }
+        }
+        close() {
+          this.readyState = 3;
+          this.onclose?.();
+        }
+      }
+      gameWindow.WebSocket = AccountRoomSocket;
+
+      flow()?.selectLobbyMode?.('room');
+      await waitUntil(sceneName, (value) => value === 'R08Stake', 'private_stake_scene_timeout');
+      gameWindow.cc.director.getScene().getChildByPath('Canvas/R08StakeRoot')?.emit?.('r08-confirm', 300);
+      const privateEntry = await waitUntil(
+        () => roomState().state,
+        (value) => value?.state === 'private-entry',
+        'private_entry_timeout',
+      );
+      roomState().root?.emit?.('r03-create-private');
+      const privateRoom = await waitUntil(
+        () => roomState().state,
+        (value) => value?.state === 'room' && value?.roomCode === 'A1B 2C3',
+        'private_room_timeout',
+      );
+
+      flow()?.leaveOnlineAndShowLobby?.();
+      await waitUntil(sceneName, (value) => value === 'R02Lobby', 'private_leave_timeout');
+      flow()?.selectLobbyMode?.('quick');
+      await waitUntil(sceneName, (value) => value === 'R08Stake', 'quick_stake_scene_timeout');
+      gameWindow.cc.director.getScene().getChildByPath('Canvas/R08StakeRoot')?.emit?.('r08-confirm', 300);
+      const quickQueue = await waitUntil(
+        () => roomState().state,
+        (value) => value?.state === 'queueing' && value?.seatNames?.[0] === selfName,
+        'quick_queue_timeout',
+      );
+      flow()?.leaveOnlineAndShowLobby?.();
+      await waitUntil(sceneName, (value) => value === 'R02Lobby', 'quick_leave_timeout');
+      return { selfName, selfAvatar, privateEntry, privateRoom, quickQueue };
+    })()`);
     const opened = await evaluate(cdp, `(() => {
       const frame = document.querySelector('iframe');
       const gameWindow = frame?.contentWindow;
@@ -358,7 +484,21 @@ try {
     && online.trustedAudio.after?.musicPlaying === true
     && online.trustedAudio.after?.ambiencePlaying === true
     && (!sessionCookie || (
-      online.authenticatedEconomy?.iframeHasUid === true
+      /^\/api\/avatar\/\d{6}\?v=\d+$/.test(online.accountIdentity?.avatarSource || '')
+      && online.accountIdentity?.runtimeAvatarFrame === true
+      && online.accountIdentity?.textureWidth > 0
+      && online.accountRooms?.privateEntry?.roomCode === ''
+      && online.accountRooms?.privateEntry?.seatNames?.[0] === online.accountRooms?.selfName
+      && online.accountRooms?.privateRoom?.roomCode === 'A1B 2C3'
+      && online.accountRooms?.privateRoom?.seatNames?.[0] === online.accountRooms?.selfName
+      && online.accountRooms?.privateRoom?.seatNames?.[1] === '真实对手'
+      && online.accountRooms?.privateRoom?.avatarSources?.[0] === online.accountRooms?.selfAvatar
+      && online.accountRooms?.quickQueue?.roomCode === ''
+      && online.accountRooms?.quickQueue?.seatNames?.[0] === online.accountRooms?.selfName
+      && online.accountRooms?.quickQueue?.seatNames?.[1] === '玩家已匹配'
+      && !JSON.stringify(online.accountRooms).includes('836 214')
+      && !['小武', '阿明', '小美'].some((name) => JSON.stringify(online.accountRooms).includes(name))
+      && online.authenticatedEconomy?.iframeHasUid === true
       && online.authenticatedEconomy?.iframeHasToken === true
       && online.authenticatedEconomy?.wallet?.diamonds === 9_990
       && online.authenticatedEconomy?.wallet?.chips === 11_000

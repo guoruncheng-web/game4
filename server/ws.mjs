@@ -67,8 +67,8 @@ async function resolveUser(requestUrl) {
   if (!row || row.suspended_at || row.token_version !== claims.tokenVersion) return null;
   return {
     id: Number(row.id), uid: row.uid, username: row.username, avatar: row.avatar,
-    // 十三张 / UMO 的座位标识仍然只吃 emoji(协议里 avatar 被截到 16 字符),
-    // 这里的 avatarUrl 只给站内的 ready.me 用
+    // 同源版本化头像地址既供站内 UI，也作为十三张的公开座位头像；
+    // 未上传时继续保留 emoji，让各游戏自行使用其美术降级头像。
     avatarUrl: avatarUrlFor(row.uid, row.avatar_version),
   };
 }
@@ -415,7 +415,7 @@ function handle(client, msg) {
       thirteenAdapter.handle({
         userId: String(me),
         displayName: client.username,
-        avatar: client.avatar,
+        avatar: client.avatarUrl ?? client.avatar,
       }, msg);
     }, me);
     return;

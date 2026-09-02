@@ -8,6 +8,7 @@ const args = process.argv.slice(2).filter((value) => value !== '--');
 const url = args[0] || 'http://127.0.0.1:3220/thirteen';
 const screenshot = args[1];
 const resultPath = args[2];
+const onlineScreenshot = args[3];
 assert.ok(screenshot && resultPath, 'screenshot_and_result_paths_required');
 assert.ok(process.env.DATABASE_URL, 'DATABASE_URL_required');
 
@@ -27,6 +28,14 @@ const users = await sql`
 const userId = Number(users[0]?.id);
 const uid = Number(users[0]?.uid);
 assert.ok(Number.isSafeInteger(userId) && /^\d{6}$/.test(String(uid)));
+const avatarBytes = await readFile('public/icons/icon-192.png');
+await sql.begin(async (tx) => {
+  await tx`
+    insert into user_avatars (user_id, mime, bytes, width, height, updated_at)
+    values (${userId}, 'image/png', ${avatarBytes}, 192, 192, now())
+  `;
+  await tx`update users set avatar_version = 1 where id = ${userId}`;
+});
 
 try {
   const exitCode = await new Promise<number>((resolve, reject) => {
@@ -37,6 +46,7 @@ try {
       env: {
         ...process.env,
         THIRTEEN_PWA_SESSION_COOKIE: createSessionToken(userId, Number(users[0].token_version)),
+        ...(onlineScreenshot ? { THIRTEEN_PWA_ONLINE_SCREENSHOT: onlineScreenshot } : {}),
       },
       stdio: 'inherit',
     });
@@ -46,6 +56,19 @@ try {
   assert.equal(exitCode, 0, 'authenticated_pwa_child_failed');
   const report = JSON.parse(await readFile(resultPath, 'utf8'));
   assert.equal(report.accepted, true);
+  assert.equal(report.online.accountIdentity.playerName, username);
+  assert.equal(report.online.accountIdentity.avatarSource, `/api/avatar/${uid}?v=1`);
+  assert.equal(report.online.accountIdentity.runtimeAvatarFrame, true);
+  assert.ok(report.online.accountIdentity.textureWidth > 0);
+  assert.equal(report.online.accountRooms.selfName, username);
+  assert.equal(report.online.accountRooms.selfAvatar, `/api/avatar/${uid}?v=1`);
+  assert.equal(report.online.accountRooms.privateEntry.roomCode, '');
+  assert.equal(report.online.accountRooms.privateEntry.seatNames[0], username);
+  assert.equal(report.online.accountRooms.privateRoom.roomCode, 'A1B 2C3');
+  assert.deepEqual(report.online.accountRooms.privateRoom.seatNames.slice(0, 2), [username, '真实对手']);
+  assert.equal(report.online.accountRooms.privateRoom.avatarSources[0], `/api/avatar/${uid}?v=1`);
+  assert.equal(report.online.accountRooms.quickQueue.roomCode, '');
+  assert.deepEqual(report.online.accountRooms.quickQueue.seatNames.slice(0, 2), [username, '玩家已匹配']);
   assert.deepEqual(report.online.authenticatedEconomy.wallet, {
     diamonds: 9_990, chips: 11_000, reserved: 0, totalChips: 11_000,
   });
@@ -71,6 +94,7 @@ try {
     feature: 'authenticated Thirteen PWA wallet bridge',
     uidIsSixDigits: /^\d{6}$/.test(String(uid)),
     iframeCredentials: true,
+    accountIdentity: { displayName: username, avatarUrl: `/api/avatar/${uid}?v=1`, rendered: true },
     initialGrant: { diamonds: 10_000, chips: 10_000 },
     exchange: { spentDiamonds: 10, receivedChips: 1_000 },
     databaseWallet: { diamonds: 9_990, chips: 11_000, reserved: 0 },

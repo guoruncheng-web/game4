@@ -114,7 +114,7 @@ export class RoomDirectory {
     const normalized = {
       userId: identity.userId,
       displayName: identity.displayName.trim().slice(0, 32) || identity.userId,
-      avatar: identity.avatar.trim().slice(0, 16),
+      avatar: identity.avatar.trim().slice(0, 256),
     };
     this.profiles.set(normalized.userId, normalized);
     this.rooms.get(this.userRooms.get(normalized.userId) ?? '')?.room.updateIdentity(normalized);

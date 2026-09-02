@@ -118,7 +118,7 @@ function normalizeIdentity(value: string | PlayerIdentity): PlayerIdentity {
   return {
     userId: value.userId,
     displayName: value.displayName.trim().slice(0, 32) || value.userId,
-    avatar: value.avatar.trim().slice(0, 16),
+    avatar: value.avatar.trim().slice(0, 256),
   };
 }
 

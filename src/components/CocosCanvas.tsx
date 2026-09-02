@@ -62,7 +62,9 @@ export default function CocosCanvas({
         version: 1,
         locale: 'zh-CN',
         user: user && credentials ? {
-          id: String(user.uid), uid: user.uid, displayName: user.username, token: credentials.token,
+          id: String(user.uid),
+          displayName: user.username,
+          avatar: user.avatarUrl ?? user.avatar,
         } : null,
         returnPath: '/',
       }, window.location.origin);
