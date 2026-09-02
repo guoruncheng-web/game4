@@ -136,8 +136,8 @@ try {
   await waitForLobby(cdp, lobbyTimeoutMs);
   const online = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
-    const assets = await caches.open('game-box-assets-v51');
-    const shell = await caches.open('game-box-shell-v51');
+    const assets = await caches.open('game-box-assets-v52');
+    const shell = await caches.open('game-box-shell-v52');
     const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
     const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
     const frame = document.querySelector('iframe');

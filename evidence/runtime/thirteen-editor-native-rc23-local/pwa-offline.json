@@ -1,0 +1,90 @@
+{
+  "feature": "Thirteen PWA offline replay",
+  "online": {
+    "names": [
+      "game-box-shell-v52",
+      "game-box-assets-v52",
+      "game-box-static-v52"
+    ],
+    "assetCount": 114,
+    "shellKeys": [
+      "/icons/icon-192.png",
+      "/icons/icon-512.png",
+      "/offline",
+      "/thirteen",
+      "/thirteen/game/index.html"
+    ],
+    "cachedGameIndex": true,
+    "cachedSettings": true,
+    "cachedAudioClips": 21,
+    "cachedRoute": true,
+    "onlineCanvas": true,
+    "releaseLanguage": "zh-CN",
+    "trustedAudio": {
+      "before": {
+        "architecture": "scene-mounted-six-bus",
+        "assignedSources": 6,
+        "missingSources": [],
+        "loadedClips": 21,
+        "ready": true,
+        "contextState": "suspended",
+        "unlocked": false,
+        "scene": "lobby",
+        "tension": false,
+        "musicPlaying": false,
+        "ambiencePlaying": false,
+        "liveSfx": 0,
+        "liveVoice": 0,
+        "dealPulseAttempts": 0,
+        "dealPulsePlayed": 0
+      },
+      "after": {
+        "architecture": "scene-mounted-six-bus",
+        "assignedSources": 6,
+        "missingSources": [],
+        "loadedClips": 21,
+        "ready": true,
+        "contextState": "running",
+        "unlocked": true,
+        "scene": "lobby",
+        "tension": false,
+        "musicPlaying": true,
+        "ambiencePlaying": true,
+        "liveSfx": 0,
+        "liveVoice": 0,
+        "dealPulseAttempts": 0,
+        "dealPulsePlayed": 0
+      },
+      "clickPoint": {
+        "x": 640,
+        "y": 316.5,
+        "rect": [
+          0,
+          0,
+          1280,
+          633
+        ]
+      },
+      "inputProbe": {
+        "parentActiveElement": "IFRAME",
+        "frameActiveElement": "GameCanvas",
+        "events": {
+          "mouse": 1,
+          "touch": 0,
+          "pointer": 1
+        }
+      }
+    }
+  },
+  "offline": {
+    "pagePath": "/thirteen",
+    "canvas": true,
+    "canvasWidth": 1280,
+    "canvasHeight": 633,
+    "cocos": true,
+    "scene": "R02Lobby",
+    "releaseLanguage": "zh-CN",
+    "loadingOverlayVisible": false
+  },
+  "accepted": true
+}

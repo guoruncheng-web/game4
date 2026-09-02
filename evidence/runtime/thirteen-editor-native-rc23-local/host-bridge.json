@@ -1,0 +1,25 @@
+{
+  "feature": "Cocos portrait exit closes game through strict PWA host messaging",
+  "portrait": {
+    "scene": "O02RotateGuard",
+    "label": "返回",
+    "hostControl": false,
+    "clickPoint": {
+      "x": 220,
+      "y": 706.6503719447396
+    },
+    "accepted": true
+  },
+  "hostControlSeenBeforeInteractive": false,
+  "exit": {
+    "pagePath": "/",
+    "iframe": false,
+    "accepted": true
+  },
+  "lobby": {
+    "scene": "R02Lobby",
+    "hostControl": true,
+    "accepted": true
+  },
+  "accepted": true
+}
