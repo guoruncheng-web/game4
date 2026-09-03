@@ -1,6 +1,6 @@
 # Thirteen / Chặt Heo! 集成记录
 
-状态：Single-diamond P0 v1 的本地生产、认证/未认证 PWA 与权威服务验收已通过；准备推送公网。
+状态：Single-diamond P0 v1 已完成生产发布；本地、Actions 与公网认证/未认证 PWA、权威服务验收通过。
 
 ## 组成
 
@@ -32,7 +32,7 @@ Service Worker 版本为 `v54`。`/thirteen/` 下的 JS、JSON、CSS、WASM、�
 - R02 仅展示钻石，R03 明示免费；R06 新增账户、导出、注销、客服和版本入口；R07/O05 展示权威本局积分、最近战绩、公平摘要和申诉编号。
 - 四个真实数据库账号连续完成 20 局、1,107 个权威动作；20/20 归档，钻石不变，新增牌币钱包/流水均为 0，免费重赛和逐局房间释放通过。
 - 未认证与认证全新 profile 均通过在线、可信音频、v54 缓存和离线大厅；认证链路额外通过真实六位 UID/头像、10,000 钻石、免费快速/私房、R06/O05 与 API Header 透传。
-- Cocos 源提交：`56b5d1be14777fc9e55651b20b3eff3e14f208e0`；本次 game4 提交以本文件所在提交为准。完整门禁见 `THIRTEEN_SINGLE_DIAMOND_P0_V1_RELEASE.md`。
+- Cocos 源提交：`56b5d1be14777fc9e55651b20b3eff3e14f208e0`；game4 发布载荷提交：`1da8362dbc821d6beea9ddd3f87c172e934ee51d`；Actions run `33729727039` 与公网 v54 已通过。完整门禁与测试数据卫生例外见 `THIRTEEN_SINGLE_DIAMOND_P0_V1_RELEASE.md`。
 
 ## RC16 可听混音热修（2026-08-31）
 
