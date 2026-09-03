@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { CheckCircle2, Coins, Gem, KeyRound, LayoutDashboard, LogIn, LogOut, ShieldCheck, UserRound } from 'lucide-react';
+import { CheckCircle2, Gem, KeyRound, LayoutDashboard, LogIn, LogOut, ShieldCheck, UserRound } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { apiFetch } from '@/lib/api-client';
@@ -90,14 +90,10 @@ export default function ProfilePanel() {
       </div>
 
       {wallet && (
-        <div className="grid grid-cols-2 gap-3" aria-label="游戏资产">
+        <div aria-label="游戏资产">
           <div className="rounded-3xl border-2 border-cyan-100 bg-cyan-50 p-4 text-cyan-800 shadow-sm">
             <p className="flex items-center gap-1.5 text-xs font-black"><Gem size={16} />钻石</p>
             <p className="mt-1 text-xl font-black tabular-nums">{wallet.diamonds.toLocaleString()}</p>
-          </div>
-          <div className="rounded-3xl border-2 border-amber-100 bg-amber-50 p-4 text-amber-800 shadow-sm">
-            <p className="flex items-center gap-1.5 text-xs font-black"><Coins size={16} />十三张牌注</p>
-            <p className="mt-1 text-xl font-black tabular-nums">{wallet.thirteen.total.toLocaleString()}</p>
           </div>
         </div>
       )}

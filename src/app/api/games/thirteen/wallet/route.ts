@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getRequestUser } from '@/lib/session';
-import { ensureWalletSnapshot, THIRTEEN_CHIPS_PER_DIAMOND } from '@/lib/wallet';
+import { ensureWalletSnapshot } from '@/lib/wallet';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -12,6 +12,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     uid: user.uid,
     wallet,
-    exchangeRate: { diamonds: 1, chips: THIRTEEN_CHIPS_PER_DIAMOND },
+    economyMode: 'free-v1',
+    capabilities: { exchange: false, stakes: false, diamondSpending: false },
   }, { headers: { 'Cache-Control': 'no-store' } });
 }

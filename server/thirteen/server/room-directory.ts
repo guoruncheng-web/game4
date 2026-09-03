@@ -2,6 +2,7 @@ import {
   AuthoritativeRoom,
   type AuthoritativeRoomSnapshot,
   type ClientCommand,
+  type CompletedMatchAudit,
   type PlayerIdentity,
   type PlayerSnapshot,
   type PublicMatchResult,
@@ -16,12 +17,16 @@ import {
 } from './betting-ledger';
 
 const CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+export const FREE_ECONOMY_MODE = 'free-v1' as const;
+export const LEGACY_ECONOMY_MODE = 'legacy-chip-stake' as const;
+export type EconomyMode = typeof FREE_ECONOMY_MODE | typeof LEGACY_ECONOMY_MODE;
 
 export interface WaitingRoomView {
   readonly roomId: string;
   readonly code: string | null;
   readonly mode: 'private' | 'matchmaking';
-  readonly stake: TableStake;
+  readonly economyMode: EconomyMode;
+  readonly stake: TableStake | null;
   readonly playerCount: number;
   readonly maximumPlayers: 4;
   readonly started: boolean;
@@ -42,15 +47,21 @@ export interface DirectoryAssignment {
 }
 
 export interface DirectoryPlayerSnapshot extends PlayerSnapshot {
-  readonly tableStake: TableStake;
-  readonly wallet: WalletView;
+  readonly economyMode: EconomyMode;
+  readonly tableStake: TableStake | null;
+  readonly wallet: WalletView | null;
   readonly publicResult: PublicMatchResult | null;
+}
+
+export interface DirectoryCompletedMatchAudit extends CompletedMatchAudit {
+  readonly economyMode: EconomyMode;
 }
 
 interface DirectoryRoom {
   readonly code: string | null;
   readonly mode: 'private' | 'matchmaking';
-  readonly stake: TableStake;
+  economyMode: EconomyMode;
+  stake: TableStake | null;
   readonly room: AuthoritativeRoom;
   readonly users: Array<string | null>;
   readonly rematchVotes: Set<string>;
@@ -68,10 +79,29 @@ export interface RematchResult {
 export interface ReadyResult {
   readonly room: WaitingRoomView;
   readonly started: boolean;
-  readonly wallet: WalletView;
+  readonly wallet: WalletView | null;
 }
 
 export interface RoomDirectorySnapshot {
+  readonly version: 3;
+  readonly nextRoomNumber: number;
+  readonly rooms: readonly {
+    readonly code: string | null;
+    readonly mode: 'private' | 'matchmaking';
+    readonly economyMode: EconomyMode;
+    readonly stake: TableStake | null;
+    readonly room: AuthoritativeRoomSnapshot;
+    readonly users: readonly (string | null)[];
+    readonly rematchVotes: readonly string[];
+    readonly readyUsers: readonly string[];
+  }[];
+  readonly userRooms: readonly (readonly [string, string])[];
+  readonly matchmakingRooms: readonly (readonly [string, string])[];
+  readonly profiles: readonly PlayerIdentity[];
+  readonly ledger: BettingLedgerSnapshot;
+}
+
+interface LegacyRoomDirectorySnapshot {
   readonly version: 2;
   readonly nextRoomNumber: number;
   readonly rooms: readonly {
@@ -96,7 +126,7 @@ export class RoomDirectory {
   private readonly rooms = new Map<string, DirectoryRoom>();
   private readonly codes = new Map<string, string>();
   private readonly userRooms = new Map<string, string>();
-  private readonly matchmakingRooms = new Map<TableStake, string>();
+  private readonly matchmakingRooms = new Map<string, string>();
   private readonly profiles = new Map<string, PlayerIdentity>();
   private nextRoomNumber = 1;
 
@@ -110,31 +140,31 @@ export class RoomDirectory {
     this.ledger = ledger;
   }
 
-  registerPlayer(identity: PlayerIdentity): WalletView {
+  registerPlayer(identity: PlayerIdentity): void {
     const normalized = {
       userId: identity.userId,
+      publicId: identity.publicId?.trim().slice(0, 64) || identity.userId,
       displayName: identity.displayName.trim().slice(0, 32) || identity.userId,
       avatar: identity.avatar.trim().slice(0, 256),
     };
     this.profiles.set(normalized.userId, normalized);
     this.rooms.get(this.userRooms.get(normalized.userId) ?? '')?.room.updateIdentity(normalized);
-    return this.ledger.ensureWallet(normalized.userId);
   }
 
-  walletFor(userId: string): WalletView {
-    return this.ledger.view(userId);
+  legacyWalletFor(userId: string): WalletView | null {
+    return this.ledger.viewExisting(userId);
   }
 
-  syncWallet(userId: string, balance: number, reserved: number): WalletView {
+  syncLegacyWallet(userId: string, balance: number, reserved: number): WalletView {
     return this.ledger.syncWallet(userId, balance, reserved);
   }
 
-  createPrivate(userId: string, stake: number = 100): DirectoryAssignment {
+  createPrivate(userId: string, _legacyStake?: number): DirectoryAssignment {
+    void _legacyStake;
     this.assertAvailable(userId);
-    const checkedStake = this.requireStake(stake);
     const id = this.newRoomId();
     const code = this.newPrivateCode();
-    const entry = this.createEntry(id, code, 'private', checkedStake);
+    const entry = this.createEntry(id, code, 'private');
     const seat = this.addUser(entry, userId);
     return { room: this.view(entry), seat };
   }
@@ -145,6 +175,7 @@ export class RoomDirectory {
     const roomId = this.codes.get(code);
     if (!roomId) throw new Error('private_room_not_found');
     const entry = this.rooms.get(roomId)!;
+    if (entry.economyMode === LEGACY_ECONOMY_MODE) throw new Error('legacy_room_closed');
     if (entry.room.started) throw new Error('match_already_started');
     const seat = this.addUser(entry, userId);
     return { room: this.view(entry), seat };
@@ -157,10 +188,14 @@ export class RoomDirectory {
     const matchNumber = entry.room.currentMatchNumber + 1;
     const alreadyReady = entry.readyUsers.has(userId);
     if (ready && !alreadyReady) {
-      this.ledger.reserve(userId, entry.room.roomId, matchNumber, entry.stake);
+      if (entry.economyMode === LEGACY_ECONOMY_MODE) {
+        this.ledger.reserve(userId, entry.room.roomId, matchNumber, this.requireLegacyStake(entry));
+      }
       entry.readyUsers.add(userId);
     } else if (!ready && alreadyReady) {
-      this.ledger.refund(userId, entry.room.roomId, matchNumber, entry.stake);
+      if (entry.economyMode === LEGACY_ECONOMY_MODE) {
+        this.ledger.refund(userId, entry.room.roomId, matchNumber, this.requireLegacyStake(entry));
+      }
       entry.readyUsers.delete(userId);
     }
     let started = false;
@@ -169,30 +204,27 @@ export class RoomDirectory {
       entry.room.start();
       started = true;
     }
-    return { room: this.view(entry), started, wallet: this.ledger.view(userId) };
+    return { room: this.view(entry), started, wallet: this.legacyWalletFor(userId) };
   }
 
-  enqueueMatch(userId: string, stake: number = 100): DirectoryAssignment | null {
+  enqueueMatch(userId: string, _legacyStake?: number): DirectoryAssignment | null {
+    void _legacyStake;
     this.assertAvailable(userId);
-    const checkedStake = this.requireStake(stake);
-    let entry = this.matchmakingEntry(checkedStake);
+    let entry = this.matchmakingEntry();
     if (!entry) {
-      entry = this.createEntry(this.newRoomId(), null, 'matchmaking', checkedStake);
-      this.matchmakingRooms.set(checkedStake, entry.room.roomId);
+      entry = this.createEntry(this.newRoomId(), null, 'matchmaking');
+      this.matchmakingRooms.set(this.matchmakingKey(FREE_ECONOMY_MODE, null), entry.room.roomId);
     }
-    const matchNumber = entry.room.currentMatchNumber + 1;
-    this.ledger.reserve(userId, entry.room.roomId, matchNumber, entry.stake);
     try {
       this.addUser(entry, userId);
       entry.readyUsers.add(userId);
     } catch (error) {
-      this.ledger.refund(userId, entry.room.roomId, matchNumber, entry.stake);
       if (entry.users.length === 0) this.deleteEntry(entry);
       throw error;
     }
     if (entry.users.length < 4) return null;
     entry.room.start();
-    this.matchmakingRooms.delete(checkedStake);
+    this.matchmakingRooms.delete(this.matchmakingKey(FREE_ECONOMY_MODE, null));
     return { room: this.view(entry), seat: entry.users.indexOf(userId) };
   }
 
@@ -249,12 +281,11 @@ export class RoomDirectory {
     if (!entry.room.finished) throw new Error('match_not_finished');
     const members = entry.users.filter((member): member is string => member !== null);
     if (members.length !== 4) throw new Error('rematch_requires_four_players');
-    if (!entry.rematchVotes.has(userId)) {
-      this.ledger.reserve(userId, entry.room.roomId, entry.room.currentMatchNumber + 1, entry.stake);
-      entry.rematchVotes.add(userId);
-    }
+    if (!entry.rematchVotes.has(userId)) entry.rematchVotes.add(userId);
     const voters = members.filter((member) => entry.rematchVotes.has(member));
     if (voters.length === members.length) {
+      entry.economyMode = FREE_ECONOMY_MODE;
+      entry.stake = null;
       entry.room.rematch();
       entry.rematchVotes.clear();
       entry.readyUsers.clear();
@@ -274,23 +305,24 @@ export class RoomDirectory {
     const entry = this.requireEntry(userId);
     this.settleIfFinished(entry);
     const snapshot = entry.room.snapshotFor(userId);
-    const publicResult = snapshot.publicResult
-      ? {
+    const publicResult = !snapshot.publicResult
+      ? null
+      : entry.economyMode === LEGACY_ECONOMY_MODE ? {
         ...snapshot.publicResult,
         entries: snapshot.publicResult.entries.map((resultEntry) => ({
           ...resultEntry,
           wagerDelta: this.ledger.netDelta(
-            resultEntry.userId,
+            entry.users[resultEntry.seat]!,
             entry.room.roomId,
             snapshot.matchNumber,
           ) ?? 0,
         })),
-      }
-      : null;
+      } : snapshot.publicResult;
     return {
       ...snapshot,
+      economyMode: entry.economyMode,
       tableStake: entry.stake,
-      wallet: this.ledger.view(userId),
+      wallet: entry.economyMode === LEGACY_ECONOMY_MODE ? this.legacyWalletFor(userId) : null,
       publicResult,
     };
   }
@@ -324,13 +356,21 @@ export class RoomDirectory {
     return Array.from(this.rooms.keys());
   }
 
+  completedMatchAudits(): readonly DirectoryCompletedMatchAudit[] {
+    return Array.from(this.rooms.values()).flatMap((entry) => {
+      const audit = entry.room.completedMatchAudit();
+      return audit ? [{ ...audit, economyMode: entry.economyMode }] : [];
+    });
+  }
+
   snapshot(): RoomDirectorySnapshot {
     return {
-      version: 2,
+      version: 3,
       nextRoomNumber: this.nextRoomNumber,
       rooms: Array.from(this.rooms.values(), (entry) => ({
         code: entry.code,
         mode: entry.mode,
+        economyMode: entry.economyMode,
         stake: entry.stake,
         room: entry.room.snapshot(),
         users: [...entry.users],
@@ -349,12 +389,12 @@ export class RoomDirectory {
   }
 
   static restore(
-    snapshot: RoomDirectorySnapshot,
+    snapshot: RoomDirectorySnapshot | LegacyRoomDirectorySnapshot,
     randomUint32: () => number,
     now: () => number = Date.now,
     options: { readonly disconnectAll?: boolean } = {},
   ): RoomDirectory {
-    if (snapshot?.version !== 2 || !Array.isArray(snapshot.rooms)
+    if ((snapshot?.version !== 2 && snapshot?.version !== 3) || !Array.isArray(snapshot.rooms)
       || !Array.isArray(snapshot.userRooms) || !Array.isArray(snapshot.profiles)) {
       throw new Error('invalid_room_directory_snapshot');
     }
@@ -363,6 +403,9 @@ export class RoomDirectory {
     directory.nextRoomNumber = snapshot.nextRoomNumber;
     for (const profile of snapshot.profiles) directory.profiles.set(profile.userId, { ...profile });
     for (const saved of snapshot.rooms) {
+      const economyMode = snapshot.version === 2 ? LEGACY_ECONOMY_MODE : saved.economyMode;
+      const stake = snapshot.version === 2 ? directory.requireStake(saved.stake) : saved.stake;
+      directory.assertEconomyConfiguration(economyMode, stake);
       const room = AuthoritativeRoom.restore(
         saved.room,
         () => directory.randomUint32() >>> 0,
@@ -372,7 +415,8 @@ export class RoomDirectory {
       const entry: DirectoryRoom = {
         code: saved.code,
         mode: saved.mode,
-        stake: saved.stake,
+        economyMode,
+        stake,
         room,
         users: [...saved.users],
         rematchVotes: new Set(saved.rematchVotes),
@@ -380,11 +424,13 @@ export class RoomDirectory {
       };
       directory.rooms.set(room.roomId, entry);
       if (entry.code) directory.codes.set(entry.code, room.roomId);
-      directory.settleIfFinished(entry);
     }
     for (const [userId, roomId] of snapshot.userRooms) directory.userRooms.set(userId, roomId);
-    for (const [stake, roomId] of snapshot.matchmakingRooms) {
-      directory.matchmakingRooms.set(directory.requireStake(stake), roomId);
+    for (const [savedKey, roomId] of snapshot.matchmakingRooms) {
+      const key = snapshot.version === 2
+        ? directory.matchmakingKey(LEGACY_ECONOMY_MODE, directory.requireStake(savedKey))
+        : String(savedKey);
+      directory.matchmakingRooms.set(key, roomId);
     }
     return directory;
   }
@@ -393,13 +439,13 @@ export class RoomDirectory {
     id: string,
     code: string | null,
     mode: DirectoryRoom['mode'],
-    stake: TableStake,
   ): DirectoryRoom {
     const seed = () => this.randomUint32() >>> 0;
     const entry: DirectoryRoom = {
       code,
       mode,
-      stake,
+      economyMode: FREE_ECONOMY_MODE,
+      stake: null,
       room: new AuthoritativeRoom(id, seed, this.now),
       users: [],
       rematchVotes: new Set(),
@@ -440,6 +486,7 @@ export class RoomDirectory {
       roomId: entry.room.roomId,
       code: entry.code,
       mode: entry.mode,
+      economyMode: entry.economyMode,
       stake: entry.stake,
       playerCount: entry.users.filter((user) => user !== null).length,
       maximumPlayers: 4,
@@ -452,30 +499,33 @@ export class RoomDirectory {
           displayName: presence.displayName,
           avatar: presence.avatar,
           connected: presence.connected,
-          ready: entry.readyUsers.has(presence.userId) || entry.mode === 'matchmaking',
+          ready: entry.readyUsers.has(entry.users[presence.seat]!) || entry.mode === 'matchmaking',
         }]
       )),
     };
   }
 
   private settleIfFinished(entry: DirectoryRoom): void {
-    if (!entry.room.finished) return;
-    const snapshot = entry.room.snapshotFor(entry.room.presence()[0].userId);
+    if (!entry.room.finished || entry.economyMode !== LEGACY_ECONOMY_MODE) return;
+    const firstMember = entry.users.find((user): user is string => user !== null);
+    if (!firstMember) return;
+    const snapshot = entry.room.snapshotFor(firstMember);
     if (!snapshot.publicResult) return;
-    const participants = entry.room.presence().map((presence) => presence.userId);
+    const participants = entry.users.filter((user): user is string => user !== null);
     const winner = participants[snapshot.publicResult.winnerSeat];
     this.ledger.settle(
       entry.room.roomId,
       snapshot.matchNumber,
-      entry.stake,
+      this.requireLegacyStake(entry),
       participants,
       winner,
     );
   }
 
   private refundIfReserved(entry: DirectoryRoom, userId: string, matchNumber: number): void {
+    if (entry.economyMode !== LEGACY_ECONOMY_MODE) return;
     if (!this.ledger.hasReservation(userId, entry.room.roomId, matchNumber)) return;
-    this.ledger.refund(userId, entry.room.roomId, matchNumber, entry.stake);
+    this.ledger.refund(userId, entry.room.roomId, matchNumber, this.requireLegacyStake(entry));
   }
 
   private refundRematchRound(entry: DirectoryRoom): void {
@@ -487,14 +537,31 @@ export class RoomDirectory {
   private deleteEntry(entry: DirectoryRoom): void {
     this.rooms.delete(entry.room.roomId);
     if (entry.code) this.codes.delete(entry.code);
-    if (this.matchmakingRooms.get(entry.stake) === entry.room.roomId) {
-      this.matchmakingRooms.delete(entry.stake);
+    for (const [key, roomId] of this.matchmakingRooms) {
+      if (roomId === entry.room.roomId) this.matchmakingRooms.delete(key);
     }
   }
 
-  private matchmakingEntry(stake: TableStake): DirectoryRoom | null {
-    const roomId = this.matchmakingRooms.get(stake);
+  private matchmakingEntry(): DirectoryRoom | null {
+    const roomId = this.matchmakingRooms.get(this.matchmakingKey(FREE_ECONOMY_MODE, null));
     return roomId ? this.rooms.get(roomId) ?? null : null;
+  }
+
+  private matchmakingKey(economyMode: EconomyMode, stake: TableStake | null): string {
+    return `${economyMode}:${stake ?? 'free'}`;
+  }
+
+  private assertEconomyConfiguration(economyMode: EconomyMode, stake: TableStake | null): void {
+    if (economyMode === FREE_ECONOMY_MODE && stake === null) return;
+    if (economyMode === LEGACY_ECONOMY_MODE && isAllowedTableStake(stake)) return;
+    throw new Error('invalid_room_economy_configuration');
+  }
+
+  private requireLegacyStake(entry: DirectoryRoom): TableStake {
+    if (entry.economyMode !== LEGACY_ECONOMY_MODE || !isAllowedTableStake(entry.stake)) {
+      throw new Error('invalid_legacy_room_stake');
+    }
+    return entry.stake;
   }
 
   private requireStake(value: unknown): TableStake {

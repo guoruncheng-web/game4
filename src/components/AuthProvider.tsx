@@ -20,7 +20,6 @@ export type AuthUser = {
 
 export type WalletSummary = {
   diamonds: number;
-  thirteen: { chips: number; reserved: number; total: number };
 };
 
 type AuthContextValue = {
@@ -113,15 +112,11 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     if (!response.ok) throw new Error('wallet_refresh_failed');
     const data = await response.json() as {
       diamonds: number;
-      games: { thirteen: { chips: number; reserved: number; total: number } };
     };
-    if (!Number.isSafeInteger(data.diamonds) || data.diamonds < 0
-      || !Number.isSafeInteger(data.games?.thirteen?.chips) || data.games.thirteen.chips < 0
-      || !Number.isSafeInteger(data.games.thirteen.reserved) || data.games.thirteen.reserved < 0
-      || !Number.isSafeInteger(data.games.thirteen.total) || data.games.thirteen.total < 0) {
+    if (!Number.isSafeInteger(data.diamonds) || data.diamonds < 0) {
       throw new Error('invalid_wallet_payload');
     }
-    setWallet({ diamonds: data.diamonds, thirteen: data.games.thirteen });
+    setWallet({ diamonds: data.diamonds });
   }, [credentials]);
 
   useEffect(() => {
@@ -138,18 +133,10 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     function onWalletUpdated(event: Event) {
       const value = (event as CustomEvent<unknown>).detail as {
-        diamonds?: unknown; chips?: unknown; reserved?: unknown; totalChips?: unknown;
+        diamonds?: unknown;
       } | null;
-      if (!value || !Number.isSafeInteger(value.diamonds) || Number(value.diamonds) < 0
-        || !Number.isSafeInteger(value.chips) || Number(value.chips) < 0
-        || !Number.isSafeInteger(value.reserved) || Number(value.reserved) < 0
-        || !Number.isSafeInteger(value.totalChips) || Number(value.totalChips) < 0) return;
-      setWallet({
-        diamonds: Number(value.diamonds),
-        thirteen: {
-          chips: Number(value.chips), reserved: Number(value.reserved), total: Number(value.totalChips),
-        },
-      });
+      if (!value || !Number.isSafeInteger(value.diamonds) || Number(value.diamonds) < 0) return;
+      setWallet({ diamonds: Number(value.diamonds) });
     }
     window.addEventListener('game4:wallet-updated', onWalletUpdated);
     return () => window.removeEventListener('game4:wallet-updated', onWalletUpdated);

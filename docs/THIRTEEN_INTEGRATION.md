@@ -1,15 +1,15 @@
 # Thirteen / Chặt Heo! 集成记录
 
-状态：中文单语言 RC16 可听混音热修已通过独立运行验收；发布硬门已由产品负责人确认完成，准备推送公网。
+状态：Single-diamond P0 v1 的本地生产、认证/未认证 PWA 与权威服务验收已通过；准备推送公网。
 
 ## 组成
 
 - `/thirteen`：公开可访问的同源 Cocos iframe 宿主页；游客可玩单机、教学和设置。
-- `/thirteen/game/`：Cocos Creator 3.8.8 Web Mobile 中文单语言 RC16，515 个文件、14,702,873 bytes，比较 SHA-256 `c0576856b72f4015572064184e045fa0cfb12508883c3766eb92a8d0acd87347`。
-- `/ws`：沿用 game4 已有的鉴权 WebSocket 服务；`thirteen:*` v1 消息由独立四人权威房间目录处理。
+- `/thirteen/game/`：Cocos Creator 3.8.8 Web Mobile Single-diamond P0 v1，精确包含 Main、O01–O03、O05、R01–R07 共 12 个场景；594 个文件、21,401,304 bytes，树 SHA-256 `26b252d22739f548e75a5a3e09fcdf8f39d32a98f85620d7fe53d0fac5f41981`。
+- `/ws`：沿用 game4 鉴权 WebSocket 服务；`thirteen:*` 协议 v2 由独立四人权威房间目录处理，支持免费房、发牌承诺/揭示、历史归档、重连、托管和重赛。
 - `server/thirteen/`：与 Cocos 项目同版本的牌、牌型、状态机和房间核心；服务端生成随机种子并裁决所有动作。
 
-宿主只通过同源 `postMessage` 传公开用户名、固定 `zh-CN` locale 和返回路径。会话 Cookie、密码和 token 不进入 iframe 消息；WebSocket 升级继续由 game4 的 httpOnly `gb_session` Cookie、HMAC 签名和数据库 `token_version` 校验。游戏端也会把 URL、浏览器和历史设置中的其他 locale 迁回简体中文。
+PWA 用 httpOnly `gb_session` 建立宿主会话，再为 Cocos 生成带六位 UID 的短期 `gbapi1` 票据；同源 iframe URL、PWA API Header 与 WebSocket 使用同一 UID/token 对并在服务器核对数据库 `token_version`。密码、长期会话 Cookie 和内部数据库 ID 不进入 iframe。`postMessage` 只传公开档案、平台钻石快照、场景生命周期和退出事件；游戏端把其他 locale 迁回简体中文。
 
 ## 运行与隐私边界
 
@@ -23,7 +23,16 @@
 
 ## PWA
 
-Service Worker 版本为 `v46`。`/thirteen/` 下的 JS、JSON、CSS、WASM、图片和音频采用玩过即缓存策略，不在安装阶段全量预下载。全新 profile 在线打开并到达 Lobby 后，路由、Cocos 入口、settings 和首屏依赖可从缓存重放。
+Service Worker 版本为 `v54`。`/thirteen/` 下的 JS、JSON、CSS、WASM、图片和音频采用玩过即缓存策略，不在安装阶段全量预下载。全新 profile 在线打开并到达 Lobby 后，路由、Cocos 入口、哈希 settings 和首屏依赖可从缓存重放；本版本已验证 118 个静态资源与 21/21 音频，断网重载返回 R02。
+
+## Single-diamond P0 v1（2026-09-02）
+
+- 产品唯一持久虚拟货币为 game4 钻石；新用户不再创建 Thirteen 牌币钱包，快速匹配/私人房/重赛均为 `free-v1`，比赛结果不改变钻石。
+- 兑换 API 固定返回退役结果且无副作用；旧牌币钱包和流水只读保留，历史在途房可按旧协议完成或退款。
+- R02 仅展示钻石，R03 明示免费；R06 新增账户、导出、注销、客服和版本入口；R07/O05 展示权威本局积分、最近战绩、公平摘要和申诉编号。
+- 四个真实数据库账号连续完成 20 局、1,107 个权威动作；20/20 归档，钻石不变，新增牌币钱包/流水均为 0，免费重赛和逐局房间释放通过。
+- 未认证与认证全新 profile 均通过在线、可信音频、v54 缓存和离线大厅；认证链路额外通过真实六位 UID/头像、10,000 钻石、免费快速/私房、R06/O05 与 API Header 透传。
+- Cocos 源提交：`56b5d1be14777fc9e55651b20b3eff3e14f208e0`；本次 game4 提交以本文件所在提交为准。完整门禁见 `THIRTEEN_SINGLE_DIAMOND_P0_V1_RELEASE.md`。
 
 ## RC16 可听混音热修（2026-08-31）
 
@@ -102,4 +111,4 @@ RC6 基线证据位于 `evidence/runtime/thirteen-rc6-local/`；RC7 中文首发
 
 越南母语文案、文化真实性与目标玩家评审延期到未来越南语版本，不阻塞本次中文单语言首发。
 
-本地技术验收和上述发布硬门均已满足，RC13 可以触发 Actions 并部署公网。
+上述 RC6–RC16 内容保留为历史验收记录；当前发布状态以本文开头的 Single-diamond P0 v1 和 `THIRTEEN_SINGLE_DIAMOND_P0_V1_RELEASE.md` 为准。

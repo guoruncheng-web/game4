@@ -63,41 +63,46 @@ try {
   assert.equal(report.online.accountRooms.selfName, username);
   assert.equal(report.online.accountRooms.selfAvatar, `/api/avatar/${uid}?v=1`);
   assert.equal(report.online.accountRooms.privateEntry.roomCode, '');
+  assert.equal(report.online.accountRooms.privateRouteScene, 'R03Room');
+  assert.equal(report.online.accountRooms.quickRouteScene, 'R03Room');
+  assert.equal(report.online.accountRooms.privateEntry.economyMode, 'free-v1');
   assert.equal(report.online.accountRooms.privateEntry.seatNames[0], username);
   assert.equal(report.online.accountRooms.privateRoom.roomCode, 'A1B 2C3');
+  assert.equal(report.online.accountRooms.privateRoom.economyMode, 'free-v1');
   assert.deepEqual(report.online.accountRooms.privateRoom.seatNames.slice(0, 2), [username, '真实对手']);
   assert.equal(report.online.accountRooms.privateRoom.avatarSources[0], `/api/avatar/${uid}?v=1`);
   assert.equal(report.online.accountRooms.quickQueue.roomCode, '');
+  assert.equal(report.online.accountRooms.quickQueue.economyMode, 'free-v1');
   assert.deepEqual(report.online.accountRooms.quickQueue.seatNames.slice(0, 2), [username, '玩家已匹配']);
-  assert.deepEqual(report.online.authenticatedEconomy.wallet, {
-    diamonds: 9_990, chips: 11_000, reserved: 0, totalChips: 11_000,
-  });
-  assert.deepEqual(report.online.authenticatedEconomy.bridge, {
-    diamonds: 9_990, chips: 11_000, reserved: 0, totalChips: 11_000,
-  });
+  assert.deepEqual(report.online.authenticatedEconomy.wallet, { diamonds: 10_000 });
+  assert.deepEqual(report.online.authenticatedEconomy.bridge, { diamonds: 10_000 });
+  assert.equal(report.online.authenticatedEconomy.exchangeHidden, true);
+  assert.equal(report.online.authenticatedEconomy.history.loading, false);
+  assert.equal(report.online.authenticatedEconomy.history.error, null);
+  assert.equal(report.online.authenticatedEconomy.account.category, 'account');
+  assert.equal(report.online.authenticatedEconomy.account.diamondBalance, 10_000);
   const wallet = await sql`
     select p.diamonds_available, g.balance, g.reserved
     from platform_wallets p
-    join game_wallets g on g.user_id = p.user_id and g.game_slug = 'thirteen'
+    left join game_wallets g on g.user_id = p.user_id and g.game_slug = 'thirteen'
     where p.user_id = ${userId}
   `;
   assert.deepEqual(wallet.map((row) => [
-    Number(row.diamonds_available), Number(row.balance), Number(row.reserved),
-  ]), [[9_990, 11_000, 0]]);
+    Number(row.diamonds_available), row.balance, row.reserved,
+  ]), [[10_000, null, null]]);
   const transactionKinds = await sql`
-    select kind from wallet_transactions where user_id = ${userId} order by id
+    select kind, currency from wallet_transactions where user_id = ${userId} order by id
   `;
-  assert.deepEqual(transactionKinds.map((row) => row.kind), [
-    'grant', 'grant', 'exchange_debit', 'exchange_credit',
-  ]);
+  assert.deepEqual(transactionKinds.map((row) => [row.kind, row.currency]), [['grant', 'diamond']]);
   console.log(JSON.stringify({
-    feature: 'authenticated Thirteen PWA wallet bridge',
+    feature: 'authenticated Thirteen PWA single-diamond bridge',
     uidIsSixDigits: /^\d{6}$/.test(String(uid)),
     iframeCredentials: true,
     accountIdentity: { displayName: username, avatarUrl: `/api/avatar/${uid}?v=1`, rendered: true },
-    initialGrant: { diamonds: 10_000, chips: 10_000 },
-    exchange: { spentDiamonds: 10, receivedChips: 1_000 },
-    databaseWallet: { diamonds: 9_990, chips: 11_000, reserved: 0 },
+    initialGrant: { diamonds: 10_000 },
+    gameWalletProvisioned: false,
+    exchangeRetired: true,
+    databaseWallet: { diamonds: 10_000 },
     cocosToPwaWalletEvent: true,
     accepted: true,
   }, null, 2));

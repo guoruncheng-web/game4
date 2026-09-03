@@ -53,8 +53,9 @@ where avatar = '🎮';
 -- 登录时按用户名精确查,用户名统一小写存,唯一索引已经够用
 create index if not exists users_created_at_idx on users (created_at desc);
 
--- ---------------------------------------------------------------- 双层钱包
--- 平台钻石与具体游戏的牌注严格分表；余额只由服务端事务改写，客户端只显示快照。
+-- ---------------------------------------------------------------- 平台钱包与历史游戏钱包
+-- 平台钻石是当前唯一持久货币。game_wallets / chip 流水仅为已上线版本的
+-- 审计及在途房间收口保留；初始化不得再为新账号创建或赠送牌币。
 create table if not exists platform_wallets (
   user_id             bigint      primary key references users(id) on delete cascade,
   diamonds_available  bigint      not null default 0 check (diamonds_available >= 0),
@@ -93,21 +94,10 @@ insert into platform_wallets (user_id, diamonds_available)
 select id, 10000 from users
 on conflict (user_id) do nothing;
 
-insert into game_wallets (user_id, game_slug, balance, reserved)
-select id, 'thirteen', 10000, 0 from users
-on conflict (user_id, game_slug) do nothing;
-
 insert into wallet_transactions
   (idempotency_key, user_id, scope, game_slug, currency, kind, available_delta, metadata)
 select 'welcome:platform:' || id, id, 'platform', null, 'diamond', 'grant', 10000,
   jsonb_build_object('reason', 'registration_welcome_v1')
-from users
-on conflict (idempotency_key) do nothing;
-
-insert into wallet_transactions
-  (idempotency_key, user_id, scope, game_slug, currency, kind, available_delta, metadata)
-select 'welcome:thirteen:' || id, id, 'game', 'thirteen', 'chip', 'grant', 10000,
-  jsonb_build_object('reason', 'first_entry_welcome_v1')
 from users
 on conflict (idempotency_key) do nothing;
 
@@ -206,3 +196,51 @@ create table if not exists user_avatars (
 -- 清零的话下次再传又是 v=1,而浏览器里 ?v=1 那条 immutable 缓存还在,
 -- 新头像会被旧图顶掉,而且这个缓存过不了期、用户自己刷新也没用。
 alter table users add column if not exists avatar_version integer not null default 0;
+
+-- ---------------------------------------------------------------- Thirteen 公平记录与玩家历史
+-- result 只保存座位/名次/计分，不重复保存身份。身份单独放玩家表，注销时可原位匿名化，
+-- 其他玩家的历史结果仍保持完整。seed 只在终局后落库并由历史接口公开。
+create table if not exists thirteen_matches (
+  id               bigserial   primary key,
+  room_id          text        not null,
+  match_number     integer     not null check (match_number > 0),
+  rules_version    text        not null,
+  economy_mode     text        not null check (economy_mode in ('free-v1', 'legacy-chip-stake')),
+  commitment_version text      not null,
+  deal_commitment  text        not null check (deal_commitment ~ '^[0-9a-f]{64}$'),
+  seed_reveal      bigint      not null check (seed_reveal between 0 and 4294967295),
+  deal_nonce_reveal text       not null check (deal_nonce_reveal ~ '^[0-9a-f]{32,128}$'),
+  result           jsonb       not null,
+  actions          jsonb       not null,
+  completed_at     timestamptz not null default now(),
+  unique (room_id, match_number)
+);
+
+create table if not exists thirteen_match_players (
+  match_id      bigint   not null references thirteen_matches(id) on delete cascade,
+  seat          smallint not null check (seat between 0 and 3),
+  user_id       bigint   references users(id) on delete set null,
+  public_uid    integer  check (public_uid between 100000 and 999999),
+  display_name  text     not null check (char_length(display_name) between 1 and 32),
+  avatar        text     not null default '',
+  primary key (match_id, seat)
+);
+
+create index if not exists thirteen_match_players_user_idx
+  on thirteen_match_players (user_id, match_id desc) where user_id is not null;
+
+-- ---------------------------------------------------------------- 客服与申诉
+create table if not exists support_requests (
+  id          bigserial   primary key,
+  user_id     bigint      references users(id) on delete set null,
+  game_slug   text        not null,
+  category    text        not null check (category in ('gameplay', 'fairness', 'account', 'privacy', 'technical', 'other')),
+  message     text        not null check (char_length(message) between 1 and 1000),
+  diagnostic  jsonb       not null default '{}'::jsonb,
+  status      text        not null default 'open' check (status in ('open', 'reviewing', 'resolved', 'closed')),
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+
+create index if not exists support_requests_user_idx
+  on support_requests (user_id, created_at desc) where user_id is not null;

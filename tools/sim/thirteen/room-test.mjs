@@ -28,13 +28,14 @@ adapter.handle(identities[0], envelope('thirteen:create-private', { stake: 500 }
 const roomMessage = messages.get('101').findLast((message) => message.t === 'thirteen:room');
 assert.equal(roomMessage.t, 'thirteen:room');
 assert.match(roomMessage.room.code, /^[2-9A-HJ-NP-Z]{6}$/);
-assert.equal(roomMessage.room.stake, 500);
+assert.equal(roomMessage.room.economyMode, 'free-v1');
+assert.equal(roomMessage.room.stake, null);
 for (const identity of identities.slice(1)) {
   adapter.handle(identity, envelope('thirteen:join-private', { code: roomMessage.room.code }));
 }
 assert.equal(messages.get('101').some((message) => message.t === 'thirteen:snapshot'), false);
 
-// Ready is a real reservation boundary. Cancel/re-ready must lock exactly once.
+// Ready remains idempotent, but never creates a wallet reservation.
 adapter.handle(identities[1], envelope('thirteen:ready', { ready: true }));
 adapter.handle(identities[1], envelope('thirteen:ready', { ready: false }));
 adapter.handle(identities[1], envelope('thirteen:ready', { ready: true }));
@@ -48,10 +49,10 @@ for (const identity of identities) {
   const snapshot = snapshots[0].snapshot;
   assert.equal(snapshot.ownHand.length, 13);
   assert.equal(snapshot.opponentCounts.filter((count) => count === 13).length, 3);
-  assert.equal(snapshot.tableStake, 500);
+  assert.equal(snapshot.economyMode, 'free-v1');
+  assert.equal(snapshot.tableStake, null);
   assert.deepEqual(snapshot.presence.map((seat) => seat.displayName), identities.map((entry) => entry.displayName));
-  assert.equal(snapshot.wallet.balance, 9_500);
-  assert.equal(snapshot.wallet.reserved, 500);
+  assert.equal(snapshot.wallet, null);
 }
 
 for (let guard = 0; directory.snapshotFor('101').winner === null && guard < 240; guard += 1) {
@@ -62,17 +63,13 @@ const finished = identities.map((identity) => directory.snapshotFor(identity.use
 assert.equal(finished.every((snapshot) => snapshot.winner !== null), true);
 const authoritativeResult = JSON.stringify(finished[0].publicResult);
 assert.equal(finished.every((snapshot) => JSON.stringify(snapshot.publicResult) === authoritativeResult), true);
-assert.deepEqual(
-  [...finished[0].publicResult.entries.map((entry) => entry.wagerDelta)].sort((a, b) => a - b),
-  [-500, -500, -500, 1_500],
-);
-assert.equal(identities.reduce((sum, identity) => sum + directory.walletFor(identity.userId).total, 0), 40_000);
-assert.equal(finished.every((snapshot) => snapshot.wallet.reserved === 0), true);
+assert.equal(finished[0].publicResult.entries.every((entry) => entry.wagerDelta === undefined), true);
+assert.equal(directory.snapshot().ledger.entries.length, 0);
+assert.equal(identities.every((identity) => directory.legacyWalletFor(identity.userId) === null), true);
 
 // Encrypted host persistence serializes this snapshot. Restore must not settle twice.
 const restored = RoomDirectory.restore(JSON.parse(directory.snapshotJson()), () => random++, () => clock);
-const restoredTotals = identities.map((identity) => restored.walletFor(identity.userId).total);
-assert.deepEqual(restoredTotals, identities.map((identity) => directory.walletFor(identity.userId).total));
+assert.equal(restored.snapshot().ledger.entries.length, 0);
 assert.equal(restored.assignmentFor('101').room.players.every((player) => player.connected === false), true);
 assert.equal(JSON.stringify(restored.snapshotFor('101').publicResult), authoritativeResult);
 
@@ -85,7 +82,8 @@ for (const identity of identities) restoredAdapter.handle(identity, envelope('th
 const rematch = restored.snapshotFor('101');
 assert.equal(rematch.matchNumber, 2);
 assert.equal(rematch.winner, null);
-assert.equal(rematch.wallet.reserved, 500);
+assert.equal(rematch.economyMode, 'free-v1');
+assert.equal(rematch.wallet, null);
 assert.equal(rematch.nextClientSequence, 1);
 
 console.log(JSON.stringify({
@@ -95,10 +93,10 @@ console.log(JSON.stringify({
   realProfiles: true,
   fourPrivacySnapshots: true,
   explicitReady: true,
-  chipStake: 500,
-  zeroSumSettlement: true,
+  economyMode: 'free-v1',
+  persistentAssetMutation: false,
   restartRecovery: true,
-  rematchReservation: true,
+  freeRematch: true,
   persistedChanges: changeCount,
   copiedRulesVersion: finished[0].rulesVersion,
   accepted: true,

@@ -1,11 +1,11 @@
 import { ROOM_PROTOCOL_VERSION, type ClientCommand } from './authoritative-room';
-import type { TableStake } from './betting-ledger';
+import { isAllowedTableStake, type TableStake } from './betting-ledger';
 
 export type ThirteenClientMessage =
   | { readonly t: 'thirteen:hello'; readonly v: typeof ROOM_PROTOCOL_VERSION }
-  | { readonly t: 'thirteen:create-private'; readonly v: typeof ROOM_PROTOCOL_VERSION; readonly stake: TableStake }
+  | { readonly t: 'thirteen:create-private'; readonly v: typeof ROOM_PROTOCOL_VERSION; readonly stake?: TableStake }
   | { readonly t: 'thirteen:join-private'; readonly v: typeof ROOM_PROTOCOL_VERSION; readonly code: string }
-  | { readonly t: 'thirteen:matchmake'; readonly v: typeof ROOM_PROTOCOL_VERSION; readonly stake: TableStake }
+  | { readonly t: 'thirteen:matchmake'; readonly v: typeof ROOM_PROTOCOL_VERSION; readonly stake?: TableStake }
   | { readonly t: 'thirteen:ready'; readonly v: typeof ROOM_PROTOCOL_VERSION; readonly ready: boolean }
   | { readonly t: 'thirteen:wallet'; readonly v: typeof ROOM_PROTOCOL_VERSION }
   | { readonly t: 'thirteen:leave'; readonly v: typeof ROOM_PROTOCOL_VERSION }
@@ -27,7 +27,9 @@ export function parseThirteenClientMessage(value: unknown): ThirteenClientMessag
       return value as ThirteenClientMessage;
     case 'thirteen:create-private':
     case 'thirteen:matchmake':
-      return Number.isSafeInteger(value.stake) ? value as unknown as ThirteenClientMessage : null;
+      return value.stake === undefined || isAllowedTableStake(value.stake)
+        ? value as unknown as ThirteenClientMessage
+        : null;
     case 'thirteen:ready':
       return typeof value.ready === 'boolean' ? value as ThirteenClientMessage : null;
     case 'thirteen:join-private':

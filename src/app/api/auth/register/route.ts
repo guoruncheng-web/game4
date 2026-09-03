@@ -7,6 +7,7 @@ import {
 import { verifyCaptcha } from '@/lib/captcha';
 import { getSql } from '@/lib/db';
 import { clientIp, rateLimit, sweepRateLimits } from '@/lib/rate-limit';
+import { REGISTRATION_DIAMOND_GRANT } from '@/lib/wallet';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -55,21 +56,13 @@ export async function POST(request: Request) {
           returning id, uid, avatar, token_version
         ), platform_wallet as (
           insert into platform_wallets (user_id, diamonds_available)
-          select id, 10000 from created_user
-          returning user_id
-        ), game_wallet as (
-          insert into game_wallets (user_id, game_slug, balance, reserved)
-          select id, 'thirteen', 10000, 0 from created_user
+          select id, ${REGISTRATION_DIAMOND_GRANT} from created_user
           returning user_id
         ), grants as (
           insert into wallet_transactions
             (idempotency_key, user_id, scope, game_slug, currency, kind, available_delta, metadata)
-          select 'welcome:platform:' || id, id, 'platform', null, 'diamond', 'grant', 10000,
+          select 'welcome:platform:' || id, id, 'platform', null, 'diamond', 'grant', ${REGISTRATION_DIAMOND_GRANT},
             jsonb_build_object('reason', 'registration_welcome_v1')
-          from created_user
-          union all
-          select 'welcome:thirteen:' || id, id, 'game', 'thirteen', 'chip', 'grant', 10000,
-            jsonb_build_object('reason', 'first_entry_welcome_v1')
           from created_user
         )
         select id, uid, avatar, token_version from created_user
@@ -100,7 +93,7 @@ export async function POST(request: Request) {
     // 一键开号发的是随机 emoji,这一刻不可能有自定义头像
     avatarUrl: null,
     isAdmin: false,
-    wallet: { diamonds: 10_000, thirteenChips: 10_000, thirteenReserved: 0 },
+    wallet: { diamonds: REGISTRATION_DIAMOND_GRANT },
     token: createApiAccessToken(userId, uid, tokenVersion),
   });
   response.headers.set('Cache-Control', 'no-store');

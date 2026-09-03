@@ -31,6 +31,7 @@ import { UmoWsAdapter } from './umo/ws-adapter.ts';
 import { RoomDirectory } from './thirteen/server/room-directory.ts';
 import { ThirteenWsAdapter } from './thirteen/server/ws-adapter.ts';
 import { createThirteenWalletStore } from './thirteen-wallet-store.mjs';
+import { createThirteenMatchStore } from './thirteen-match-store.mjs';
 import { readApiAccessToken } from '../src/lib/auth.ts';
 import { avatarUrlFor } from '../src/lib/api-contract.ts';
 
@@ -97,7 +98,8 @@ function sendTo(userId, msg) {
 }
 
 // Thirteen is a four-seat authoritative game, isolated from legacy relay rooms.
-// Its room snapshots and command sequences use an encrypted recovery file; wallet funds are durable in PostgreSQL.
+// Its room snapshots and command sequences use an encrypted recovery file. New rooms are free;
+// PostgreSQL chip rows are touched only while closing an already-started legacy v2 room.
 const thirteenStateFile = process.env.THIRTEEN_STATE_FILE;
 const thirteenStateSecret = process.env.THIRTEEN_STATE_KEY;
 if (thirteenStateFile && (!thirteenStateSecret || thirteenStateSecret.length < 32)) {
@@ -111,6 +113,7 @@ let thirteenDirectory = thirteenStateFile && existsSync(thirteenStateFile)
   )
   : new RoomDirectory(() => randomBytes(4).readUInt32LE(0));
 const thirteenWalletStore = createThirteenWalletStore(sql);
+const thirteenMatchStore = createThirteenMatchStore(sql);
 let thirteenSendBuffer = null;
 let thirteenQueue = Promise.resolve();
 let thirteenPendingMutations = 0;
@@ -135,16 +138,19 @@ function queueThirteenMutation(task, failureUserId = null) {
   thirteenPendingMutations += 1;
   thirteenQueue = thirteenQueue.then(async () => {
     const before = thirteenDirectory.snapshot();
+    const completedBefore = thirteenDirectory.completedMatchAudits();
     const buffered = [];
     thirteenSendBuffer = buffered;
     try {
       await task();
       const after = thirteenDirectory.snapshot();
+      const completedAfter = thirteenDirectory.completedMatchAudits();
       const changed = JSON.stringify(before) !== JSON.stringify(after);
       if (changed) {
         await thirteenWalletStore.persistLedgerDiff(before.ledger, after.ledger);
-        persistCurrentThirteenState();
       }
+      await thirteenMatchStore.persistCompletedMatches([...completedBefore, ...completedAfter]);
+      if (changed) persistCurrentThirteenState();
       thirteenStateHealthy = true;
       thirteenSendBuffer = null;
       for (const item of buffered) sendTo(item.userId, item.message);
@@ -160,7 +166,7 @@ function queueThirteenMutation(task, failureUserId = null) {
       thirteenStateHealthy = false;
       console.error('[thirteen] authoritative mutation rolled back', error);
       if (failureUserId !== null) {
-        sendTo(failureUserId, { t: 'thirteen:error', v: 2, code: 'wallet_persistence_failed' });
+        sendTo(failureUserId, { t: 'thirteen:error', v: 2, code: 'state_persistence_failed' });
       }
     }
   }).catch((error) => console.error('[thirteen] mutation queue failed', error)).finally(() => {
@@ -404,16 +410,16 @@ function handle(client, msg) {
       return;
     }
     queueThirteenMutation(async () => {
-      // PostgreSQL is authoritative at session entry and after a REST exchange.
-      // Between those boundaries the serialized room directory already contains
-      // the latest persisted balance, so rehydrating on every card action only
-      // adds latency and lets scheduler ticks pile up behind a database round trip.
+      // Hydration provisions the platform diamond grant and reads an existing legacy
+      // chip row without creating one. Repeating it on every card action only adds
+      // latency and lets scheduler ticks pile up behind a database round trip.
       if (!thirteenHydratedUsers.has(me) || msg.t === 'thirteen:hello' || msg.t === 'thirteen:wallet') {
         await hydrateThirteenWallets(me);
         thirteenHydratedUsers.add(me);
       }
       thirteenAdapter.handle({
         userId: String(me),
+        publicId: String(client.uid),
         displayName: client.username,
         avatar: client.avatarUrl ?? client.avatar,
       }, msg);

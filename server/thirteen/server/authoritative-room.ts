@@ -1,3 +1,4 @@
+import { createHash, randomBytes } from 'node:crypto';
 import type { Card } from '../assets/game/scripts/core/cards';
 import {
   RULES_VERSION,
@@ -15,6 +16,7 @@ export const ROOM_PROTOCOL_VERSION = 2;
 export const TURN_TIMEOUT_MS = 15_000;
 export const DISCONNECT_BOT_DELAY_MS = 3_000;
 export const RECONNECT_WINDOW_MS = 60_000;
+export const DEAL_COMMITMENT_VERSION = 'thirteen-deal-v1' as const;
 
 export type ClientAction =
   | { readonly type: 'play'; readonly cardIds: readonly string[] }
@@ -35,7 +37,10 @@ export interface SeatPresence {
 }
 
 export interface PlayerIdentity {
+  /** Internal authenticated id. This value is never serialized to another player. */
   readonly userId: string;
+  /** Public six-digit UID (or a non-sensitive test id outside production). */
+  readonly publicId?: string;
   readonly displayName: string;
   readonly avatar: string;
 }
@@ -80,6 +85,12 @@ export interface PlayerSnapshot {
   readonly score: ScoreResult | null;
   /** Complete server-authored result. Clients must never infer ranks from public hand counts. */
   readonly publicResult: PublicMatchResult | null;
+  /** Published before the first action so the server cannot silently swap the deal. */
+  readonly dealCommitment: string;
+  readonly dealCommitmentVersion: typeof DEAL_COMMITMENT_VERSION;
+  /** Revealed only after the authoritative match is finished. */
+  readonly seedReveal: number | null;
+  readonly dealNonceReveal: string | null;
 }
 
 export type RoomResult =
@@ -88,6 +99,7 @@ export type RoomResult =
 
 interface SeatRecord {
   readonly userId: string;
+  readonly publicId: string;
   displayName: string;
   avatar: string;
   connected: boolean;
@@ -107,6 +119,29 @@ export interface AuthoritativeRoomSnapshot {
   readonly deadlineAt: number;
   readonly previousWinner: number | null;
   readonly actions: readonly MatchAction[];
+  readonly dealCommitment?: string | null;
+  readonly dealNonce?: string | null;
+  readonly completedAt?: number | null;
+}
+
+export interface CompletedMatchAudit {
+  readonly roomId: string;
+  readonly matchNumber: number;
+  readonly rulesVersion: typeof RULES_VERSION;
+  readonly dealCommitment: string;
+  readonly dealCommitmentVersion: typeof DEAL_COMMITMENT_VERSION;
+  readonly seedReveal: number;
+  readonly dealNonceReveal: string;
+  readonly completedAt: number;
+  readonly result: PublicMatchResult;
+  readonly actions: readonly MatchAction[];
+  readonly players: readonly {
+    readonly seat: number;
+    readonly userId: string;
+    readonly publicId: string;
+    readonly displayName: string;
+    readonly avatar: string;
+  }[];
 }
 
 function validUserId(userId: string): boolean {
@@ -114,12 +149,26 @@ function validUserId(userId: string): boolean {
 }
 
 function normalizeIdentity(value: string | PlayerIdentity): PlayerIdentity {
-  if (typeof value === 'string') return { userId: value, displayName: value, avatar: '' };
+  if (typeof value === 'string') return {
+    userId: value, publicId: value, displayName: value, avatar: '',
+  };
   return {
     userId: value.userId,
+    publicId: value.publicId?.trim().slice(0, 64) || value.userId,
     displayName: value.displayName.trim().slice(0, 32) || value.userId,
     avatar: value.avatar.trim().slice(0, 256),
   };
+}
+
+export function computeDealCommitment(
+  roomId: string,
+  matchNumber: number,
+  seed: number,
+  nonce: string,
+): string {
+  return createHash('sha256')
+    .update(`${DEAL_COMMITMENT_VERSION}\n${roomId}\n${matchNumber}\n${seed >>> 0}\n${nonce}`, 'utf8')
+    .digest('hex');
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -140,6 +189,7 @@ export class AuthoritativeRoom {
   readonly roomId: string;
   private readonly seedSource: () => number;
   private readonly now: () => number;
+  private readonly nonceSource: () => string;
   private readonly seats: SeatRecord[] = [];
   private state: MatchState | null = null;
   private seed: number | null = null;
@@ -148,16 +198,21 @@ export class AuthoritativeRoom {
   private deadlineAt = 0;
   private previousWinner: number | null = null;
   private readonly actions: MatchAction[] = [];
+  private dealCommitment: string | null = null;
+  private dealNonce: string | null = null;
+  private completedAt: number | null = null;
 
   constructor(
     roomId: string,
     seedSource: () => number,
     now: () => number = Date.now,
+    nonceSource: () => string = () => randomBytes(16).toString('hex'),
   ) {
     if (!/^[A-Za-z0-9_-]{1,32}$/.test(roomId)) throw new Error('invalid_room_id');
     this.roomId = roomId;
     this.seedSource = seedSource;
     this.now = now;
+    this.nonceSource = nonceSource;
   }
 
   get size(): number {
@@ -179,7 +234,7 @@ export class AuthoritativeRoom {
   presence(): readonly SeatPresence[] {
     return this.seats.map((record, seat) => ({
       seat,
-      userId: record.userId,
+      userId: record.publicId,
       displayName: record.displayName,
       avatar: record.avatar,
       connected: record.connected,
@@ -209,6 +264,7 @@ export class AuthoritativeRoom {
     if (this.seats.length >= 4) throw new Error('room_full');
     this.seats.push({
       userId,
+      publicId: identity.publicId!,
       displayName: identity.displayName,
       avatar: identity.avatar,
       connected: true,
@@ -238,9 +294,15 @@ export class AuthoritativeRoom {
     if (this.state) throw new Error('match_already_started');
     if (this.seats.length !== 4) throw new Error('match_requires_four_players');
     const seed = this.seedSource() >>> 0;
+    const matchNumber = this.matchNumber + 1;
+    const dealNonce = this.nonceSource();
+    if (!/^[0-9a-f]{32,128}$/.test(dealNonce)) throw new Error('invalid_deal_nonce');
     this.seed = seed;
+    this.dealNonce = dealNonce;
+    this.dealCommitment = computeDealCommitment(this.roomId, matchNumber, seed, dealNonce);
+    this.completedAt = null;
     this.state = createMatch(seed, this.previousWinner);
-    this.matchNumber += 1;
+    this.matchNumber = matchNumber;
     this.revision += 1;
     this.actions.length = 0;
     this.deadlineAt = this.now() + TURN_TIMEOUT_MS;
@@ -352,6 +414,10 @@ export class AuthoritativeRoom {
       presence: this.presence(),
       score,
       publicResult: score ? this.buildPublicResult(score) : null,
+      dealCommitment: this.requireDealCommitment(),
+      dealCommitmentVersion: DEAL_COMMITMENT_VERSION,
+      seedReveal: this.finished ? this.seed : null,
+      dealNonceReveal: this.finished ? this.dealNonce : null,
     };
   }
 
@@ -364,8 +430,49 @@ export class AuthoritativeRoom {
   }
 
   /** Server audit surface; never serialize this object directly to a client. */
-  audit(): { seed: number | null; revision: number; state: MatchState | null; actions: readonly MatchAction[] } {
-    return { seed: this.seed, revision: this.revision, state: this.state, actions: [...this.actions] };
+  audit(): {
+    seed: number | null;
+    revision: number;
+    state: MatchState | null;
+    actions: readonly MatchAction[];
+    dealCommitment: string | null;
+    dealNonce: string | null;
+    completedAt: number | null;
+  } {
+    return {
+      seed: this.seed,
+      revision: this.revision,
+      state: this.state,
+      actions: [...this.actions],
+      dealCommitment: this.dealCommitment,
+      dealNonce: this.dealNonce,
+      completedAt: this.completedAt,
+    };
+  }
+
+  completedMatchAudit(): CompletedMatchAudit | null {
+    if (!this.finished || this.seed === null || this.dealNonce === null || this.completedAt === null) return null;
+    const score = scoreMatch(this.state!);
+    if (!score) return null;
+    return {
+      roomId: this.roomId,
+      matchNumber: this.matchNumber,
+      rulesVersion: RULES_VERSION,
+      dealCommitment: this.requireDealCommitment(),
+      dealCommitmentVersion: DEAL_COMMITMENT_VERSION,
+      seedReveal: this.seed,
+      dealNonceReveal: this.dealNonce,
+      completedAt: this.completedAt,
+      result: this.buildPublicResult(score),
+      actions: [...this.actions],
+      players: this.seats.map((seat, index) => ({
+        seat: index,
+        userId: seat.userId,
+        publicId: seat.publicId,
+        displayName: seat.displayName,
+        avatar: seat.avatar,
+      })),
+    };
   }
 
   snapshot(): AuthoritativeRoomSnapshot {
@@ -380,6 +487,9 @@ export class AuthoritativeRoom {
       deadlineAt: this.deadlineAt,
       previousWinner: this.previousWinner,
       actions: [...this.actions],
+      dealCommitment: this.dealCommitment,
+      dealNonce: this.dealNonce,
+      completedAt: this.completedAt,
     };
   }
 
@@ -393,7 +503,10 @@ export class AuthoritativeRoom {
       throw new Error('invalid_authoritative_room_snapshot');
     }
     const room = new AuthoritativeRoom(snapshot.roomId, seedSource, now);
-    room.seats.push(...snapshot.seats.map((seat) => ({ ...seat })));
+    room.seats.push(...snapshot.seats.map((seat) => ({
+      ...seat,
+      publicId: typeof seat.publicId === 'string' ? seat.publicId : seat.userId,
+    })));
     room.state = snapshot.state;
     room.seed = snapshot.seed;
     room.revision = snapshot.revision;
@@ -401,6 +514,16 @@ export class AuthoritativeRoom {
     room.deadlineAt = snapshot.deadlineAt;
     room.previousWinner = snapshot.previousWinner;
     room.actions.push(...snapshot.actions);
+    if (room.seed !== null) {
+      room.dealNonce = snapshot.dealNonce ?? room.nonceSource();
+      room.dealCommitment = snapshot.dealCommitment
+        ?? computeDealCommitment(room.roomId, room.matchNumber, room.seed, room.dealNonce);
+      if (room.dealCommitment !== computeDealCommitment(
+        room.roomId, room.matchNumber, room.seed, room.dealNonce,
+      )) throw new Error('deal_commitment_mismatch');
+      room.completedAt = snapshot.completedAt
+        ?? (room.finished ? now() : null);
+    }
     return room;
   }
 
@@ -419,6 +542,12 @@ export class AuthoritativeRoom {
     this.actions.push(action);
     this.revision += 1;
     this.deadlineAt = at + TURN_TIMEOUT_MS;
+    if (state.winner !== null && this.completedAt === null) this.completedAt = at;
+  }
+
+  private requireDealCommitment(): string {
+    if (!this.dealCommitment) throw new Error('deal_commitment_missing');
+    return this.dealCommitment;
   }
 
   private buildPublicResult(score: ScoreResult): PublicMatchResult {
@@ -438,7 +567,7 @@ export class AuthoritativeRoom {
       entries: orderedSeats.map((seat, index) => ({
         rank: index + 1,
         seat,
-        userId: this.seats[seat].userId,
+        userId: this.seats[seat].publicId,
         displayName: this.seats[seat].displayName,
         avatar: this.seats[seat].avatar,
         remaining: this.state!.hands[seat].length,

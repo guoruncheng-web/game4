@@ -1,5 +1,6 @@
 import postgres from 'postgres';
 import WebSocket from 'ws';
+import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { createApiAccessToken, hashPassword } from '../../../src/lib/auth.ts';
@@ -88,6 +89,7 @@ function assert(value, message) {
 }
 
 let clients = [];
+const createdRoomIds = [];
 try {
   await sql`delete from users where username like 'test-thirteen-%'`;
   const passwordHash = hashPassword('Testpass123');
@@ -115,10 +117,12 @@ try {
   let liveRematchStarted = false;
   for (let game = 0; game < gameCount; game += 1) {
     const sequences = [0, 0, 0, 0];
+    // A v1 client may still send stake during the compatibility window; new rooms ignore it.
     clients[0].send({ t: 'thirteen:create-private', v: 2, stake: 500 });
     const created = await clients[0].next('thirteen:room', (message) => Boolean(message.room?.code));
     const code = created.room.code;
     const roomId = created.room.roomId;
+    createdRoomIds.push(roomId);
     for (let index = 1; index < clients.length; index += 1) {
       clients[index].send({ t: 'thirteen:join-private', v: 2, code });
       await clients[index].next('thirteen:room', (message) => message.room?.roomId === roomId);
@@ -138,9 +142,12 @@ try {
     for (const { snapshot } of snapshots) {
       assert(snapshot.ownHand.length === 13, 'own_hand_not_thirteen_cards');
       assert(snapshot.opponentCounts.length === 4, 'opponent_counts_missing');
-      assert(snapshot.tableStake === 500, 'chip_stake_not_authoritative');
-      assert(snapshot.wallet.balance === 9_500 && snapshot.wallet.reserved === 500, 'chip_reservation_missing');
+      assert(snapshot.economyMode === 'free-v1' && snapshot.tableStake === null, 'free_economy_not_authoritative');
+      assert(snapshot.wallet === null, 'legacy_wallet_exposed_in_free_room');
       assert(snapshot.presence.every((seat) => seat.displayName.startsWith('test-thirteen-')), 'real_account_profile_missing');
+      assert(snapshot.presence.every((seat) => users.some((user) => String(user.uid) === seat.userId)), 'internal_user_id_exposed');
+      assert(/^[0-9a-f]{64}$/.test(snapshot.dealCommitment), 'deal_commitment_missing');
+      assert(snapshot.seedReveal === null && snapshot.dealNonceReveal === null, 'deal_secret_revealed_before_finish');
       assert(!('hands' in snapshot) && !('seed' in snapshot) && !('actions' in snapshot), 'private_server_state_leaked');
     }
 
@@ -189,9 +196,13 @@ try {
       actions += 1;
     }
     assert(snapshots[0].snapshot.winner !== null, 'live_match_did_not_terminate');
-    const wagerDeltas = snapshots[0].snapshot.publicResult.entries.map((entry) => entry.wagerDelta).sort((a, b) => a - b);
-    assert(JSON.stringify(wagerDeltas) === JSON.stringify([-500, -500, -500, 1_500]), 'chip_settlement_not_zero_sum');
-    assert(snapshots.every(({ snapshot }) => snapshot.wallet.reserved === 0), 'chip_reservation_not_released');
+    assert(snapshots[0].snapshot.publicResult.entries.every((entry) => entry.wagerDelta === undefined), 'free_result_contains_wager_delta');
+    for (const { snapshot } of snapshots) {
+      assert(Number.isInteger(snapshot.seedReveal), 'deal_seed_not_revealed');
+      assert(/^[0-9a-f]{32,128}$/.test(snapshot.dealNonceReveal), 'deal_nonce_not_revealed');
+      const canonical = `${snapshot.dealCommitmentVersion}\n${snapshot.roomId}\n${snapshot.matchNumber}\n${snapshot.seedReveal}\n${snapshot.dealNonceReveal}`;
+      assert(createHash('sha256').update(canonical).digest('hex') === snapshot.dealCommitment, 'deal_commitment_not_verifiable');
+    }
     totalActions += actions;
     maximumActions = Math.max(maximumActions, actions);
 
@@ -258,6 +269,38 @@ try {
     }
   }
 
+  const userIds = users.map((user) => Number(user.id));
+  const wallets = await sql`
+    select p.user_id, p.diamonds_available, g.balance, g.reserved
+    from platform_wallets p
+    left join game_wallets g on g.user_id = p.user_id and g.game_slug = 'thirteen'
+    where p.user_id in ${sql(userIds)} order by p.user_id
+  `;
+  assert(wallets.length === 4, 'platform_wallets_missing');
+  assert(wallets.every((wallet) => Number(wallet.diamonds_available) === 10_000), 'diamonds_changed_by_match');
+  assert(wallets.every((wallet) => wallet.balance === null && wallet.reserved === null), 'chip_wallet_created_by_match');
+  const transactions = await sql`
+    select currency, kind from wallet_transactions
+    where user_id in ${sql(userIds)} order by id
+  `;
+  assert(transactions.length === 4, 'unexpected_wallet_transaction_count');
+  assert(transactions.every((entry) => entry.currency === 'diamond' && entry.kind === 'grant'), 'chip_transaction_created_by_match');
+  const archivedMatches = await sql`
+    select id, room_id, deal_commitment, seed_reveal, deal_nonce_reveal, result, actions
+    from thirteen_matches where room_id in ${sql(createdRoomIds)} order by id
+  `;
+  assert(archivedMatches.length === gameCount, 'completed_matches_not_archived_once');
+  const archivedPlayers = await sql`
+    select match_id, seat, user_id, public_uid from thirteen_match_players
+    where match_id in ${sql(archivedMatches.map((match) => Number(match.id)))}
+  `;
+  assert(archivedPlayers.length === gameCount * 4, 'archived_match_players_incomplete');
+  assert(archivedPlayers.every((player) => users.some((user) => (
+    Number(user.id) === Number(player.user_id) && Number(user.uid) === Number(player.public_uid)
+  ))), 'archived_player_identity_mapping_invalid');
+  const archivedPayload = JSON.stringify(archivedMatches.map(({ result, actions }) => ({ result, actions })));
+  assert(users.every((user) => !archivedPayload.includes(`\"${user.id}\"`)), 'internal_user_id_written_to_public_archive_json');
+
   const report = {
     feature: 'game4 authenticated four-client Thirteen websocket integration',
     protocolVersion: 2,
@@ -265,10 +308,16 @@ try {
     privateRoomCode: true,
     completedMatches: gameCount,
     privacyScopedHands: true,
+    publicUidOnly: true,
+    dealCommitmentVerified: true,
+    archivedMatches: archivedMatches.length,
     realAccountProfiles: true,
     explicitReady: true,
-    chipStake: 500,
-    zeroSumSettlement: true,
+    economyMode: 'free-v1',
+    legacyStakeTolerated: true,
+    diamondsUnchanged: true,
+    chipWalletsCreated: 0,
+    chipTransactionsCreated: 0,
     totalActions,
     maximumActions,
     liveRematchStarted,
@@ -294,7 +343,10 @@ try {
     } catch { break; }
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
-  if (safeToDelete) await sql`delete from users where username like 'test-thirteen-%'`;
+  if (safeToDelete) {
+    if (createdRoomIds.length > 0) await sql`delete from thirteen_matches where room_id in ${sql(createdRoomIds)}`;
+    await sql`delete from users where username like 'test-thirteen-%'`;
+  }
   else console.warn('[thirteen-live-test] preserved test users because the authoritative queue did not drain');
   await sql.end({ timeout: 2 });
 }

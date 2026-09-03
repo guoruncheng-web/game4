@@ -2,7 +2,7 @@ import {
   ROOM_PROTOCOL_VERSION,
   type PlayerIdentity,
 } from './authoritative-room';
-import { RoomDirectory, type WaitingRoomView } from './room-directory';
+import { FREE_ECONOMY_MODE, RoomDirectory, type WaitingRoomView } from './room-directory';
 import { parseThirteenClientMessage } from './ws-protocol';
 
 export type SendToUser = (userId: string, message: unknown) => void;
@@ -22,8 +22,7 @@ export class ThirteenWsAdapter {
     const userId = typeof identityInput === 'string' ? identityInput : identityInput.userId;
     // Internal callers may only have the stable user id. Never let that fallback
     // downgrade a profile that was already authenticated with a real display name.
-    if (typeof identityInput === 'string') this.directory.walletFor(userId);
-    else this.directory.registerPlayer(identityInput);
+    if (typeof identityInput !== 'string') this.directory.registerPlayer(identityInput);
     const message = parseThirteenClientMessage(raw);
     if (!message) {
       this.error(userId, 'invalid_thirteen_message');
@@ -178,6 +177,7 @@ export class ThirteenWsAdapter {
         v: ROOM_PROTOCOL_VERSION,
         queued: true,
         playerCount: room.playerCount,
+        economyMode: room.economyMode,
         stake: room.stake,
       });
     }
@@ -203,7 +203,8 @@ export class ThirteenWsAdapter {
     this.send(userId, {
       t: 'thirteen:wallet',
       v: ROOM_PROTOCOL_VERSION,
-      wallet: this.directory.walletFor(userId),
+      economyMode: this.directory.assignmentFor(userId)?.room.economyMode ?? FREE_ECONOMY_MODE,
+      wallet: this.directory.legacyWalletFor(userId),
     });
   }
 

@@ -74,7 +74,7 @@ export default function CocosCanvas({
       if (event.origin !== window.location.origin || event.source !== iframe?.contentWindow) return;
       const value = event.data as {
         source?: string; type?: string; version?: number; scene?: string; phase?: string;
-        wallet?: { diamonds?: unknown; chips?: unknown; reserved?: unknown; totalChips?: unknown };
+        wallet?: { diamonds?: unknown };
       } | null;
       if (!value || value.source !== gameId || value.version !== 1) return;
       if (value.type === `${gameId}:ready`) {
@@ -89,10 +89,7 @@ export default function CocosCanvas({
         router.push('/');
       } else if (gameId === 'thirteen' && value.type === 'thirteen:wallet-updated') {
         const wallet = value.wallet;
-        if (!wallet || !Number.isSafeInteger(wallet.diamonds) || Number(wallet.diamonds) < 0
-          || !Number.isSafeInteger(wallet.chips) || Number(wallet.chips) < 0
-          || !Number.isSafeInteger(wallet.reserved) || Number(wallet.reserved) < 0
-          || !Number.isSafeInteger(wallet.totalChips) || Number(wallet.totalChips) < 0) return;
+        if (!wallet || !Number.isSafeInteger(wallet.diamonds) || Number(wallet.diamonds) < 0) return;
         window.dispatchEvent(new CustomEvent('game4:wallet-updated', { detail: wallet }));
       }
     }

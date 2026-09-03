@@ -1,6 +1,5 @@
 const GAME_SLUG = 'thirteen';
 const WELCOME_DIAMONDS = 10_000;
-const WELCOME_CHIPS = 10_000;
 
 function integer(value, label) {
   const parsed = Number(value);
@@ -17,7 +16,10 @@ function changedWallets(before, after, entryUserIds) {
   });
 }
 
-/** PostgreSQL is the durable authority; the in-memory ledger is a reconciled gameplay cache. */
+/**
+ * Platform diamonds are the only active currency. Legacy chip rows remain readable
+ * solely so an already-started v2 room can settle or refund its existing reserve.
+ */
 export function createThirteenWalletStore(sql) {
   async function ensureUsers(rawUserIds) {
     const userIds = [...new Set(rawUserIds.map(Number).filter(Number.isSafeInteger))];
@@ -27,11 +29,6 @@ export function createThirteenWalletStore(sql) {
         await transaction`
           insert into platform_wallets (user_id, diamonds_available)
           values (${userId}, 0) on conflict (user_id) do nothing
-        `;
-        await transaction`
-          insert into game_wallets (user_id, game_slug, balance, reserved)
-          values (${userId}, ${GAME_SLUG}, 0, 0)
-          on conflict (user_id, game_slug) do nothing
         `;
         const diamondGrant = await transaction`
           insert into wallet_transactions
@@ -48,37 +45,31 @@ export function createThirteenWalletStore(sql) {
             where user_id = ${userId}
           `;
         }
-        const chipGrant = await transaction`
-          insert into wallet_transactions
-            (idempotency_key, user_id, scope, game_slug, currency, kind, available_delta, metadata)
-          values (
-            ${`welcome:thirteen:${userId}`}, ${userId}, 'game', ${GAME_SLUG}, 'chip', 'grant',
-            ${WELCOME_CHIPS}, ${transaction.json({ reason: 'first_entry_welcome_v1' })}
-          )
-          on conflict (idempotency_key) do nothing returning id
-        `;
-        if (chipGrant[0]) {
-          await transaction`
-            update game_wallets set balance = balance + ${WELCOME_CHIPS}, updated_at = now()
-            where user_id = ${userId} and game_slug = ${GAME_SLUG}
-          `;
-        }
       }
     });
     const rows = await sql`
-      select user_id, balance, reserved
-      from game_wallets
-      where game_slug = ${GAME_SLUG} and user_id in ${sql(userIds)}
+      select p.user_id, p.diamonds_available, g.balance, g.reserved
+      from platform_wallets p
+      left join game_wallets g on g.user_id = p.user_id and g.game_slug = ${GAME_SLUG}
+      where p.user_id in ${sql(userIds)}
     `;
     return new Map(rows.map((row) => [String(row.user_id), {
-      balance: integer(row.balance, 'BALANCE'),
-      reserved: integer(row.reserved, 'RESERVED'),
+      diamonds: integer(row.diamonds_available, 'DIAMONDS'),
+      legacyWallet: row.balance === null || row.balance === undefined ? null : {
+        balance: integer(row.balance, 'BALANCE'),
+        reserved: integer(row.reserved, 'RESERVED'),
+      },
     }]));
   }
 
   async function hydrate(directory, userIds) {
     const wallets = await ensureUsers(userIds);
-    for (const [userId, wallet] of wallets) directory.syncWallet(userId, wallet.balance, wallet.reserved);
+    for (const [userId, wallet] of wallets) {
+      if (wallet.legacyWallet) {
+        directory.syncLegacyWallet(userId, wallet.legacyWallet.balance, wallet.legacyWallet.reserved);
+      }
+    }
+    return wallets;
   }
 
   async function persistLedgerDiff(before, after) {

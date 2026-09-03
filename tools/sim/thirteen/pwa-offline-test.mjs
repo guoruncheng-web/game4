@@ -137,8 +137,8 @@ try {
   await waitForLobby(cdp, lobbyTimeoutMs);
   const online = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
-    const assets = await caches.open('game-box-assets-v53');
-    const shell = await caches.open('game-box-shell-v53');
+    const assets = await caches.open('game-box-assets-v54');
+    const shell = await caches.open('game-box-shell-v54');
     const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
     const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
     const frame = document.querySelector('iframe');
@@ -296,7 +296,7 @@ try {
             this.emit({
               t: 'thirteen:room', v: 2, seat: 0,
               room: {
-                code: 'A1B2C3', started: false, stake: message.stake,
+                code: 'A1B2C3', started: false, stake: null, economyMode: 'free-v1',
                 readyCount: 0, playerCount: 2,
                 players: [
                   { seat: 0, userId: 'account-self', displayName: selfName, avatar: selfAvatar, connected: true, ready: false },
@@ -305,7 +305,7 @@ try {
               },
             });
           } else if (message.t === 'thirteen:matchmake') {
-            this.emit({ t: 'thirteen:matchmaking', v: 2, playerCount: 2, stake: message.stake });
+            this.emit({ t: 'thirteen:matchmaking', v: 2, playerCount: 2, stake: null, economyMode: 'free-v1' });
           } else if (message.t === 'thirteen:leave') {
             this.emit({ t: 'thirteen:left', v: 2 });
           }
@@ -318,8 +318,9 @@ try {
       gameWindow.WebSocket = AccountRoomSocket;
 
       flow()?.selectLobbyMode?.('room');
-      await waitUntil(sceneName, (value) => value === 'R08Stake', 'private_stake_scene_timeout');
-      gameWindow.cc.director.getScene().getChildByPath('Canvas/R08StakeRoot')?.emit?.('r08-confirm', 300);
+      const privateRouteScene = await waitUntil(
+        sceneName, (value) => value === 'R03Room', 'private_room_scene_timeout',
+      );
       const privateEntry = await waitUntil(
         () => roomState().state,
         (value) => value?.state === 'private-entry',
@@ -335,8 +336,9 @@ try {
       flow()?.leaveOnlineAndShowLobby?.();
       await waitUntil(sceneName, (value) => value === 'R02Lobby', 'private_leave_timeout');
       flow()?.selectLobbyMode?.('quick');
-      await waitUntil(sceneName, (value) => value === 'R08Stake', 'quick_stake_scene_timeout');
-      gameWindow.cc.director.getScene().getChildByPath('Canvas/R08StakeRoot')?.emit?.('r08-confirm', 300);
+      const quickRouteScene = await waitUntil(
+        sceneName, (value) => value === 'R03Room', 'quick_room_scene_timeout',
+      );
       const quickQueue = await waitUntil(
         () => roomState().state,
         (value) => value?.state === 'queueing' && value?.seatNames?.[0] === selfName,
@@ -344,12 +346,25 @@ try {
       );
       flow()?.leaveOnlineAndShowLobby?.();
       await waitUntil(sceneName, (value) => value === 'R02Lobby', 'quick_leave_timeout');
-      return { selfName, selfAvatar, privateEntry, privateRoom, quickQueue };
+      return { selfName, selfAvatar, privateRouteScene, quickRouteScene, privateEntry, privateRoom, quickQueue };
     })()`);
-    const opened = await evaluate(cdp, `(() => {
+    online.authenticatedEconomy = await evaluate(cdp, `(async () => {
       const frame = document.querySelector('iframe');
       const gameWindow = frame?.contentWindow;
-      const lobby = gameWindow?.cc?.director?.getScene?.()?.getChildByPath?.('Canvas/R02LobbyRoot');
+      const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      const flow = () => gameWindow?.cc?.director?.getScene?.()?.getChildByName?.('ThirteenFlow')?.components
+        ?.find?.((component) => typeof component.getAcceptanceState === 'function');
+      const sceneName = () => gameWindow?.cc?.director?.getScene?.()?.name || null;
+      const waitUntil = async (read, accepted, label, timeoutMs = 12_000) => {
+        const deadline = Date.now() + timeoutMs;
+        let value = null;
+        while (Date.now() < deadline) {
+          value = read();
+          if (accepted(value)) return value;
+          await wait(50);
+        }
+        throw new Error(label + ':' + JSON.stringify(value));
+      };
       window.__thirteenWalletBridgeProbe = [];
       gameWindow.__thirteenEconomyFetchProbe = [];
       const originalFetch = gameWindow.fetch.bind(gameWindow);
@@ -371,64 +386,66 @@ try {
       window.addEventListener('game4:wallet-updated', (event) => {
         window.__thirteenWalletBridgeProbe.push(event.detail);
       });
-      lobby?.emit?.('r02-exchange');
+      await flow()?.refreshEconomyWallet?.();
+      await waitUntil(
+        () => ({
+          wallet: flow()?.getAcceptanceState?.().online?.economyWallet || null,
+          bridge: window.__thirteenWalletBridgeProbe?.at?.(-1) || null,
+        }),
+        (value) => value.wallet?.diamonds === 10000 && value.bridge?.diamonds === 10000,
+        'single_diamond_wallet_timeout',
+      );
+      const lobby = gameWindow?.cc?.director?.getScene?.()?.getChildByPath?.('Canvas/R02LobbyRoot');
+      const exchangeButton = lobby?.getChildByPath?.('WalletEntry/ExchangeButton');
+      const exchangeOverlay = lobby?.getChildByName?.('O04ExchangeOverlay');
+      const walletLabel = lobby?.getChildByPath?.('WalletEntry/WalletLabel')
+        ?.getComponent?.(gameWindow.cc.Label)?.string || null;
+      const walletValue = lobby?.getChildByPath?.('WalletEntry/WalletValue')
+        ?.getComponent?.(gameWindow.cc.Label)?.string || null;
+
+      flow()?.showHistory?.();
+      await waitUntil(sceneName, (value) => value === 'O05History', 'history_scene_timeout');
+      const historyRoot = gameWindow.cc.director.getScene()?.getChildByPath?.('Canvas/O05HistoryRoot');
+      const historyView = historyRoot?.components?.find?.((component) =>
+        typeof component.getAcceptanceState === 'function');
+      const history = await waitUntil(
+        () => historyView?.getAcceptanceState?.() || null,
+        (value) => value?.loading === false,
+        'history_load_timeout',
+      );
+      historyRoot?.emit?.('o05-back');
+      await waitUntil(sceneName, (value) => value === 'R02Lobby', 'history_return_timeout');
+
+      flow()?.showSettings?.('R02Lobby', 'account');
+      await waitUntil(sceneName, (value) => value === 'R06Settings', 'account_scene_timeout');
+      const settingsRoot = gameWindow.cc.director.getScene()?.getChildByPath?.('Canvas/R06SettingsRoot');
+      const settingsView = settingsRoot?.components?.find?.((component) =>
+        typeof component.getAcceptanceState === 'function');
+      const account = await waitUntil(
+        () => settingsView?.getAcceptanceState?.() || null,
+        (value) => value?.category === 'account' && value?.diamondBalance === 10000,
+        'account_state_timeout',
+      );
+      settingsView?.saveAndReturn?.();
+      await waitUntil(sceneName, (value) => value === 'R02Lobby', 'account_return_timeout');
+
       const frameUrl = new URL(frame?.src || location.href);
+      const wallet = flow()?.getAcceptanceState?.().online?.economyWallet || null;
+      const bridge = window.__thirteenWalletBridgeProbe?.at?.(-1) || null;
       return {
         iframeHasUid: /^\\d{6}$/.test(frameUrl.searchParams.get('uid') || ''),
         iframeHasToken: Boolean(frameUrl.searchParams.get('token')),
-        requested: Boolean(lobby),
+        wallet,
+        bridge,
+        walletLabel,
+        walletValue,
+        economyAuthenticated: Boolean(flow()?.economy?.authenticated),
+        exchangeHidden: exchangeButton?.active === false && exchangeOverlay?.active === false,
+        history,
+        account,
+        fetchProbe: gameWindow.__thirteenEconomyFetchProbe,
       };
     })()`);
-    if (!opened.requested) throw new Error('economy_modal_open_failed');
-    let exchangeCallbackDispatched = false;
-    for (let attempt = 0; attempt < 50 && !exchangeCallbackDispatched; attempt += 1) {
-      exchangeCallbackDispatched = await evaluate(cdp, `(() => {
-        const frame = document.querySelector('iframe');
-        const gameWindow = frame?.contentWindow;
-        const modal = gameWindow?.cc?.director?.getScene?.()
-          ?.getChildByPath?.('Canvas/R02LobbyRoot/O04ExchangeOverlay');
-        const Modal = gameWindow?.cc?.js?.getClassByName?.('ChipExchangeModal');
-        const component = Modal ? modal?.getComponent?.(Modal) : null;
-        if (typeof component?.onExchange !== 'function') return false;
-        component.setBusy?.(true);
-        component.onExchange(10);
-        return true;
-      })()`);
-      if (!exchangeCallbackDispatched) await sleep(100);
-    }
-    if (!exchangeCallbackDispatched) throw new Error('economy_exchange_callback_missing');
-    let exchanged = null;
-    for (let attempt = 0; attempt < 160; attempt += 1) {
-      exchanged = await evaluate(cdp, `(() => {
-        const frame = document.querySelector('iframe');
-        const gameWindow = frame?.contentWindow;
-        const flow = gameWindow?.cc?.director?.getScene?.()?.getChildByName?.('ThirteenFlow')?.components
-          ?.find?.((component) => typeof component.getAcceptanceState === 'function');
-        const lobby = gameWindow?.cc?.director?.getScene?.()?.getChildByPath?.('Canvas/R02LobbyRoot');
-        const modal = lobby?.getChildByName?.('O04ExchangeOverlay');
-        const Modal = gameWindow?.cc?.js?.getClassByName?.('ChipExchangeModal');
-        const modalComponent = Modal ? modal?.getComponent?.(Modal) : null;
-        const state = modalComponent?.getAcceptanceState?.() || null;
-        const wallet = flow?.getAcceptanceState?.().online?.economyWallet || null;
-        const bridge = window.__thirteenWalletBridgeProbe?.at?.(-1) || null;
-        return {
-          wallet,
-          bridge,
-          modalOpen: Boolean(state?.open),
-          modalState: state,
-          exchangeCallbackDispatched: true,
-          economyAuthenticated: Boolean(flow?.economy?.authenticated),
-          hasExchangeHandler: typeof modalComponent?.onExchange === 'function',
-          confirmInteractable: modal?.getChildByPath?.('ExchangePanel/Confirm')
-            ?.getComponent?.(gameWindow.cc.Button)?.interactable ?? null,
-          fetchProbe: gameWindow?.__thirteenEconomyFetchProbe || [],
-        };
-      })()`);
-      if (exchanged?.wallet?.diamonds === 9_990 && exchanged?.wallet?.chips === 11_000
-        && exchanged?.bridge?.diamonds === 9_990 && exchanged?.bridge?.chips === 11_000) break;
-      await sleep(100);
-    }
-    online.authenticatedEconomy = { ...opened, ...exchanged };
   }
 
   await cdp.send('Page.navigate', { url: `${origin}/offline` });
@@ -488,22 +505,42 @@ try {
       && online.accountIdentity?.runtimeAvatarFrame === true
       && online.accountIdentity?.textureWidth > 0
       && online.accountRooms?.privateEntry?.roomCode === ''
+      && online.accountRooms?.privateRouteScene === 'R03Room'
+      && online.accountRooms?.quickRouteScene === 'R03Room'
       && online.accountRooms?.privateEntry?.seatNames?.[0] === online.accountRooms?.selfName
+      && online.accountRooms?.privateEntry?.economyMode === 'free-v1'
       && online.accountRooms?.privateRoom?.roomCode === 'A1B 2C3'
       && online.accountRooms?.privateRoom?.seatNames?.[0] === online.accountRooms?.selfName
       && online.accountRooms?.privateRoom?.seatNames?.[1] === '真实对手'
       && online.accountRooms?.privateRoom?.avatarSources?.[0] === online.accountRooms?.selfAvatar
+      && online.accountRooms?.privateRoom?.economyMode === 'free-v1'
       && online.accountRooms?.quickQueue?.roomCode === ''
       && online.accountRooms?.quickQueue?.seatNames?.[0] === online.accountRooms?.selfName
       && online.accountRooms?.quickQueue?.seatNames?.[1] === '玩家已匹配'
+      && online.accountRooms?.quickQueue?.economyMode === 'free-v1'
       && !JSON.stringify(online.accountRooms).includes('836 214')
       && !['小武', '阿明', '小美'].some((name) => JSON.stringify(online.accountRooms).includes(name))
       && online.authenticatedEconomy?.iframeHasUid === true
       && online.authenticatedEconomy?.iframeHasToken === true
-      && online.authenticatedEconomy?.wallet?.diamonds === 9_990
-      && online.authenticatedEconomy?.wallet?.chips === 11_000
-      && online.authenticatedEconomy?.bridge?.diamonds === 9_990
-      && online.authenticatedEconomy?.bridge?.chips === 11_000
+      && online.authenticatedEconomy?.wallet?.diamonds === 10_000
+      && !Object.hasOwn(online.authenticatedEconomy?.wallet || {}, 'chips')
+      && online.authenticatedEconomy?.bridge?.diamonds === 10_000
+      && !Object.hasOwn(online.authenticatedEconomy?.bridge || {}, 'chips')
+      && online.authenticatedEconomy?.walletLabel === '钻石'
+      && online.authenticatedEconomy?.walletValue === '10,000'
+      && online.authenticatedEconomy?.economyAuthenticated === true
+      && online.authenticatedEconomy?.exchangeHidden === true
+      && online.authenticatedEconomy?.history?.loading === false
+      && online.authenticatedEconomy?.history?.error === null
+      && online.authenticatedEconomy?.history?.diamondBalance === 10_000
+      && online.authenticatedEconomy?.account?.category === 'account'
+      && online.authenticatedEconomy?.account?.diamondBalance === 10_000
+      && online.authenticatedEconomy?.fetchProbe?.some((request) => request.path === '/api/games/thirteen/wallet'
+        && request.status === 200 && request.uidHeader === true && request.bearerHeader === true)
+      && online.authenticatedEconomy?.fetchProbe?.some((request) => request.path === '/api/games/thirteen/history'
+        && request.status === 200 && request.uidHeader === true && request.bearerHeader === true)
+      && online.authenticatedEconomy?.fetchProbe?.some((request) => request.path === '/api/games/thirteen/version'
+        && request.status === 200)
     ));
   const report = { feature: 'Thirteen PWA offline replay', online, offline, accepted };
   if (resultPath) {

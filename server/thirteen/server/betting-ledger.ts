@@ -73,6 +73,18 @@ export class BettingLedger {
     };
   }
 
+  /** Returns an existing legacy wallet without provisioning a new chip balance. */
+  viewExisting(userId: string): WalletView | null {
+    const wallet = this.wallets.get(userId);
+    if (!wallet) return null;
+    return {
+      balance: wallet.balance,
+      reserved: wallet.reserved,
+      total: wallet.balance + wallet.reserved,
+      currency: 'chip',
+    };
+  }
+
   /** Reconciles the runtime cache from the authenticated Postgres wallet. */
   syncWallet(userId: string, balance: number, reserved: number): WalletView {
     assertMoney(balance, 'wallet_balance');
