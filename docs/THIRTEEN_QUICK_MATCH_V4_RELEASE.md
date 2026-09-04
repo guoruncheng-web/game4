@@ -41,6 +41,7 @@
 | 同账号多设备 | 旧连接收到 `session_replaced`，不计为第二人 |
 | 宿主/游戏按钮 | O02、R02、R03、R04 四场景均通过；R04 游戏内大厅按钮保留 |
 | PWA v60 | 冷启动 6,559 ms、热启动 3,262 ms；95 个缓存资产、2 个首屏必要音频；可信点击后音频运行；离线 R02 通过 |
+| Studio Owner `localhost:3000` | 已精确同步 v60，游戏入口、SW 文件和页面均为 200，构建哈希及 `quick-match-startup-v7` 标记一致；该进程为 `next dev`，按设计不注册 SW，离线门以本地 production RC 为准 |
 | 精确构建同步 | game4 游戏树与 Creator RC 均为 601 文件、19,858,752 bytes，逐文件摘要一致 |
 
 最终本地证据：
@@ -80,4 +81,5 @@
 - v58 前备份：`/Users/mac/projects/oner/game/game4-local-backups/thirteen-game-before-startup-v58-20260904-2325`
 - v59 前备份：`/Users/mac/projects/oner/game/game4-local-backups/thirteen-game-before-engine-v59-20260905-0010`
 - v60 前备份：`/Users/mac/projects/oner/game/game4-local-backups/thirteen-game-before-lazy-audio-v60-20260905-0050`
+- Studio Owner `localhost:3000` 工作树同步前备份：`/Users/mac/projects/oner/game/game4-local-backups/thirteen-game-before-local-v60-sync-20260904`
 - Creator 构建警告 `mainBundleCompressionType` 未配置并回退 `merge_dep`，本次输出与运行验收正常；该警告是已记录的非阻塞构建配置债务。
