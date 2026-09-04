@@ -55,7 +55,7 @@
 | 启动优化 v58 Actions | `33891243926` 成功 |
 | 引擎裁剪 v59 Actions | `33894347058` 成功 |
 | 按需音频 v60 Actions | `33898056770` 成功 |
-| 基础健康 | `/thirteen`、游戏入口、`sw.js`、健康接口均为 200；持久化为 `encrypted-ready` |
+| 基础健康 | `/thirteen`、游戏入口、`sw.js`、`/ws/health` 均为 200；Thirteen 持久化为 `encrypted-ready` |
 | 发行一致性 | 公网 `index.html` SHA-256 与 Creator RC 一致；页面标记 `quick-match-startup-v7`；Service Worker 为 v60 |
 | 全新 profile PWA | 在线进入 R02、可信音频、v60 接管、离线重载全部通过；95 个缓存资产、2 个首屏必要音频 |
 | 公网真实匹配 | 两个不同正式账号从游戏 UI/生产 WSS 同时看到 `1→2`；同账号替换收到 `session_replaced`；临时账号已注销 |
