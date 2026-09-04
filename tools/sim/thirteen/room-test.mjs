@@ -39,9 +39,16 @@ assert.equal(messages.get('101').some((message) => message.t === 'thirteen:snaps
 adapter.handle(identities[1], envelope('thirteen:ready', { ready: true }));
 adapter.handle(identities[1], envelope('thirteen:ready', { ready: false }));
 adapter.handle(identities[1], envelope('thirteen:ready', { ready: true }));
-for (const identity of [identities[0], identities[2], identities[3]]) {
+for (const identity of [identities[2], identities[3]]) {
   adapter.handle(identity, envelope('thirteen:ready', { ready: true }));
 }
+assert.equal(messages.get('101').some((message) => message.t === 'thirteen:snapshot'), false);
+const readyRoom = messages.get('101').findLast((message) => message.t === 'thirteen:room').room;
+assert.equal(readyRoom.hostSeat, 0);
+assert.equal(readyRoom.canStart, true);
+assert.equal(readyRoom.readyCount, 3);
+assert.deepEqual(readyRoom.players.map((player) => player.isHost), [true, false, false, false]);
+adapter.handle(identities[0], envelope('thirteen:start'));
 
 for (const identity of identities) {
   const snapshots = messages.get(identity.userId).filter((message) => message.t === 'thirteen:snapshot');
@@ -92,7 +99,8 @@ console.log(JSON.stringify({
   privateRoom: true,
   realProfiles: true,
   fourPrivacySnapshots: true,
-  explicitReady: true,
+  explicitGuestReady: true,
+  explicitOwnerStart: true,
   economyMode: 'free-v1',
   persistentAssetMutation: false,
   restartRecovery: true,

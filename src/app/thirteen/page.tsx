@@ -4,7 +4,7 @@ import Link from 'next/link';
 import CocosCanvas from '@/components/CocosCanvas';
 
 const INTERACTIVE_SCENES = [
-  'R02Lobby', 'R03Room', 'R04Match', 'R05Tutorial', 'R06Settings', 'R07Result', 'R08Stake',
+  'R02Lobby', 'R05Tutorial', 'R06Settings', 'R07Result', 'R08Stake',
   'O01ReconnectAutoplay', 'O03BlockingError',
 ] as const;
 
@@ -12,7 +12,7 @@ export default function ThirteenPage() {
   return (
     <main className="fixed inset-0 h-dvh w-full overflow-hidden bg-[#061f25]">
       <CocosCanvas
-        src="/thirteen/game/index.html?locale=zh-CN&return=/"
+        src="/thirteen/game/index.html?locale=zh-CN&return=/&build=quick-match-truthful-v4"
         title="Chặt Heo! 西贡牌局"
         gameId="thirteen"
         interactiveScenes={INTERACTIVE_SCENES}

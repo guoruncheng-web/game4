@@ -149,9 +149,56 @@ try {
   })()`);
   await capture(cdp, lobbyScreenshot);
 
+  await evaluate(cdp, `(() => {
+    const frame = document.querySelector('iframe');
+    const scene = frame?.contentWindow?.cc?.director?.getScene?.();
+    const flow = scene?.getChildByName?.('ThirteenFlow')?.components
+      ?.find?.((component) => typeof component.selectLobbyMode === 'function');
+    flow?.selectLobbyMode?.('quick');
+    return Boolean(flow);
+  })()`);
+  const quickMatch = await waitFor(cdp, `(() => {
+    const frame = document.querySelector('iframe');
+    const gameWindow = frame?.contentWindow;
+    const scene = gameWindow?.cc?.director?.getScene?.();
+    const root = scene?.getChildByPath?.('Canvas/R03RoomRoot');
+    const hostControl = Boolean(document.querySelector('[data-game-ready-control="home"]'));
+    const backVisible = root?.getChildByName?.('BackButton')?.active === true;
+    const quickPanelVisible = root?.getChildByPath?.('RoomPanel/QuickMatchPanel')?.active === true;
+    return {
+      scene: scene?.name || null, hostControl, backVisible, quickPanelVisible,
+      accepted: scene?.name === 'R03Room' && !hostControl && backVisible && quickPanelVisible,
+    };
+  })()`, 60_000);
+  if (resultPath) await capture(cdp, join(dirname(resultPath), 'quick-match.png'));
+
+  await evaluate(cdp, `(() => {
+    const frame = document.querySelector('iframe');
+    const scene = frame?.contentWindow?.cc?.director?.getScene?.();
+    const flow = scene?.getChildByName?.('ThirteenFlow')?.components
+      ?.find?.((component) => typeof component.startSolo === 'function');
+    flow?.startSolo?.();
+    return Boolean(flow);
+  })()`);
+  const match = await waitFor(cdp, `(() => {
+    const frame = document.querySelector('iframe');
+    const gameWindow = frame?.contentWindow;
+    const scene = gameWindow?.cc?.director?.getScene?.();
+    const root = scene?.getChildByPath?.('Canvas/R04MatchRoot');
+    const hostControl = Boolean(document.querySelector('[data-game-ready-control="home"]'));
+    const homeVisible = root?.getChildByName?.('HomeButton')?.active === true;
+    const utilitiesHidden = ['ChatButton', 'SettingsButton', 'MenuButton']
+      .every((name) => root?.getChildByName?.(name)?.active === false);
+    return {
+      scene: scene?.name || null, hostControl, homeVisible, utilitiesHidden,
+      accepted: scene?.name === 'R04Match' && !hostControl && homeVisible && utilitiesHidden,
+    };
+  })()`, 60_000);
+  if (resultPath) await capture(cdp, join(dirname(resultPath), 'match.png'));
+
   const report = {
-    feature: 'Cocos portrait exit closes game through strict PWA host messaging',
-    portrait, hostControlSeenBeforeInteractive, exit, lobby, accepted: true,
+    feature: 'Cocos host controls follow the active Thirteen scene',
+    portrait, hostControlSeenBeforeInteractive, exit, lobby, quickMatch, match, accepted: true,
   };
   if (resultPath) {
     await mkdir(dirname(resultPath), { recursive: true });

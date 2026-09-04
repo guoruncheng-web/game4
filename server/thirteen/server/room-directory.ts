@@ -31,6 +31,8 @@ export interface WaitingRoomView {
   readonly maximumPlayers: 4;
   readonly started: boolean;
   readonly readyCount: number;
+  readonly hostSeat: number | null;
+  readonly canStart: boolean;
   readonly players: readonly {
     readonly seat: number;
     readonly userId: string;
@@ -38,6 +40,7 @@ export interface WaitingRoomView {
     readonly avatar: string;
     readonly connected: boolean;
     readonly ready: boolean;
+    readonly isHost: boolean;
   }[];
 }
 
@@ -80,6 +83,11 @@ export interface ReadyResult {
   readonly room: WaitingRoomView;
   readonly started: boolean;
   readonly wallet: WalletView | null;
+}
+
+export interface StartResult {
+  readonly room: WaitingRoomView;
+  readonly started: true;
 }
 
 export interface RoomDirectorySnapshot {
@@ -185,6 +193,7 @@ export class RoomDirectory {
     const entry = this.requireEntry(userId);
     if (entry.room.started) throw new Error('match_already_started');
     if (entry.mode !== 'private') throw new Error('matchmaking_is_auto_ready');
+    if (entry.users[0] === userId) throw new Error('room_owner_uses_start');
     const matchNumber = entry.room.currentMatchNumber + 1;
     const alreadyReady = entry.readyUsers.has(userId);
     if (ready && !alreadyReady) {
@@ -198,13 +207,19 @@ export class RoomDirectory {
       }
       entry.readyUsers.delete(userId);
     }
-    let started = false;
-    const members = this.members(entry.room.roomId);
-    if (members.length === 4 && members.every((member) => entry.readyUsers.has(member))) {
-      entry.room.start();
-      started = true;
-    }
-    return { room: this.view(entry), started, wallet: this.legacyWalletFor(userId) };
+    return { room: this.view(entry), started: false, wallet: this.legacyWalletFor(userId) };
+  }
+
+  startPrivate(userId: string): StartResult {
+    const entry = this.requireEntry(userId);
+    if (entry.room.started) throw new Error('match_already_started');
+    if (entry.mode !== 'private') throw new Error('matchmaking_starts_automatically');
+    if (entry.users[0] !== userId) throw new Error('only_room_owner_can_start');
+    if (entry.economyMode !== FREE_ECONOMY_MODE) throw new Error('legacy_room_closed');
+    if (this.members(entry.room.roomId).length !== 4) throw new Error('match_requires_four_players');
+    if (!this.canStart(entry)) throw new Error('players_not_ready');
+    entry.room.start();
+    return { room: this.view(entry), started: true };
   }
 
   enqueueMatch(userId: string, _legacyStake?: number): DirectoryAssignment | null {
@@ -263,6 +278,12 @@ export class RoomDirectory {
       this.refundIfReserved(entry, userId, entry.room.currentMatchNumber + 1);
       entry.room.removeWaiting(userId);
       if (index >= 0) entry.users.splice(index, 1);
+      if (index === 0) {
+        const nextOwner = entry.users[0];
+        if (nextOwner && entry.readyUsers.delete(nextOwner)) {
+          this.refundIfReserved(entry, nextOwner, entry.room.currentMatchNumber + 1);
+        }
+      }
     } else {
       if (entry.room.finished && entry.rematchVotes.size > 0) this.refundRematchRound(entry);
       entry.room.disconnect(userId);
@@ -482,6 +503,7 @@ export class RoomDirectory {
   }
 
   private view(entry: DirectoryRoom): WaitingRoomView {
+    const hostSeat = entry.mode === 'private' && entry.users.length > 0 ? 0 : null;
     return {
       roomId: entry.room.roomId,
       code: entry.code,
@@ -491,7 +513,11 @@ export class RoomDirectory {
       playerCount: entry.users.filter((user) => user !== null).length,
       maximumPlayers: 4,
       started: entry.room.started,
-      readyCount: entry.readyUsers.size,
+      readyCount: entry.mode === 'private'
+        ? entry.users.slice(1).filter((user) => user !== null && entry.readyUsers.has(user)).length
+        : entry.readyUsers.size,
+      hostSeat,
+      canStart: this.canStart(entry),
       players: entry.room.presence().flatMap((presence) => (
         entry.users[presence.seat] === null ? [] : [{
           seat: presence.seat,
@@ -500,9 +526,20 @@ export class RoomDirectory {
           avatar: presence.avatar,
           connected: presence.connected,
           ready: entry.readyUsers.has(entry.users[presence.seat]!) || entry.mode === 'matchmaking',
+          isHost: hostSeat === presence.seat,
         }]
       )),
     };
+  }
+
+  private canStart(entry: DirectoryRoom): boolean {
+    if (entry.mode !== 'private' || entry.room.started || entry.economyMode !== FREE_ECONOMY_MODE) return false;
+    const members = entry.users.filter((member): member is string => member !== null);
+    if (members.length !== 4) return false;
+    const presence = entry.room.presence();
+    return members.every((member, seat) => (
+      presence[seat]?.connected === true && (seat === 0 || entry.readyUsers.has(member))
+    ));
   }
 
   private settleIfFinished(entry: DirectoryRoom): void {

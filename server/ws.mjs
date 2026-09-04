@@ -36,6 +36,7 @@ import { readApiAccessToken } from '../src/lib/auth.ts';
 import { avatarUrlFor } from '../src/lib/api-contract.ts';
 
 const PORT = Number(process.env.WS_PORT || 7011);
+const HOST = process.env.WS_HOST || '127.0.0.1';
 
 /** 心跳。超过这个时间没有任何往来就断开,防止半开连接一直占着在线名额 */
 const PING_INTERVAL_MS = 30_000;
@@ -594,6 +595,7 @@ server.on('upgrade', async (req, socket, head) => {
       // 同一个人再连时顶掉旧连接,否则多开标签页会让在线列表里出现两个他
       const old = clients.get(user.id);
       if (old && old.ws !== ws) {
+        send(old.ws, { t: 'thirteen:error', v: 2, code: 'session_replaced' });
         send(old.ws, { t: 'replaced' });
         try { old.ws.close(); } catch { /* 已经关了 */ }
       }
@@ -653,6 +655,6 @@ setInterval(() => {
     .finally(() => { thirteenTickQueued = false; });
 }, 250).unref();
 
-server.listen(PORT, '127.0.0.1', () => {
-  console.log(`[ws] 监听 127.0.0.1:${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`[ws] 监听 ${HOST}:${PORT}`);
 });

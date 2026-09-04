@@ -77,6 +77,12 @@ export class ThirteenWsAdapter {
           if (result.started) this.broadcastSnapshots(result.room.roomId);
           return;
         }
+        case 'thirteen:start': {
+          const result = this.directory.startPrivate(userId);
+          this.broadcastRoom(result.room);
+          this.broadcastSnapshots(result.room.roomId);
+          return;
+        }
         case 'thirteen:wallet':
           this.sendWallet(userId);
           return;

@@ -123,7 +123,12 @@ try {
   await cdp.send('Page.navigate', { url });
   await waitForLobby(cdp, lobbyTimeoutMs);
   const registered = await evaluate(cdp, `(async () => {
-    await navigator.serviceWorker.ready;
+    if (!('serviceWorker' in navigator)) return false;
+    const ready = await Promise.race([
+      navigator.serviceWorker.ready.then(() => true),
+      new Promise((resolve) => setTimeout(() => resolve(false), 10_000)),
+    ]);
+    if (!ready) return false;
     for (let attempt = 0; attempt < 100 && !navigator.serviceWorker.controller; attempt += 1) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
@@ -137,8 +142,8 @@ try {
   await waitForLobby(cdp, lobbyTimeoutMs);
   const online = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
-    const assets = await caches.open('game-box-assets-v54');
-    const shell = await caches.open('game-box-shell-v54');
+    const assets = await caches.open('game-box-assets-v57');
+    const shell = await caches.open('game-box-shell-v57');
     const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
     const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
     const frame = document.querySelector('iframe');
@@ -297,15 +302,15 @@ try {
               t: 'thirteen:room', v: 2, seat: 0,
               room: {
                 code: 'A1B2C3', started: false, stake: null, economyMode: 'free-v1',
-                readyCount: 0, playerCount: 2,
+                readyCount: 0, playerCount: 2, hostSeat: 0, canStart: false,
                 players: [
-                  { seat: 0, userId: 'account-self', displayName: selfName, avatar: selfAvatar, connected: true, ready: false },
-                  { seat: 1, userId: 'account-peer', displayName: '真实对手', avatar: selfAvatar, connected: true, ready: false },
+                  { seat: 0, userId: 'account-self', displayName: selfName, avatar: selfAvatar, connected: true, ready: false, isHost: true },
+                  { seat: 1, userId: 'account-peer', displayName: '真实对手', avatar: selfAvatar, connected: true, ready: false, isHost: false },
                 ],
               },
             });
           } else if (message.t === 'thirteen:matchmake') {
-            this.emit({ t: 'thirteen:matchmaking', v: 2, playerCount: 2, stake: null, economyMode: 'free-v1' });
+            this.emit({ t: 'thirteen:matchmaking', v: 2, queued: true, playerCount: 2, stake: null, economyMode: 'free-v1' });
           } else if (message.t === 'thirteen:leave') {
             this.emit({ t: 'thirteen:left', v: 2 });
           }

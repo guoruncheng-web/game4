@@ -7,6 +7,7 @@ export type ThirteenClientMessage =
   | { readonly t: 'thirteen:join-private'; readonly v: typeof ROOM_PROTOCOL_VERSION; readonly code: string }
   | { readonly t: 'thirteen:matchmake'; readonly v: typeof ROOM_PROTOCOL_VERSION; readonly stake?: TableStake }
   | { readonly t: 'thirteen:ready'; readonly v: typeof ROOM_PROTOCOL_VERSION; readonly ready: boolean }
+  | { readonly t: 'thirteen:start'; readonly v: typeof ROOM_PROTOCOL_VERSION }
   | { readonly t: 'thirteen:wallet'; readonly v: typeof ROOM_PROTOCOL_VERSION }
   | { readonly t: 'thirteen:leave'; readonly v: typeof ROOM_PROTOCOL_VERSION }
   | { readonly t: 'thirteen:rematch'; readonly v: typeof ROOM_PROTOCOL_VERSION }
@@ -16,6 +17,7 @@ export type ThirteenClientMessage =
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
+
 export function parseThirteenClientMessage(value: unknown): ThirteenClientMessage | null {
   if (!isRecord(value) || value.v !== ROOM_PROTOCOL_VERSION || typeof value.t !== 'string') return null;
   switch (value.t) {
@@ -24,6 +26,7 @@ export function parseThirteenClientMessage(value: unknown): ThirteenClientMessag
     case 'thirteen:rematch':
     case 'thirteen:snapshot':
     case 'thirteen:wallet':
+    case 'thirteen:start':
       return value as ThirteenClientMessage;
     case 'thirteen:create-private':
     case 'thirteen:matchmake':
