@@ -52,6 +52,7 @@ async function evaluate(cdp, expression) {
 }
 
 async function waitForLobby(cdp, timeoutMs = 30_000) {
+  const startedAt = Date.now();
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const state = await evaluate(cdp, `(() => {
@@ -67,7 +68,9 @@ async function waitForLobby(cdp, timeoutMs = 30_000) {
       };
     })()`);
     if (state.scene === 'R02Lobby' && state.audio?.loadedClips === 21
-      && state.settings?.language === 'zh-CN') return state;
+      && state.settings?.language === 'zh-CN') {
+      return { ...state, readyMs: Date.now() - startedAt };
+    }
     await sleep(100);
   }
   throw new Error('thirteen_lobby_timeout');
@@ -121,7 +124,7 @@ try {
     if (cookie.result?.success !== true) throw new Error('session_cookie_install_failed');
   }
   await cdp.send('Page.navigate', { url });
-  await waitForLobby(cdp, lobbyTimeoutMs);
+  const coldLobby = await waitForLobby(cdp, lobbyTimeoutMs);
   const registered = await evaluate(cdp, `(async () => {
     if (!('serviceWorker' in navigator)) return false;
     const ready = await Promise.race([
@@ -139,11 +142,11 @@ try {
   await cdp.send('Page.navigate', { url: `${origin}/offline` });
   await sleep(2_000);
   await cdp.send('Page.navigate', { url });
-  await waitForLobby(cdp, lobbyTimeoutMs);
+  const warmLobby = await waitForLobby(cdp, lobbyTimeoutMs);
   const online = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
-    const assets = await caches.open('game-box-assets-v57');
-    const shell = await caches.open('game-box-shell-v57');
+    const assets = await caches.open('game-box-assets-v58');
+    const shell = await caches.open('game-box-shell-v58');
     const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
     const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
     const frame = document.querySelector('iframe');
@@ -162,6 +165,7 @@ try {
         ?.getAcceptanceState?.().settings?.language || null,
     };
   })()`);
+  online.startup = { coldReadyMs: coldLobby.readyMs, warmReadyMs: warmLobby.readyMs };
   const audioBefore = await evaluate(cdp, `(() => {
     const frame = document.querySelector('iframe');
     const flow = frame?.contentWindow?.cc?.director?.getScene?.()?.getChildByName?.('ThirteenFlow')
