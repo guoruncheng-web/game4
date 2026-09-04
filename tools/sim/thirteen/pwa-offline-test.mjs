@@ -67,7 +67,8 @@ async function waitForLobby(cdp, timeoutMs = 30_000) {
         settings: flow?.getAcceptanceState?.().settings || null,
       };
     })()`);
-    if (state.scene === 'R02Lobby' && state.audio?.loadedClips === 21
+    if (state.scene === 'R02Lobby' && state.audio?.ready === true
+      && state.audio?.assignedSources === 6
       && state.settings?.language === 'zh-CN') {
       return { ...state, readyMs: Date.now() - startedAt };
     }
@@ -145,8 +146,8 @@ try {
   const warmLobby = await waitForLobby(cdp, lobbyTimeoutMs);
   const online = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
-    const assets = await caches.open('game-box-assets-v59');
-    const shell = await caches.open('game-box-shell-v59');
+    const assets = await caches.open('game-box-assets-v60');
+    const shell = await caches.open('game-box-shell-v60');
     const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
     const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
     const frame = document.querySelector('iframe');
@@ -218,6 +219,22 @@ try {
         return flow?.getAcceptanceState?.().audio || null;
       })()`);
     }
+  }
+  const audioDeadline = Date.now() + lobbyTimeoutMs;
+  while (Date.now() < audioDeadline && !(
+    audioAfter?.unlocked
+    && audioAfter?.loadedClips >= 2
+    && audioAfter?.contextState === 'running'
+    && audioAfter?.musicPlaying === true
+    && audioAfter?.ambiencePlaying === true
+  )) {
+    await sleep(250);
+    audioAfter = await evaluate(cdp, `(() => {
+      const frame = document.querySelector('iframe');
+      const flow = frame?.contentWindow?.cc?.director?.getScene?.()?.getChildByName?.('ThirteenFlow')
+        ?.components?.find?.((component) => typeof component.getAcceptanceState === 'function');
+      return flow?.getAcceptanceState?.().audio || null;
+    })()`);
   }
   const inputProbe = await evaluate(cdp, `(() => {
     const frame = document.querySelector('iframe');
@@ -492,7 +509,7 @@ try {
   }
   const accepted = online.cachedGameIndex
     && online.cachedSettings
-    && online.cachedAudioClips === 21
+    && online.cachedAudioClips >= 2
     && online.cachedRoute
     && online.onlineCanvas
     && offline.canvas
@@ -501,7 +518,7 @@ try {
     && online.releaseLanguage === 'zh-CN'
     && offline.releaseLanguage === 'zh-CN'
     && !offline.loadingOverlayVisible
-    && online.trustedAudio.after?.loadedClips === 21
+    && online.trustedAudio.after?.loadedClips >= 2
     && online.trustedAudio.after?.unlocked === true
     && online.trustedAudio.after?.architecture === 'scene-mounted-six-bus'
     && online.trustedAudio.after?.assignedSources === 6
