@@ -10,6 +10,10 @@ const resultPath = process.argv[5];
 const chromePath = process.env.COCOS_CHROME
   || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const hostTimeoutMs = Number(process.env.THIRTEEN_HOST_TIMEOUT_MS || 60_000);
+if (!Number.isFinite(hostTimeoutMs) || hostTimeoutMs < 5_000 || hostTimeoutMs > 180_000) {
+  throw new Error('invalid_THIRTEEN_HOST_TIMEOUT_MS');
+}
 
 function cdpClient(ws) {
   let nextId = 0;
@@ -41,7 +45,7 @@ async function evaluate(cdp, expression) {
   return JSON.parse(response.result.result.value);
 }
 
-async function waitFor(cdp, expression, timeoutMs = 60_000, observe) {
+async function waitFor(cdp, expression, timeoutMs = hostTimeoutMs, observe) {
   const deadline = Date.now() + timeoutMs;
   let value;
   while (Date.now() < deadline) {
@@ -115,7 +119,7 @@ try {
       } : null,
       accepted: scene?.name === 'O02RotateGuard' && label === '返回' && Boolean(world),
     };
-  })()`, 60_000, (value) => {
+  })()`, hostTimeoutMs, (value) => {
     if (value?.scene !== 'R02Lobby' && value?.hostControl) hostControlSeenBeforeInteractive = true;
   });
   if (hostControlSeenBeforeInteractive || portrait.hostControl) {
@@ -169,7 +173,7 @@ try {
       scene: scene?.name || null, hostControl, backVisible, quickPanelVisible,
       accepted: scene?.name === 'R03Room' && !hostControl && backVisible && quickPanelVisible,
     };
-  })()`, 60_000);
+  })()`, hostTimeoutMs);
   if (resultPath) await capture(cdp, join(dirname(resultPath), 'quick-match.png'));
 
   await evaluate(cdp, `(() => {
@@ -193,7 +197,7 @@ try {
       scene: scene?.name || null, hostControl, homeVisible, utilitiesHidden,
       accepted: scene?.name === 'R04Match' && !hostControl && homeVisible && utilitiesHidden,
     };
-  })()`, 60_000);
+  })()`, hostTimeoutMs);
   if (resultPath) await capture(cdp, join(dirname(resultPath), 'match.png'));
 
   const report = {
