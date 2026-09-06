@@ -199,8 +199,8 @@ try {
   const warmLobby = await waitForLobby(cdp, lobbyTimeoutMs);
   const online = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
-    const assets = await caches.open('game-box-assets-v63');
-    const shell = await caches.open('game-box-shell-v63');
+    const assets = await caches.open('game-box-assets-v64');
+    const shell = await caches.open('game-box-shell-v64');
     const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
     const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
     const frame = document.querySelector('iframe');
@@ -530,7 +530,7 @@ try {
   if (verifySunlitMatch) {
     online.matching = await probeSunlitMatch(cdp, process.env.THIRTEEN_PWA_MATCH_SCREENSHOT || '');
     online.matching.cachedEnvironment = await evaluate(cdp, `(async () => {
-      const cache = await caches.open('game-box-assets-v63');
+      const cache = await caches.open('game-box-assets-v64');
       return (await cache.keys()).some(r => r.url.includes('b7e6168f-c305-4987-92e1-e32764b9e333'));
     })()`);
   }
