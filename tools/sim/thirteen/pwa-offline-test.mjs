@@ -14,6 +14,7 @@ if (!Number.isFinite(lobbyTimeoutMs) || lobbyTimeoutMs < 5_000 || lobbyTimeoutMs
 }
 const viewport = process.env.THIRTEEN_PWA_VIEWPORT || '1280,720';
 if (!/^\d{3,4},\d{3,4}$/.test(viewport)) throw new Error('invalid_THIRTEEN_PWA_VIEWPORT');
+const verifySunlitMatch = process.env.THIRTEEN_PWA_VERIFY_SUNLIT_MATCH === '1';
 const sessionCookie = process.env.THIRTEEN_PWA_SESSION_COOKIE || '';
 const onlineScreenshot = process.env.THIRTEEN_PWA_ONLINE_SCREENSHOT || '';
 const chromePath = process.env.COCOS_CHROME
@@ -75,6 +76,35 @@ async function waitForLobby(cdp, timeoutMs = 30_000) {
     await sleep(100);
   }
   throw new Error('thirteen_lobby_timeout');
+}
+
+async function probeSunlitMatch(cdp, shotPath) {
+  const state = await evaluate(cdp, `(async () => {
+    const w = document.querySelector('iframe').contentWindow;
+    const flow = w.cc.director.getScene().getChildByName('ThirteenFlow').components.find(c => typeof c.selectLobbyMode === 'function');
+    flow.selectLobbyMode('quick');
+    for (let i=0;i<300 && w.cc.director.getScene()?.name !== 'R03Room';i++) await new Promise(r=>setTimeout(r,100));
+    await new Promise(r=>setTimeout(r,600));
+    const root = w.cc.director.getScene()?.getChildByPath('Canvas/R03RoomRoot');
+    const view = root?.getComponent('R03RoomView');
+    const background = root?.getChildByName('Environment')?.getComponent(w.cc.Sprite)?.spriteFrame?.name;
+    const cancel = root?.getChildByPath('RoomPanel/CancelButton')?.getComponent(w.cc.Button);
+    const cancelFrame = cancel?.target?.getComponent(w.cc.Sprite)?.spriteFrame?.name;
+    return { scene:w.cc.director.getScene()?.name, background, cancelFrame, state:view?.getAcceptanceState(), accepted:background==='r03_environment_sunlit_v1' && cancelFrame==='r03_cancel_sunlit_v1' };
+  })()`);
+  if (!state.accepted) throw new Error(`sunlit_match_probe_failed:${JSON.stringify(state)}`);
+  if (shotPath) {
+    await mkdir(dirname(shotPath), {recursive:true});
+    const shot = await cdp.send('Page.captureScreenshot',{format:'png'});
+    await writeFile(shotPath,Buffer.from(shot.result.data,'base64'));
+  }
+  await evaluate(cdp, `(() => {
+    const w=document.querySelector('iframe').contentWindow;
+    w.cc.director.getScene().getChildByName('ThirteenFlow').components.find(c=>typeof c.showLobby==='function').showLobby();
+    return true;
+  })()`);
+  await waitForLobby(cdp,lobbyTimeoutMs);
+  return state;
 }
 
 const profile = await mkdtemp(join(tmpdir(), 'thirteen-pwa-'));
@@ -146,8 +176,8 @@ try {
   const warmLobby = await waitForLobby(cdp, lobbyTimeoutMs);
   const online = await evaluate(cdp, `(async () => {
     const names = await caches.keys();
-    const assets = await caches.open('game-box-assets-v60');
-    const shell = await caches.open('game-box-shell-v60');
+    const assets = await caches.open('game-box-assets-v62');
+    const shell = await caches.open('game-box-shell-v62');
     const assetKeys = (await assets.keys()).map((request) => new URL(request.url).pathname);
     const shellKeys = (await shell.keys()).map((request) => new URL(request.url).pathname);
     const frame = document.querySelector('iframe');
@@ -474,6 +504,14 @@ try {
     })()`);
   }
 
+  if (verifySunlitMatch) {
+    online.matching = await probeSunlitMatch(cdp, process.env.THIRTEEN_PWA_MATCH_SCREENSHOT || '');
+    online.matching.cachedEnvironment = await evaluate(cdp, `(async () => {
+      const cache = await caches.open('game-box-assets-v62');
+      return (await cache.keys()).some(r => r.url.includes('b7e6168f-c305-4987-92e1-e32764b9e333'));
+    })()`);
+  }
+
   await cdp.send('Page.navigate', { url: `${origin}/offline` });
   await sleep(2_000);
   await cdp.send('Network.emulateNetworkConditions', {
@@ -507,7 +545,11 @@ try {
     const shot = await cdp.send('Page.captureScreenshot', { format: 'png' });
     await writeFile(screenshot, Buffer.from(shot.result.data, 'base64'));
   }
-  const accepted = online.cachedGameIndex
+  if (verifySunlitMatch) {
+    offline.matching = await probeSunlitMatch(cdp, process.env.THIRTEEN_PWA_MATCH_OFFLINE_SCREENSHOT || '');
+  }
+  const accepted = (!verifySunlitMatch || (online.matching?.accepted && online.matching?.cachedEnvironment && offline.matching?.accepted))
+    && online.cachedGameIndex
     && online.cachedSettings
     && online.cachedAudioClips >= 2
     && online.cachedRoute

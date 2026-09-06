@@ -12,7 +12,7 @@ export default function ThirteenPage() {
   return (
     <main className="fixed inset-0 h-dvh w-full overflow-hidden bg-[#061f25]">
       <CocosCanvas
-        src="/thirteen/game/index.html?locale=zh-CN&return=/&build=quick-match-startup-v7"
+        src="/thirteen/game/index.html?locale=zh-CN&return=/&build=matching-sunlit-v1-rc2"
         title="Chặt Heo! 西贡牌局"
         gameId="thirteen"
         interactiveScenes={INTERACTIVE_SCENES}
