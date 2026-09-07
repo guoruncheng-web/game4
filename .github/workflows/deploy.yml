@@ -77,6 +77,8 @@ jobs:
         env:
           COCOS_CHROME: /usr/bin/google-chrome
           THIRTEEN_PWA_LOBBY_TIMEOUT_MS: '180000'
+          # Retain preparation timing; a longer functional timeout is not a performance pass.
+          THIRTEEN_PWA_PREPARATION_TIMEOUT_MS: '180000'
         run: |
           node tools/sim/thirteen/match-start-pwa-test.mjs https://www.gameai.xingzdh.com "$RUNNER_TEMP/acceptance.json" evidence/public-match-start
       - name: Public fresh-profile PWA, audio, cache and offline acceptance
@@ -97,7 +99,11 @@ jobs:
         if: always()
         with:
           name: production-acceptance-${{ github.sha }}
-          path: backend-source/evidence/public-*
+          path: |
+            backend-source/evidence/public-smoke.json
+            backend-source/evidence/public-match-start/
+            backend-source/evidence/public-pwa.json
+            backend-source/evidence/public-pwa-offline.png
           if-no-files-found: ignore
       - name: Restore previous release if public acceptance fails
         if: failure() && steps.switch.outcome == 'success'
