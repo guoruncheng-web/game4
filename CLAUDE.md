@@ -1,3 +1,9 @@
+# 当前前后端边界（2026-09-06 更新）
+
+PWA 主仓已移动到工作室 `frontend/`，所有公共 API、鉴权签发、数据库与权威联机逻辑归同级 `backend/` NestJS monorepo。后文账号/API/server 路径表是迁移前的历史说明，现行实现及启动方式以 `../backend/README.md` 为准，不要按旧路径重新创建业务后端。
+
+前端使用 `pnpm dev` / `pnpm start` 启动 `tools/pwa-server.mjs`：页面交给 Next，HTTP API rewrite 与 WebSocket 宿主转发统一指向网关。WebSocket 必须正确转发非 101 的鉴权拒绝响应；不能恢复成会悬挂拒绝握手的默认 rewrite。头像 GET 现在也要求网关验证登录 Cookie，业务 API 均 no-store。前端不得持有 AUTH_SECRET / DATABASE_URL。
+
 # CLAUDE.md
 
 ## 项目定位

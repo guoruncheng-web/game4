@@ -1,13 +1,47 @@
 name: deploy
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
 jobs:
-  inspect:
+  deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
-      - name: Inspect production topology without secrets
+      - uses: actions/checkout@v4
+        with:
+          path: frontend-source
+      - name: Read pinned backend revision
+        id: revision
+        run: |
+          revision=$(cat frontend-source/deploy/backend-revision.txt)
+          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
+          echo "backend=$revision" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: guoruncheng-web/game-studio-backend
+          ref: ${{ steps.revision.outputs.backend }}
+          ssh-key: ${{ secrets.BACKEND_READ_KEY }}
+          persist-credentials: false
+          path: backend-source
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate and build independent Nest services
+        working-directory: backend-source
+        run: |
+          npm ci --ignore-scripts
+          npm run lint
+          npm test
+          npm run test:thirteen
+          npm run build:all
+          npm prune --omit=dev --ignore-scripts
+      - name: Prepare production SSH
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
@@ -15,13 +49,47 @@ jobs:
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H 47.86.46.212 >> ~/.ssh/known_hosts 2>/dev/null
-          ssh deploy@47.86.46.212 bash -se <<'REMOTE'
-          id
-          sudo -n -l
-          systemctl show gameai gameai-ws -p FragmentPath -p ExecStart -p WorkingDirectory -p Environment
-          df -h /srv/gameai
-          du -sh /srv/gameai/node_modules /srv/gameai/.next /srv/gameai/.state
-          command -v node pnpm npm
-          /opt/node24/bin/node --version
-          ss -ltn
-          REMOTE
+      - name: Stage immutable release directories
+        env:
+          BACKEND_SHA: ${{ steps.revision.outputs.backend }}
+        run: |
+          ssh deploy@47.86.46.212 "mkdir -p /srv/gameai/.releases/$GITHUB_SHA /srv/gameai/.backend/releases/$BACKEND_SHA"
+          rsync -az --exclude=.git --exclude=node_modules --exclude=.next --exclude=.env.local frontend-source/ "deploy@47.86.46.212:/srv/gameai/.releases/$GITHUB_SHA/"
+          rsync -az --exclude=.git --exclude=.env --exclude=evidence backend-source/ "deploy@47.86.46.212:/srv/gameai/.backend/releases/$BACKEND_SHA/"
+      - name: Build candidate and switch services with rollback
+        id: switch
+        env:
+          BACKEND_SHA: ${{ steps.revision.outputs.backend }}
+        run: |
+          ssh deploy@47.86.46.212 bash "/srv/gameai/.releases/$GITHUB_SHA/deploy/nest-release.sh" "$GITHUB_SHA" "$BACKEND_SHA"
+      - name: Create temporary acceptance accounts
+        run: |
+          ssh deploy@47.86.46.212 "/opt/node24/bin/node --env-file=/srv/gameai/.backend/.env /srv/gameai/.backend/current/deploy/test-accounts.mjs seed /srv/gameai/.backend/acceptance-$GITHUB_RUN_ID.json"
+          umask 077
+          scp "deploy@47.86.46.212:/srv/gameai/.backend/acceptance-$GITHUB_RUN_ID.json" "$RUNNER_TEMP/acceptance.json"
+      - name: Public login, authorization and multiplayer acceptance
+        working-directory: backend-source
+        run: |
+          mkdir -p evidence
+          node deploy/public-smoke.mjs https://www.gameai.xingzdh.com "$RUNNER_TEMP/acceptance.json" evidence/public-smoke.json
+      - name: Public fresh-profile PWA, audio, cache and offline acceptance
+        working-directory: backend-source
+        env:
+          COCOS_CHROME: /usr/bin/google-chrome
+        run: |
+          node tools/sim/thirteen/pwa-offline-test.mjs https://www.gameai.xingzdh.com/thirteen evidence/public-pwa-offline.png evidence/public-pwa.json
+      - name: Clean temporary accounts
+        if: always()
+        run: |
+          ssh deploy@47.86.46.212 "if test -f /srv/gameai/.backend/acceptance-$GITHUB_RUN_ID.json; then /opt/node24/bin/node --env-file=/srv/gameai/.backend/.env /srv/gameai/.backend/current/deploy/test-accounts.mjs clean /srv/gameai/.backend/acceptance-$GITHUB_RUN_ID.json; fi"
+          rm -f "$RUNNER_TEMP/acceptance.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: production-acceptance-${{ github.sha }}
+          path: backend-source/evidence/public-*
+          if-no-files-found: ignore
+      - name: Restore previous release if public acceptance fails
+        if: failure() && steps.switch.outcome == 'success'
+        run: |
+          ssh deploy@47.86.46.212 bash "/srv/gameai/.releases/$GITHUB_SHA/deploy/nest-rollback.sh" "$GITHUB_SHA"

@@ -1,3 +1,13 @@
+# 工作室 PWA 前端
+
+本项目已迁入 `/Users/mac/projects/cocos-game-studio/frontend`。独立 NestJS 后端位于 `../backend`；先在后端运行 `npm run build && npm run start:all`，再在此运行 `pnpm dev`。
+
+所有 `/api/*` 与 `/ws` 请求统一代理到 `BACKEND_GATEWAY_URL`（默认 `http://127.0.0.1:7100`）。数据库、登录签发、权威游戏服务和数据库测试工具已迁至后端。完整说明见 [后端 README](../backend/README.md)。
+
+旧生产 workflow 尚未切换到新的四服务拓扑；本地候选不得直接按旧 workflow 发布。
+
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

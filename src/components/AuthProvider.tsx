@@ -77,7 +77,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
       .then((res) => res.json())
       .then((data: { user: AuthUser; token?: string | null }) => {
         if (cancelled) return;
-        setUser(data.user);
+        setUser(data.user ?? null);
         const next = data.user && data.token ? { uid: data.user.uid, token: data.token } : null;
         setCredentials(next);
         setApiCredentials(next);

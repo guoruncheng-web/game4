@@ -1,42 +1,13 @@
-# 部署说明(阿里云 47.86.46.212 · www.gameai.xingzdh.com)
+# NestJS production deployment (2026-09-07)
 
-这里放的是**服务器上正在生效的配置的副本**,进版本管理是为了两件事:
-换机器时能照着重建;以及有人改了服务器却忘了同步时能看出差异。
+The PWA repository remains `guoruncheng-web/game4`. Backend source is the independent private repository `guoruncheng-web/game-studio-backend`; `backend-revision.txt` pins its exact commit. A read-only repository deploy key is stored as `BACKEND_READ_KEY` in game4 Actions. Existing `DEPLOY_SSH_KEY` remains exclusively in Actions.
 
-**它们不会被自动部署应用。** `deploy.yml` 只同步代码、构建、重启服务 ——
-改了这三个文件需要手工登服务器更新并 reload。
+Production: Nginx → Next 7010 for pages, → Nest gateway 7011 for `/ws`; Next rewrites `/api/*` to that same gateway. Platform 7101, Thirteen 7102 and legacy 7103 bind only 127.0.0.1 and require per-service gateway signatures. Only login/register/captcha bootstrap routes are public. Legacy contains existing UMO, fish and invite services; new games must have their own Nest app.
 
-| 文件 | 服务器路径 |
-| --- | --- |
-| `nginx-gameai.conf` | `/etc/nginx/sites-available/gameai` |
-| `gameai.service` | `/etc/systemd/system/gameai.service` |
-| `gameai-ws.service` | `/etc/systemd/system/gameai-ws.service` |
+The deploy account can only restart existing `gameai` / `gameai-ws` systemd units. The latter therefore launches a generated compatibility entrypoint under `/srv/gameai/server/` which imports `.backend/current/tools/start-all.mjs` through `deploy/systemd-bootstrap.mjs`. This supervisor starts four independent Nest processes and fails the entire group if one exits. These generated entrypoints have no business logic. The checked-in historical systemd/nginx files describe the existing units, not a command to install new units.
 
-## 架构
+Frontend lives in `/srv/gameai`; backend immutable revisions in `/srv/gameai/.backend/releases/<sha>` with `.backend/current` symlink. Database/AUTH_SECRET/per-service keys belong to `.backend/.env` (0600); the frontend `.env.local` has no database or signing keys. Existing PostgreSQL on 127.0.0.1:5433 and encrypted `.state/{thirteen,umo}` remain in place with original keys.
 
-```
-浏览器 ──https──> nginx :443
-                   ├── /ws        → 127.0.0.1:7011  联机 WebSocket(gameai-ws)
-                   ├── /_next/static → 长缓存
-                   └── /          → 127.0.0.1:7010  Next.js(gameai)
-                                        └── 127.0.0.1:5433  Postgres(docker: gameai-postgres)
-```
+Actions validates and builds backend, stages frontend `.releases/<sha>`, builds it while the old site serves traffic, then saves prior source, build, dependencies and frontend environment under `.backend/rollback/<frontend-sha>`. Both services restart during cutover, so existing sockets reconnect. Rsync explicitly excludes `.backend`, `.releases`, `.state` and runtime secrets. Build/switch errors restore the previous files automatically; public acceptance failures run `nest-rollback.sh`. Temporary acceptance accounts are deleted in an always-run cleanup. Evidence contains no credentials.
 
-## 几个不显然的点
-
-- **`/ws` 的 location 必须在 HTTPS 的 server 块里**,不能在 80 端口那个。
-  放错的表现是 WebSocket 请求被 Next 的登录中间件截走、跳转到首页 ——
-  看起来像鉴权问题,其实是路由问题。
-- **`map $http_upgrade $connection_upgrade` 在 `/etc/nginx/conf.d/websocket-upgrade.conf`。**
-  缺了它 `Connection` 头是空的,握手会静默失败(返回 200 而不是 101)。
-- **`proxy_read_timeout` 必须放大**(这里给了 1 小时)。默认 60 秒会让挂机的玩家莫名掉线。
-- **`.env.local` 只在服务器上**,不在仓库里。部署时 rsync 明确排除了它,
-  否则 `--delete` 会把它删掉、应用起不来。
-- **UMO 权威房间恢复需要两个成对配置。** 在服务器 `.env.local` 设置
-  `UMO_STATE_FILE=/srv/gameai/.state/umo/state.enc` 与至少 32 字符的独立高熵
-  `UMO_STATE_KEY`。部署工作流会以 `deploy` 身份幂等创建 `.state/umo`（目录 0700），
-  在首次部署时由服务器端 Node 生成 32 字节随机密钥，并让 rsync 永久排除 `.state`。
-  状态以 AES-256-GCM、文件 0600、临时文件后原子 rename 写入；只配路径不配密钥时
-  WebSocket 服务会拒绝启动，避免恢复 token 明文落盘。密钥不得提交仓库或输出到日志。
-- 服务以 `deploy` 账号运行,sudo 白名单只有重启那一个服务。
-  sshd 的 `AllowUsers` 里必须有 `deploy`,否则 Actions 连不上。
+To release backend changes, push its private commit first, update `backend-revision.txt`, verify local integrated acceptance and remote main HEAD, then push the frontend candidate. Future games get independent apps/ports/keys and extend the gateway registry. To rollback the current successful release, execute `bash /srv/gameai/.releases/<frontend-sha>/deploy/nest-rollback.sh <frontend-sha>` via the existing Actions SSH channel. Revert the frontend release commit before the next normal deployment so the pinned source also reflects rollback. State files and the account database are never restored from stale backups.

@@ -1,0 +1,7 @@
+# Nest backend extraction release
+
+Base PWA: `0c7df85` (v64). Backend: `524f7f0c56a8831637a788881624b29895e5ba89` (private `guoruncheng-web/game-studio-backend`). Thirteen source: `23db6f2c4065938dada1475f816c7474ce18346a`. Static Cocos trees are byte-identical to origin/main; PWA cache advances to v65.
+
+Local acceptance passed: four Nest builds; backend and frontend lint; Next production build; six security unit tests; 31 backend Thirteen tests; 138 original Thirteen rules/services/server tests; UMO/fish regression protocols; isolated PostgreSQL HTTP/WS auth, expiry, logout, ban, four-player deal, encrypted restart recovery and fail-closed outage checks. The exact public deployment smoke script also passed through the local PWA for Thirteen, legacy lobby and UMO. Chrome fresh-profile Cocos/audio/cache/offline passed; screenshots and machine-readable reports are in the private backend `evidence/` directory.
+
+Production deployment uses the pinned backend revision and the existing restart-only systemd permissions. Source/Next build/dependencies/frontend environment are backed up before cutover. Original account database, AUTH_SECRET and encrypted game state remain in place. Public protocol and fresh-profile PWA acceptance run in Actions, temporary accounts are deleted, and failed public acceptance restores the previous release. See `deploy/README.md`. Final frontend commit is the commit containing this record; its Actions run supplies public JSON/screenshot artifacts.

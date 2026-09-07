@@ -1,7 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createApiAccessToken, SESSION_COOKIE } from '@/lib/auth';
-import { resolveGameCredentials, resolveSession } from '@/lib/session';
-import { getSql } from '@/lib/db';
+import { gatewaySession } from '@/lib/session';
 import { GAMES } from '@/games/registry';
 
 /**
@@ -35,9 +33,10 @@ export async function middleware(request: NextRequest) {
   const rawUid = request.nextUrl.searchParams.get('uid');
   const rawToken = request.nextUrl.searchParams.get('token');
   const hasGameCredential = rawUid !== null || rawToken !== null;
-  const urlUser = hasGameCredential
-    ? await resolveGameCredentials(rawUid, rawToken).catch(() => null)
+  const urlSession = hasGameCredential
+    ? await gatewaySession({ 'x-game-uid': rawUid ?? '', authorization: `Bearer ${rawToken ?? ''}` })
     : null;
+  const urlUser = urlSession?.user;
   if (hasGameCredential && !urlUser) {
     const target = new URL('/', request.url);
     target.searchParams.set('login', '1');
@@ -45,14 +44,16 @@ export async function middleware(request: NextRequest) {
     target.searchParams.set('reason', 'invalid-game-token');
     return NextResponse.redirect(target);
   }
-  const cookieUser = await resolveSession(request.cookies.get(SESSION_COOKIE)?.value).catch(() => null);
-  const user = urlUser ?? cookieUser;
+  const cookie = request.cookies.get('gb_session')?.value;
+  const cookieSession = cookie ? await gatewaySession({ cookie: `gb_session=${encodeURIComponent(cookie)}` }) : null;
+  const session = urlUser ? urlSession : cookieSession;
+  const user = session?.user;
 
   // 直接输入游戏地址时，也把当前登录用户规范化到带 uid/token 的游戏 URL。
   if (isGame && user && !hasGameCredential) {
     const target = request.nextUrl.clone();
     target.searchParams.set('uid', String(user.uid));
-    target.searchParams.set('token', createApiAccessToken(user.id, user.uid, user.tokenVersion));
+    target.searchParams.set('token', session?.token ?? '');
     return NextResponse.redirect(target);
   }
 
@@ -61,9 +62,12 @@ export async function middleware(request: NextRequest) {
   if (user) {
     if (GAME_SLUGS.has(slug)) {
       try {
-        const sql = getSql();
-        const rows = await sql`select enabled from game_settings where slug = ${slug} limit 1`;
-        if (rows[0]?.enabled === false) {
+        const response = await fetch(`${process.env.BACKEND_GATEWAY_URL ?? 'http://127.0.0.1:7100'}/api/games`, {
+          headers: { 'x-game-uid': String(user.uid), authorization: `Bearer ${session?.token ?? ''}` },
+          cache: 'no-store', signal: AbortSignal.timeout(5000),
+        });
+        const data = response.ok ? await response.json() as { games?: Array<{ slug: string; enabled: boolean }> } : null;
+        if (data?.games?.find(game => game.slug === slug)?.enabled === false) {
           const target = new URL('/', request.url);
           target.searchParams.set('unavailable', slug);
           return NextResponse.redirect(target);

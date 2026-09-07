@@ -27,15 +27,12 @@ const nextConfig: NextConfig = {
   ],
 
   async rewrites() {
-    return process.env.NODE_ENV === "development"
-      ? [
-          {
-            // 本地真机只开放 game4 的 3000 端口；Next 将同源 WS 升级转给权威服务。
-            source: "/ws",
-            destination: "http://127.0.0.1:7011/ws",
-          },
-        ]
-      : [];
+    const gateway = process.env.BACKEND_GATEWAY_URL ?? 'http://127.0.0.1:7100';
+    return {
+      beforeFiles: [
+        { source: '/api/:path*', destination: `${gateway}/api/:path*` },
+      ],
+    };
   },
 
   async headers() {
