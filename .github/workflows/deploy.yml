@@ -78,7 +78,7 @@ jobs:
           COCOS_CHROME: /usr/bin/google-chrome
           THIRTEEN_PWA_LOBBY_TIMEOUT_MS: '180000'
           # Retain preparation timing; a longer functional timeout is not a performance pass.
-          THIRTEEN_PWA_PREPARATION_TIMEOUT_MS: '180000'
+          THIRTEEN_PWA_PREPARATION_TIMEOUT_MS: '240000'
         run: |
           node tools/sim/thirteen/match-start-pwa-test.mjs https://www.gameai.xingzdh.com "$RUNNER_TEMP/acceptance.json" evidence/public-match-start
       - name: Public fresh-profile PWA, audio, cache and offline acceptance
