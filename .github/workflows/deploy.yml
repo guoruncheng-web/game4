@@ -76,6 +76,9 @@ jobs:
         working-directory: backend-source
         env:
           COCOS_CHROME: /usr/bin/google-chrome
+          # Existing unchanged Cocos v64 assets took 126s cross-region. Preserve failed 30s evidence;
+          # Owner-approved performance exception does not waive functional/audio/offline acceptance.
+          THIRTEEN_PWA_LOBBY_TIMEOUT_MS: '180000'
         run: |
           node tools/sim/thirteen/pwa-offline-test.mjs https://www.gameai.xingzdh.com/thirteen evidence/public-pwa-offline.png evidence/public-pwa.json
       - name: Clean temporary accounts
