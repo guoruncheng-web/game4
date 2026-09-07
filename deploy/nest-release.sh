@@ -67,6 +67,7 @@ test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:7010/api/wallet)
 sudo systemctl is-active gameai
 sudo systemctl is-active gameai-ws
 # Prove existing units supervise all four loopback services.
-for port in 7101 7102; do test "$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$port/api/wallet")" = 401; done
+test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:7101/api/wallet)" = 401
+test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:7102/api/games/thirteen/version)" = 401
 printf '%s\n' "$front_sha" > "$root/.backend/frontend.current"
 echo "Release ready: frontend=$front_sha backend=$back_sha rollback=$backup"
