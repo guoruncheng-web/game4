@@ -1,155 +1,27 @@
-# push 到 main 就部署到阿里云主机(www.gameai.xingzdh.com)。
-#
-# 为什么是 Actions 主动推,而不是服务器去拉:
-# **那台服务器拉不动 GitHub** —— 实测 git clone 45 秒没有结果(国内机器的常见情况)。
-# 所以方向必须反过来:GitHub 的 runner 在墙外,SSH 进服务器是通的。
-#
-# 需要在仓库 Settings → Secrets and variables → Actions 配一个 secret:
-#   DEPLOY_SSH_KEY  —— 服务器上 deploy 账号的私钥(/home/deploy/.ssh/gh_actions)
 name: deploy
-
 on:
-  push:
-    branches: [main]
-  # 手动也能触发,回滚或重跑时用得上
   workflow_dispatch:
-
-concurrency:
-  # 连续 push 时只保留最后一次,避免两次部署互相覆盖
-  group: deploy-production
-  cancel-in-progress: true
-
-env:
-  HOST: 47.86.46.212
-  USER: deploy
-  APP_DIR: /srv/gameai
-
+permissions:
+  contents: read
 jobs:
-  deploy:
+  inspect:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: 准备 SSH
+      - name: Inspect production topology without secrets
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts 2>/dev/null
-
-      - name: 同步代码
-        run: |
-          # --delete 保持服务器和仓库一致,但三样东西必须排除:
-          #   .env.local  服务器独有的密钥配置,仓库里没有,删了应用就起不来
-          #   node_modules / .next  下一步在服务器上重建,传过去纯属浪费带宽
-          rsync -az --delete \
-            --exclude '.git' \
-            --exclude 'node_modules' \
-            --exclude '.next' \
-            --exclude '.env.local' \
-            --exclude '.state' \
-            --exclude 'src/games/*/assets' \
-            -e "ssh -o StrictHostKeyChecking=accept-new" \
-            ./ "$USER@$HOST:$APP_DIR/"
-
-      - name: 初始化 UMO 加密恢复存储
-        run: |
-          ssh -o StrictHostKeyChecking=accept-new "$USER@$HOST" bash -se <<'REMOTE'
-            set -eu
-            umask 077
-            app_dir=/srv/gameai
-            state_dir="$app_dir/.state/umo"
-            env_file="$app_dir/.env.local"
-            state_file="$state_dir/state.enc"
-
-            test -f "$env_file"
-            install -d -m 700 "$state_dir"
-            chmod 600 "$env_file"
-
-            state_file_count=$(grep -c '^UMO_STATE_FILE=' "$env_file" || true)
-            state_key_count=$(grep -c '^UMO_STATE_KEY=' "$env_file" || true)
-            test "$state_file_count" -le 1
-            test "$state_key_count" -le 1
-
-            if [ "$state_file_count" -eq 0 ]; then
-              printf '\nUMO_STATE_FILE=%s\n' "$state_file" >> "$env_file"
-            else
-              grep -qx "UMO_STATE_FILE=$state_file" "$env_file"
-            fi
-
-            if [ "$state_key_count" -eq 0 ]; then
-              state_key=$(/opt/node24/bin/node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('hex'))")
-              printf 'UMO_STATE_KEY=%s\n' "$state_key" >> "$env_file"
-              unset state_key
-            else
-              grep -q '^UMO_STATE_KEY=................................' "$env_file"
-            fi
-
-            echo 'UMO encrypted recovery storage ready'
+          ssh-keyscan -H 47.86.46.212 >> ~/.ssh/known_hosts 2>/dev/null
+          ssh deploy@47.86.46.212 bash -se <<'REMOTE'
+          id
+          sudo -n -l
+          systemctl show gameai gameai-ws -p FragmentPath -p ExecStart -p WorkingDirectory -p Environment
+          df -h /srv/gameai
+          du -sh /srv/gameai/node_modules /srv/gameai/.next /srv/gameai/.state
+          command -v node pnpm npm
+          /opt/node24/bin/node --version
+          ss -ltn
           REMOTE
-
-      - name: 初始化 Thirteen 加密权威状态
-        run: |
-          ssh -o StrictHostKeyChecking=accept-new "$USER@$HOST" bash -se <<'REMOTE'
-            set -eu
-            umask 077
-            app_dir=/srv/gameai
-            state_dir="$app_dir/.state/thirteen"
-            env_file="$app_dir/.env.local"
-            state_file="$state_dir/state.enc"
-
-            test -f "$env_file"
-            install -d -m 700 "$state_dir"
-            chmod 600 "$env_file"
-
-            state_file_count=$(grep -c '^THIRTEEN_STATE_FILE=' "$env_file" || true)
-            state_key_count=$(grep -c '^THIRTEEN_STATE_KEY=' "$env_file" || true)
-            test "$state_file_count" -le 1
-            test "$state_key_count" -le 1
-
-            if [ "$state_file_count" -eq 0 ]; then
-              printf '\nTHIRTEEN_STATE_FILE=%s\n' "$state_file" >> "$env_file"
-            else
-              grep -qx "THIRTEEN_STATE_FILE=$state_file" "$env_file"
-            fi
-
-            if [ "$state_key_count" -eq 0 ]; then
-              state_key=$(/opt/node24/bin/node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('hex'))")
-              printf 'THIRTEEN_STATE_KEY=%s\n' "$state_key" >> "$env_file"
-              unset state_key
-            else
-              grep -q '^THIRTEEN_STATE_KEY=................................' "$env_file"
-            fi
-
-            echo 'Thirteen encrypted authoritative state ready'
-          REMOTE
-
-      - name: 安装依赖并构建
-        run: |
-          ssh -o StrictHostKeyChecking=accept-new "$USER@$HOST" bash -se <<'REMOTE'
-            set -e
-            cd /srv/gameai
-            export PATH=$PATH:/usr/local/bin
-            CI=true pnpm install --frozen-lockfile
-            # schema.sql 全部使用 if not exists，部署时先迁移再构建；
-            # 新功能即使新增表/列，也不会出现代码已上线但数据库还没准备好的窗口。
-            node --env-file=.env.local scripts/db/init.mjs
-            CI=true pnpm build
-          REMOTE
-
-      - name: 重启服务
-        run: |
-          # **两个服务都要重启。** 只重启 Next 的话,改了 server/ws.mjs 的部署
-          # 会"绿灯但没生效" —— 网站是新的,联机还是旧的,而且完全看不出来
-          ssh "$USER@$HOST" 'sudo systemctl restart gameai && sudo systemctl restart gameai-ws && sleep 5 && sudo systemctl is-active gameai && sudo systemctl is-active gameai-ws'
-
-      - name: 冒烟检查
-        run: |
-          # 部署完必须真的访问一次。构建成功但运行时崩掉(比如缺环境变量)是最常见的翻车方式
-          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://www.gameai.xingzdh.com/)
-          echo "首页返回 $code"
-          test "$code" = "200"
-          # 联机服务也要探一下,否则它挂了没人知道
-          ws=$(curl -s --max-time 10 https://www.gameai.xingzdh.com/ws/health)
-          echo "联机服务 $ws"
-          echo "$ws" | grep -q '"ok":true' 
