@@ -1,0 +1,26 @@
+{
+  "candidate": "bots-v1-rc4",
+  "status": "local-accepted-not-published",
+  "gameSourceRevision": "e0a888601f83720c5ae41aac11616d78602307f4",
+  "backendRevision": "24475e8000dd7aced05cccf9639e1c5832221a0f",
+  "sw": "v70",
+  "treeSha256": "2c8396668a3b9bec097915794cad2c52f95d30a59151b779f138c95e1435a0ef",
+  "files": 631,
+  "bytes": 22993721,
+  "gameTests": 141,
+  "backendTests": 54,
+  "pwaChecks": 19,
+  "browserChecks": 13,
+  "runtimeErrors": [],
+  "offlineAccepted": true,
+  "limitations": [
+    "physical-device/accessibility acceptance pending",
+    "sustained DB/fsync/network capacity pending",
+    "public deployment/cold-start/rollback pending"
+  ],
+  "evidence": [
+    "backend/evidence/bots-v1/pwa-integration-rc4.log",
+    "backend/evidence/bots-v1/pwa/result.json",
+    "backend/evidence/bots-v1/pwa/offline.json"
+  ]
+}

@@ -31,7 +31,7 @@ rollback() {
     cp -p "$backup/frontend.env" "$root/.env.local"
     if [ -d "$backup/next" ]; then if [ -d "$root/.next" ]; then mv "$root/.next" "$backup/failed-next"; fi; mv "$backup/next" "$root/.next"; fi
     if [ -d "$backup/node_modules" ]; then if [ -d "$root/node_modules" ]; then mv "$root/node_modules" "$backup/failed-node_modules"; fi; mv "$backup/node_modules" "$root/node_modules"; fi
-    if [ -s "$backup/backend.previous" ]; then ln -sfn "$(cat "$backup/backend.previous")" "$root/.backend/current"; fi
+    bash "$front/deploy/restore-backend.sh" "$root" "$backup"
     sudo systemctl restart gameai-ws
     sudo systemctl restart gameai
   fi
@@ -45,6 +45,11 @@ rsync -a --delete --exclude=.backend --exclude=.releases --exclude=.state --excl
 mv "$front/.next" "$root/.next"
 mv "$front/node_modules" "$root/node_modules"
 cp -p "$root/.backend/frontend.env.next" "$root/.env.local"
+if [ -f "$front/deploy/thirteen-bots.enabled" ]; then
+  # v4 snapshots cannot be handed to pre-bot binaries during rollback.
+  printf '%s\n' "$back" > "$backup/backend.compatible"
+  node "$back/deploy/bot-release-env.mjs" "$root/.backend/.env" enable
+fi
 ln -sfn "$back" "$root/.backend/current"
 # The deploy user can restart existing units but cannot change systemd configuration.
 # These generated compatibility files contain no business code or credentials.

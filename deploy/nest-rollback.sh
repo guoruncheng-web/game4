@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
+export PATH=/opt/node24/bin:/usr/local/bin:$PATH
 release_sha=$1
 [[ "$release_sha" =~ ^[a-f0-9]{40}$ ]]
+script_dir=$(cd "$(dirname "$0")" && pwd)
 root=/srv/gameai
 backup="$root/.backend/rollback/$release_sha"
 test -d "$backup/next"
@@ -12,7 +14,7 @@ mv "$root/.next" "$backup/failed-next"
 mv "$backup/next" "$root/.next"
 mv "$root/node_modules" "$backup/failed-node_modules"
 mv "$backup/node_modules" "$root/node_modules"
-if [ -s "$backup/backend.previous" ]; then ln -sfn "$(cat "$backup/backend.previous")" "$root/.backend/current"; fi
+bash "$script_dir/restore-backend.sh" "$root" "$backup"
 mv "$root/.backend/frontend.current" "$backup/failed-frontend.current"
 sudo systemctl restart gameai-ws
 sudo systemctl restart gameai
