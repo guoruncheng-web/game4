@@ -61,7 +61,8 @@ jobs:
             bbad409e2d1f8799acf9abaf50ec6bd6706a3273 \
             011c0ff305b9ccf7cdb46d9bacf7f8d8738f52f1 \
             67be0868860168a128f32b5867def9e942f06bd9 \
-            0da1bffc7f7996a516ad26cc4e0258c5d4c4b157
+            0da1bffc7f7996a516ad26cc4e0258c5d4c4b157 \
+            5ead0ac71c3c28fff030c29105d707e83a4d0652
           do
             [[ "$sha" =~ ^[a-f0-9]{40}$ ]]
             rm -rf -- "/srv/gameai/.releases/$sha" "/srv/gameai/.backend/rollback/$sha"
