@@ -124,7 +124,7 @@ jobs:
         working-directory: backend-source
         env:
           COCOS_CHROME: /usr/bin/google-chrome
-          PWA_CACHE_VERSION: 'v70'
+          PWA_CACHE_VERSION: 'v72'
           UMO_PWA_MAIN_MENU_TIMEOUT_MS: '180000'
         run: |
           node tools/sim/umo/pwa-offline-test.mjs https://www.gameai.xingzdh.com/umo evidence/public-umo-pwa.png evidence/public-umo-pwa.json
