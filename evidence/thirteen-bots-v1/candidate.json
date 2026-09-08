@@ -2,7 +2,7 @@
   "candidate": "bots-v1-rc4",
   "status": "local-accepted-not-published",
   "gameSourceRevision": "e0a888601f83720c5ae41aac11616d78602307f4",
-  "backendRevision": "fdae7896374e2505315e53d6b04b911dc71fc951",
+  "backendRevision": "00b06f7a9cbcd1bada5993c7e7227ee71873e2cd",
   "sw": "v70",
   "treeSha256": "2c8396668a3b9bec097915794cad2c52f95d30a59151b779f138c95e1435a0ef",
   "files": 631,
@@ -28,6 +28,14 @@
       "publicCutover": true,
       "rollbackPassed": true,
       "fixedByBackendRevision": "fdae7896374e2505315e53d6b04b911dc71fc951"
+    },
+    {
+      "actionsRun": 34180257047,
+      "stage": "public bot acceptance after private rematch verification",
+      "reason": "the test waited for one client to render the lobby before asking the second client to leave an active rematch; the first had left authoritatively but remained on the room scene",
+      "publicCutover": true,
+      "rollbackPassed": true,
+      "fixedByBackendRevision": "00b06f7a9cbcd1bada5993c7e7227ee71873e2cd"
     }
   ],
   "limitations": [
