@@ -1,12 +1,12 @@
 {
-  "candidate": "bots-v1-rc9",
+  "candidate": "bots-v1-rc10",
   "status": "local-accepted-not-published",
-  "gameSourceRevision": "249cfc769256014c75c956241c1e6a42c26fbf47",
-  "backendRevision": "4929b817b419b8eb6da974e39ebd610afdcc5c15",
+  "gameSourceRevision": "5d14e6a59f8b1440c1dcd172ee989c441c290176",
+  "backendRevision": "c65f34ab92e974f21b46e216a7448c1e58326b45",
   "sw": "v70",
-  "treeSha256": "d47af7bedf71eea4ed1f4276b5d8d79915e0829c0ad7b371c871e36c0d4e2f4c",
+  "treeSha256": "95f58c3dad2ebab0d209ba5b038a1d76db655ccff717292598f4fa97b6d0ed54",
   "files": 631,
-  "bytes": 22995215,
+  "bytes": 22995924,
   "gameTests": 143,
   "backendTests": 54,
   "pwaChecks": 19,
@@ -99,6 +99,14 @@
       "publicCutover": true,
       "rollbackPassed": true,
       "fixedByGameSourceRevision": "249cfc769256014c75c956241c1e6a42c26fbf47"
+    },
+    {
+      "actionsRun": 34192401157,
+      "stage": "public terminal reconnect scene loading",
+      "reason": "diagnostics proved the host was waiting with a pending room navigation while a concurrently requested R07Result load never completed",
+      "publicCutover": true,
+      "rollbackPassed": true,
+      "fixedByGameSourceRevision": "5d14e6a59f8b1440c1dcd172ee989c441c290176"
     }
   ],
   "limitations": [
@@ -107,7 +115,7 @@
     "public deployment/cold-start/rollback pending"
   ],
   "evidence": [
-    "backend/evidence/bots-v1/pwa-integration-rc9.log",
+    "backend/evidence/bots-v1/pwa-integration-rc10.log",
     "backend/evidence/bots-v1/pwa/result.json",
     "backend/evidence/bots-v1/pwa/offline.json"
   ]
