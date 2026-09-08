@@ -50,6 +50,20 @@ jobs:
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H 47.86.46.212 >> ~/.ssh/known_hosts 2>/dev/null
+      - name: Reclaim archived failed bot release storage
+        run: |
+          ssh deploy@47.86.46.212 'set -Eeuo pipefail
+          for sha in \
+            eafcd5070023cde6fea1a3792662c828020c6bc8 \
+            52231f87afab122c05bae2fb160832e272d14a64 \
+            92dedc6460fc35f881dad93333fcb94789eb7c0f \
+            baabb3c681001dae3a6d5c4c9383746dc67628aa \
+            bbad409e2d1f8799acf9abaf50ec6bd6706a3273
+          do
+            [[ "$sha" =~ ^[a-f0-9]{40}$ ]]
+            rm -rf -- "/srv/gameai/.releases/$sha" "/srv/gameai/.backend/rollback/$sha"
+          done
+          df -Pk /srv/gameai'
       - name: Stage immutable release directories
         env:
           BACKEND_SHA: ${{ steps.revision.outputs.backend }}

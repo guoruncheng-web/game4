@@ -44,6 +44,13 @@
       "publicCutover": true,
       "rollbackPassed": true,
       "fixedByGameSourceRevision": "cb8bb01b28dcba714acbf031b8c8f00ed17037a7"
+    },
+    {
+      "actionsRun": 34183281579,
+      "stage": "candidate backup before cutover",
+      "reason": "archived failed immutable release and rollback directories exhausted production storage while rsync copied the current source backup",
+      "publicCutover": false,
+      "fix": "reclaim only the five explicit failed frontend release and rollback SHAs before staging"
     }
   ],
   "limitations": [
