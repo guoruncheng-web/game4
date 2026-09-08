@@ -2,7 +2,7 @@
   "candidate": "bots-v1-rc4",
   "status": "local-accepted-not-published",
   "gameSourceRevision": "e0a888601f83720c5ae41aac11616d78602307f4",
-  "backendRevision": "190817f2b70fd6e5ac2a0cff4a187e1e36509578",
+  "backendRevision": "fdae7896374e2505315e53d6b04b911dc71fc951",
   "sw": "v70",
   "treeSha256": "2c8396668a3b9bec097915794cad2c52f95d30a59151b779f138c95e1435a0ef",
   "files": 631,
@@ -20,6 +20,14 @@
       "reason": "legacy SQL splitter cut a PostgreSQL dollar-quoted migration block",
       "publicCutover": false,
       "fixedByBackendRevision": "190817f2b70fd6e5ac2a0cff4a187e1e36509578"
+    },
+    {
+      "actionsRun": 34179195613,
+      "stage": "public bot room acceptance after successful cutover",
+      "reason": "the test expected an untouched 13-card opening hand after slow cross-region loading, but the authoritative match had legally advanced to turn 7",
+      "publicCutover": true,
+      "rollbackPassed": true,
+      "fixedByBackendRevision": "fdae7896374e2505315e53d6b04b911dc71fc951"
     }
   ],
   "limitations": [
