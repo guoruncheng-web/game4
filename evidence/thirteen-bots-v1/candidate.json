@@ -1,12 +1,12 @@
 {
-  "candidate": "bots-v1-rc7",
+  "candidate": "bots-v1-rc8",
   "status": "local-accepted-not-published",
-  "gameSourceRevision": "d521add6a0ed465df911ec5483b065ff27b1dc85",
-  "backendRevision": "55287f96a88c3bbe21c28909b9b705ca7a2574ee",
+  "gameSourceRevision": "362e97f9599b165d1e792dadaebce265ed358f38",
+  "backendRevision": "f7b3b937cdefbefcd5a2f0f67d66641826e403e5",
   "sw": "v70",
-  "treeSha256": "a363a134deee3fc4fb7c7220d287b3e70ca75592096473465b5bb1ba3714b2b5",
+  "treeSha256": "62b488d749c3205797ae47c425228674b5ea38881638a7b6ff5f19a7f3afc47c",
   "files": 631,
-  "bytes": 22994087,
+  "bytes": 22994531,
   "gameTests": 143,
   "backendTests": 54,
   "pwaChecks": 19,
@@ -83,6 +83,14 @@
       "publicCutover": true,
       "rollbackPassed": true,
       "fixedByGameSourceRevision": "d521add6a0ed465df911ec5483b065ff27b1dc85"
+    },
+    {
+      "actionsRun": 34188821123,
+      "stage": "public private-room rematch reset during an in-flight result reload",
+      "reason": "the host received the authoritative waiting state while Cocos was still loading the reconnected result scene; a concurrent room load was not started by the engine",
+      "publicCutover": true,
+      "rollbackPassed": true,
+      "fixedByGameSourceRevision": "362e97f9599b165d1e792dadaebce265ed358f38"
     }
   ],
   "limitations": [
@@ -91,7 +99,7 @@
     "public deployment/cold-start/rollback pending"
   ],
   "evidence": [
-    "backend/evidence/bots-v1/pwa-integration-rc7.log",
+    "backend/evidence/bots-v1/pwa-integration-rc8.log",
     "backend/evidence/bots-v1/pwa/result.json",
     "backend/evidence/bots-v1/pwa/offline.json"
   ]
