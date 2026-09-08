@@ -1,13 +1,13 @@
 {
-  "candidate": "bots-v1-rc5",
+  "candidate": "bots-v1-rc6",
   "status": "local-accepted-not-published",
-  "gameSourceRevision": "cb8bb01b28dcba714acbf031b8c8f00ed17037a7",
-  "backendRevision": "7336aa5528590394c8c9e8705c89ef2cb19163b4",
+  "gameSourceRevision": "ce877c9cee904c43ef657554b64868a0ed5ee8db",
+  "backendRevision": "87b27c78992eab80569bdb5a660b5f313d9f2dc2",
   "sw": "v70",
-  "treeSha256": "08f6d0bbbb0159b081803cb40334a4b1f4b27f2dba410b3b4121e5268f439d75",
+  "treeSha256": "dd2faf832aa527c16721b69bae17855e088b63388e42d3919bb7d25674c45e48",
   "files": 631,
-  "bytes": 22993747,
-  "gameTests": 142,
+  "bytes": 22993903,
+  "gameTests": 143,
   "backendTests": 54,
   "pwaChecks": 19,
   "browserChecks": 13,
@@ -67,6 +67,14 @@
       "publicCutover": true,
       "rollbackPassed": true,
       "fixedByBackendRevision": "7336aa5528590394c8c9e8705c89ef2cb19163b4"
+    },
+    {
+      "actionsRun": 34185597457,
+      "stage": "public private-room rematch reset",
+      "reason": "the host received snapshot clearing and waiting status in separate updates, so its result scene missed the old single-update transition guard",
+      "publicCutover": true,
+      "rollbackPassed": true,
+      "fixedByGameSourceRevision": "ce877c9cee904c43ef657554b64868a0ed5ee8db"
     }
   ],
   "limitations": [
