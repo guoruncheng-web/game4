@@ -2,7 +2,7 @@
   "candidate": "bots-v1-rc5",
   "status": "local-accepted-not-published",
   "gameSourceRevision": "cb8bb01b28dcba714acbf031b8c8f00ed17037a7",
-  "backendRevision": "75fae7ea5eef6a3d9f291bff3b218dd4a3162762",
+  "backendRevision": "7336aa5528590394c8c9e8705c89ef2cb19163b4",
   "sw": "v70",
   "treeSha256": "08f6d0bbbb0159b081803cb40334a4b1f4b27f2dba410b3b4121e5268f439d75",
   "files": 631,
@@ -59,6 +59,14 @@
       "publicCutover": true,
       "rollbackPassed": true,
       "fixedByBackendRevision": "75fae7ea5eef6a3d9f291bff3b218dd4a3162762"
+    },
+    {
+      "actionsRun": 34185194659,
+      "stage": "public four-player countdown browser startup",
+      "reason": "Chrome needed more than the old fixed 10 seconds to publish DevToolsActivePort; no game assertion ran",
+      "publicCutover": true,
+      "rollbackPassed": true,
+      "fixedByBackendRevision": "7336aa5528590394c8c9e8705c89ef2cb19163b4"
     }
   ],
   "limitations": [
