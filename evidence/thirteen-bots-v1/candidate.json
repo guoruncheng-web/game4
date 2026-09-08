@@ -1,13 +1,13 @@
 {
-  "candidate": "bots-v1-rc4",
+  "candidate": "bots-v1-rc5",
   "status": "local-accepted-not-published",
-  "gameSourceRevision": "e0a888601f83720c5ae41aac11616d78602307f4",
-  "backendRevision": "00b06f7a9cbcd1bada5993c7e7227ee71873e2cd",
+  "gameSourceRevision": "cb8bb01b28dcba714acbf031b8c8f00ed17037a7",
+  "backendRevision": "dfe60b7dfe808a43080bc227ff2585d0c0b4b81b",
   "sw": "v70",
-  "treeSha256": "2c8396668a3b9bec097915794cad2c52f95d30a59151b779f138c95e1435a0ef",
+  "treeSha256": "08f6d0bbbb0159b081803cb40334a4b1f4b27f2dba410b3b4121e5268f439d75",
   "files": 631,
-  "bytes": 22993721,
-  "gameTests": 141,
+  "bytes": 22993747,
+  "gameTests": 142,
   "backendTests": 54,
   "pwaChecks": 19,
   "browserChecks": 13,
@@ -36,6 +36,14 @@
       "publicCutover": true,
       "rollbackPassed": true,
       "fixedByBackendRevision": "00b06f7a9cbcd1bada5993c7e7227ee71873e2cd"
+    },
+    {
+      "actionsRun": 34181701950,
+      "stage": "public bot acceptance after the first private result",
+      "reason": "a restored terminal snapshot arrived while the reconnect scene was still loading, so the pending reconnect load replaced the already refreshed result scene",
+      "publicCutover": true,
+      "rollbackPassed": true,
+      "fixedByGameSourceRevision": "cb8bb01b28dcba714acbf031b8c8f00ed17037a7"
     }
   ],
   "limitations": [
