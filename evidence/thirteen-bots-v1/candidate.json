@@ -1,12 +1,12 @@
 {
-  "candidate": "bots-v1-rc8",
+  "candidate": "bots-v1-rc9",
   "status": "local-accepted-not-published",
-  "gameSourceRevision": "362e97f9599b165d1e792dadaebce265ed358f38",
-  "backendRevision": "f7b3b937cdefbefcd5a2f0f67d66641826e403e5",
+  "gameSourceRevision": "249cfc769256014c75c956241c1e6a42c26fbf47",
+  "backendRevision": "4929b817b419b8eb6da974e39ebd610afdcc5c15",
   "sw": "v70",
-  "treeSha256": "62b488d749c3205797ae47c425228674b5ea38881638a7b6ff5f19a7f3afc47c",
+  "treeSha256": "d47af7bedf71eea4ed1f4276b5d8d79915e0829c0ad7b371c871e36c0d4e2f4c",
   "files": 631,
-  "bytes": 22994531,
+  "bytes": 22995215,
   "gameTests": 143,
   "backendTests": 54,
   "pwaChecks": 19,
@@ -91,6 +91,14 @@
       "publicCutover": true,
       "rollbackPassed": true,
       "fixedByGameSourceRevision": "362e97f9599b165d1e792dadaebce265ed358f38"
+    },
+    {
+      "actionsRun": 34190600252,
+      "stage": "public private-room rematch presentation reconciliation",
+      "reason": "the accepted OnlineClient state reached waiting but the one-shot scene coordinator path still did not converge the host presentation",
+      "publicCutover": true,
+      "rollbackPassed": true,
+      "fixedByGameSourceRevision": "249cfc769256014c75c956241c1e6a42c26fbf47"
     }
   ],
   "limitations": [
@@ -99,7 +107,7 @@
     "public deployment/cold-start/rollback pending"
   ],
   "evidence": [
-    "backend/evidence/bots-v1/pwa-integration-rc8.log",
+    "backend/evidence/bots-v1/pwa-integration-rc9.log",
     "backend/evidence/bots-v1/pwa/result.json",
     "backend/evidence/bots-v1/pwa/offline.json"
   ]
