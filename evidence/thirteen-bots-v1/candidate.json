@@ -2,7 +2,7 @@
   "candidate": "bots-v1-rc5",
   "status": "local-accepted-not-published",
   "gameSourceRevision": "cb8bb01b28dcba714acbf031b8c8f00ed17037a7",
-  "backendRevision": "dfe60b7dfe808a43080bc227ff2585d0c0b4b81b",
+  "backendRevision": "75fae7ea5eef6a3d9f291bff3b218dd4a3162762",
   "sw": "v70",
   "treeSha256": "08f6d0bbbb0159b081803cb40334a4b1f4b27f2dba410b3b4121e5268f439d75",
   "files": 631,
@@ -50,7 +50,15 @@
       "stage": "candidate backup before cutover",
       "reason": "archived failed immutable release and rollback directories exhausted production storage while rsync copied the current source backup",
       "publicCutover": false,
-      "fix": "reclaim only the five explicit failed frontend release and rollback SHAs before staging"
+      "fix": "reclaim only the explicit failed frontend release and rollback SHAs before staging"
+    },
+    {
+      "actionsRun": 34183656438,
+      "stage": "public bot terminal reconnect acceptance",
+      "reason": "the fixed client can cancel a transient reconnect scene before it becomes current, while the old external poll required that exact scene",
+      "publicCutover": true,
+      "rollbackPassed": true,
+      "fixedByBackendRevision": "75fae7ea5eef6a3d9f291bff3b218dd4a3162762"
     }
   ],
   "limitations": [
