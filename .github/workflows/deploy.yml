@@ -76,7 +76,7 @@ jobs:
       - name: Public login, authorization and multiplayer acceptance
         working-directory: backend-source
         env:
-          PWA_CACHE_VERSION: 'v79'
+          PWA_CACHE_VERSION: 'v80'
         run: |
           mkdir -p evidence
           node deploy/public-smoke.mjs https://www.gameai.xingzdh.com "$RUNNER_TEMP/acceptance.json" evidence/public-smoke.json
@@ -101,7 +101,7 @@ jobs:
         working-directory: backend-source
         env:
           COCOS_CHROME: /usr/bin/google-chrome
-          PWA_CACHE_VERSION: 'v79'
+          PWA_CACHE_VERSION: 'v80'
           # Existing cross-region startup exception: retain measured latency and failed 30s evidence;
           # Owner-approved performance exception does not waive functional/audio/offline acceptance.
           THIRTEEN_PWA_LOBBY_TIMEOUT_MS: '180000'
@@ -111,7 +111,7 @@ jobs:
         working-directory: backend-source
         env:
           COCOS_CHROME: /usr/bin/google-chrome
-          PWA_CACHE_VERSION: 'v79'
+          PWA_CACHE_VERSION: 'v80'
           UMO_PWA_MAIN_MENU_TIMEOUT_MS: '180000'
         run: |
           node tools/sim/umo/pwa-offline-test.mjs https://www.gameai.xingzdh.com/umo evidence/public-umo-pwa.png evidence/public-umo-pwa.json

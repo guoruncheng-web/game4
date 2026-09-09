@@ -290,8 +290,8 @@ export default function Home() {
           <div className={`concept-tab ${conversationOpen ? 'concept-tab--chat' : 'concept-tab--messages'}`}>
             <Image
               src={conversationOpen
-                ? '/assets/game-box/v3/game-box-chat-background-clean-v3.png'
-                : '/assets/game-box/v3/game-box-messages-background-clean-v4.png'}
+                ? '/assets/game-box/v3/game-box-chat-background-clean-v3.webp'
+                : '/assets/game-box/v3/game-box-messages-background-clean-v4.webp'}
               alt={conversationOpen ? '冒险者通讯台' : '冒险者邮局'}
               fill
               priority
@@ -303,7 +303,7 @@ export default function Home() {
         )}
         {activeTab === 'profile' && (
           <div className="concept-tab concept-tab--profile">
-            <Image src="/assets/game-box/v3/game-box-profile-background-clean-v3.png" alt="玩家小屋" fill priority unoptimized sizes="480px" />
+            <Image src="/assets/game-box/v3/game-box-profile-background-clean-v3.webp" alt="玩家小屋" fill priority unoptimized sizes="480px" />
             <div className="concept-tab-content"><ProfilePanel /></div>
           </div>
         )}

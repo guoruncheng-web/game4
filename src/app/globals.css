@@ -614,7 +614,7 @@ a {
   height: 100dvh;
   aspect-ratio: auto;
   overflow: hidden;
-  background: url("/concepts/game-box-game-native-hub-concept-v3.png") center / 100% 100% no-repeat;
+  background: url("/assets/game-box/v3/game-box-hub-background-v3.webp") center / 100% 100% no-repeat;
 }
 
 .sky-map img { object-fit: contain; }
@@ -1439,7 +1439,7 @@ a {
   height: 100dvh;
   margin: 0 auto;
   overflow: hidden;
-  background: #65cdf1 url("/assets/game-box/v3/game-box-auth-background-clean-v1.png") center / 100% 100% no-repeat;
+  background: #65cdf1;
   box-shadow: 0 0 60px rgb(22 78 117 / 35%);
 }
 
