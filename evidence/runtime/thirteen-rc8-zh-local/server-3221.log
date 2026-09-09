@@ -7,3 +7,4 @@
 - Network:       http://192.168.11.142:3221
 ✓ Ready in 127ms
 ✓ Running next.config.ts took 25ms
+ ELIFECYCLE  Command failed with exit code 143.
