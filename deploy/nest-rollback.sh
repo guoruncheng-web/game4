@@ -8,6 +8,9 @@ root=/srv/gameai
 backup="$root/.backend/rollback/$release_sha"
 test -d "$backup/next"
 test "$(cat "$root/.backend/frontend.current")" = "$release_sha"
+previous_front=$(cat "$backup/frontend.previous")
+[[ "$previous_front" =~ ^[a-f0-9]{40}$ ]]
+test "$previous_front" != "$release_sha"
 rsync -a --delete --exclude=.backend --exclude=.releases --exclude=.state --exclude=node_modules --exclude=.next --exclude=.env.local --exclude=.git "$backup/source/" "$root/"
 cp -p "$backup/frontend.env" "$root/.env.local"
 mv "$root/.next" "$backup/failed-next"
@@ -16,6 +19,7 @@ mv "$root/node_modules" "$backup/failed-node_modules"
 mv "$backup/node_modules" "$root/node_modules"
 bash "$script_dir/restore-backend.sh" "$root" "$backup"
 mv "$root/.backend/frontend.current" "$backup/failed-frontend.current"
+cp -p "$backup/frontend.previous" "$root/.backend/frontend.current"
 sudo systemctl restart gameai-ws
 sudo systemctl restart gameai
 for attempt in $(seq 1 40); do

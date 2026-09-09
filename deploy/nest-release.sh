@@ -22,6 +22,8 @@ node "$back/deploy/prepare-env.mjs" "$root" "$back_sha"
 rsync -a --exclude=.backend --exclude=.releases --exclude=.state --exclude=node_modules --exclude=.next --exclude=.env.local --exclude=.git "$root/" "$backup/source/"
 cp -p "$root/.env.local" "$backup/frontend.env"
 readlink "$root/.backend/current" > "$backup/backend.previous" || true
+test -s "$root/.backend/frontend.current"
+cp -p "$root/.backend/frontend.current" "$backup/frontend.previous"
 cutover=0
 rollback() {
   code=$?
