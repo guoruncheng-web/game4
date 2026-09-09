@@ -23,7 +23,7 @@ export const config = {
 };
 
 /** 不需要登录也能打开的页面 */
-const PUBLIC_PATHS = new Set(['/', '/offline', '/admin', '/umo', '/thirteen']);
+const PUBLIC_PATHS = new Set(['/', '/auth', '/offline', '/admin', '/umo', '/thirteen']);
 const GAME_SLUGS = new Set(GAMES.map((game) => game.slug));
 
 export async function middleware(request: NextRequest) {
@@ -38,9 +38,9 @@ export async function middleware(request: NextRequest) {
     : null;
   const urlUser = urlSession?.user;
   if (hasGameCredential && !urlUser) {
-    const target = new URL('/', request.url);
-    target.searchParams.set('login', '1');
-    target.searchParams.set('from', pathname);
+    const target = new URL('/auth', request.url);
+    target.searchParams.set('mode', 'login');
+    target.searchParams.set('next', pathname);
     target.searchParams.set('reason', 'invalid-game-token');
     return NextResponse.redirect(target);
   }
@@ -79,9 +79,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 弹回首页并把登录面板叫出来;from 记着他本来要去哪,登录成功后自动送过去
+  // 独立鉴权页记住原目标，成功后再带凭据返回。
   const target = request.nextUrl.clone();
-  target.pathname = '/';
-  target.search = `?login=1&from=${encodeURIComponent(pathname)}`;
+  target.pathname = '/auth';
+  target.search = `?mode=register&next=${encodeURIComponent(pathname)}`;
   return NextResponse.redirect(target);
 }
