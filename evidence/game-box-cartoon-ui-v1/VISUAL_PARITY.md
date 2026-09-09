@@ -7,15 +7,16 @@ balance, and sound state are intentionally rendered as live UI.
 
 | Screen | Reference | RGB MAE | P95 channel error | Pixels within 5 |
 | --- | --- | ---: | ---: | ---: |
-| Home | `game-box-game-native-hub-concept-v3.png` | 1.525 | 6 | 90.56% |
-| Messages | `game-box-messages-background-clean-v4.png` | 1.607 | 6 | 90.01% |
-| Profile | `game-box-profile-background-clean-v3.png` | 1.402 | 5 | 92.42% |
-| Register | `game-box-auth-gate-concept-v1.png` | 1.687 | 7 | 87.96% |
-| Login | `game-box-auth-login-concept-v1.png` | 1.589 | 7 | 88.81% |
+| Home | `game-box-game-native-hub-concept-v3.png` | 2.729 | 9 | 70.26% |
+| Messages | `game-box-messages-background-clean-v4.png` | 2.708 | 9 | 71.64% |
+| Profile | `game-box-profile-background-clean-v3.png` | 2.584 | 8 | 73.11% |
+| Register | `game-box-auth-gate-concept-v1.png` | 2.667 | 9 | 72.48% |
+| Login | `game-box-auth-login-concept-v1.png` | 2.582 | 9 | 73.91% |
 
-All five comparisons keep at least 97.63% of pixels within a maximum
-10-level RGB channel error. The remaining differences are browser/Pillow
-resampling and the intentionally live form controls.
+All five comparisons keep at least 91.29% of pixels within a maximum
+10-level RGB channel error. The remaining differences are the quality-94
+runtime WebP encoding, browser/Pillow resampling, and intentionally live
+form controls. Approved PNG sources remain unchanged as the parity masters.
 
 Dynamic-data acceptance:
 
@@ -31,6 +32,11 @@ Dynamic-data acceptance:
 - The authenticated fixture uses local API interception only and never
   creates or changes production accounts.
 - Game routes and embedded game builds are unchanged.
+- The first v79 public candidate exposed a 20-second cross-region transfer
+  for 2.3–2.6 MB PNG page layers and was rolled back after an unrelated
+  robot-result test race. The v80 candidate serves 312–493 KB same-size
+  WebP layers so a fresh profile does not remain on the sky fallback while
+  the visual layer downloads.
 
 Evidence:
 

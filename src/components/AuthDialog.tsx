@@ -187,8 +187,8 @@ export default function AuthDialog({
       {page && (mode === 'register' || mode === 'login') && !credentials && (
         <Image
           src={mode === 'register'
-            ? '/concepts/game-box-auth-gate-concept-v1.png'
-            : '/assets/game-box/v3/game-box-auth-login-concept-v1.png'}
+            ? '/assets/game-box/v3/game-box-auth-register-concept-v1.webp'
+            : '/assets/game-box/v3/game-box-auth-login-concept-v1.webp'}
           alt=""
           fill
           priority

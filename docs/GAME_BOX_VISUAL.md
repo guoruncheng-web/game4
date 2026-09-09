@@ -36,12 +36,13 @@
 
 ## v3 一比一生产资产与动态分层
 
-- 注册页唯一批准基准：`public/concepts/game-box-auth-gate-concept-v1.png`，SHA-256 `e8b959f3732d5708780c6918c7825f2d3f373b1d32c373c46d5c0016a5eb92ce`。运行时直接使用原 PNG 且关闭 Next 图片重编码；验证码与输入内容独立覆盖。
+- 注册页唯一批准基准：`public/concepts/game-box-auth-gate-concept-v1.png`，SHA-256 `e8b959f3732d5708780c6918c7825f2d3f373b1d32c373c46d5c0016a5eb92ce`。运行时使用同尺寸 WebP 生产副本并关闭 Next 图片重编码；验证码与输入内容独立覆盖。
 - 登录页同构生产图：`public/assets/game-box/v3/game-box-auth-login-concept-v1.png`，SHA-256 `80236d41b26fa065146d8048a92fed2827935ef1111af86d2f9b307e77de41eb`；不包含用户名、密码或其他动态值。
 - 消息 clean 图：`game-box-messages-background-clean-v4.png`，SHA-256 `17e800b01ad56eee93302dbbba8aa453acc6ae15d4a078bd98cbf82ec34ea909`；保留邮局、望远镜、四个玩家木座和空消息牌。
 - 聊天 clean 图：`game-box-chat-background-clean-v3.png`，SHA-256 `76e6530b12722fee9ff33f792581d152a97653d24f7015505cd33c40fbbc7c6d`；保留五个空羊皮气泡与通讯台。
 - 个人 clean 图：`game-box-profile-background-clean-v3.png`，SHA-256 `067690e06f84d58fd46457fb994dde080f5e47e58947b97b9ab28e1fc255c4b0`；头像、用户名、UID 和三项统计槽位均为空。
 - 硬门禁：头像、等级/身份文案、货币、UID、统计、好友名、消息、未读数、验证码、输入内容不得烘焙到整页生产底图。固定标题、建筑牌匾和导航文案可以属于批准美术。
+- 批准 PNG 作为母版/像素验收基准；上线页使用 quality 94、同分辨率 WebP，将单页 1.9–2.6 MB 降至 312–493 KB，解决公网首次进入在大图下载期只见天空底色的 P0 问题。
 
 ## PWA 图标资产记录
 
