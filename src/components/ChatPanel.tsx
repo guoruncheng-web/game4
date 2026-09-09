@@ -28,7 +28,7 @@ type Message = {
   mine: boolean;
 };
 
-export default function ChatPanel() {
+export default function ChatPanel({ onConversationChange }: { onConversationChange?: (open: boolean) => void }) {
   const { user, openPanel } = useAuth();
   const { online, connected } = useCoop();
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -38,10 +38,16 @@ export default function ChatPanel() {
   const [results, setResults] = useState<SearchUser[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [searching, setSearching] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
   const onlineIds = new Set(online.map((person) => person.id));
+
+  useEffect(() => {
+    onConversationChange?.(Boolean(activeFriend));
+    return () => onConversationChange?.(false);
+  }, [activeFriend, onConversationChange]);
 
   const loadFriends = useCallback(async () => {
     if (!user) return;
@@ -171,7 +177,7 @@ export default function ChatPanel() {
 
   if (!user) {
     return (
-      <section className="grid min-h-[55dvh] place-items-center px-6 text-center">
+      <section className="guild-screen guild-screen--empty grid min-h-[55dvh] place-items-center px-6 text-center">
         <div>
           <span className="mx-auto grid size-20 place-items-center rounded-[2rem] bg-emerald-50 text-emerald-500">
             <MessageCircle size={38} />
@@ -193,8 +199,8 @@ export default function ChatPanel() {
   if (activeFriend) {
     const friendOnline = onlineIds.has(activeFriend.id);
     return (
-      <section className="flex min-h-[calc(100dvh-12rem)] flex-col px-4">
-        <div className="flex items-center gap-3 border-b border-emerald-100 pb-3">
+      <section className="guild-screen guild-chat flex min-h-[calc(100dvh-12rem)] flex-col px-4">
+        <div className="guild-chat-header flex items-center gap-3 border-b border-emerald-100 pb-3">
           <button type="button" onClick={() => setActiveFriend(null)} className="grid size-10 place-items-center rounded-full bg-white text-slate-500" aria-label="返回好友列表">
             <ArrowLeft size={21} />
           </button>
@@ -207,10 +213,10 @@ export default function ChatPanel() {
           </div>
         </div>
 
-        <div className="flex-1 space-y-2 overflow-y-auto py-4">
+        <div className="guild-chat-messages flex-1 space-y-2 overflow-y-auto py-4">
           {messages.length === 0 && <p className="py-12 text-center text-sm font-bold text-slate-400">还没有消息，打个招呼吧</p>}
-          {messages.map((message) => (
-            <div key={message.id} className={`flex items-end gap-2 ${message.mine ? 'justify-end' : 'justify-start'}`}>
+          {messages.slice(-5).map((message) => (
+            <div key={message.id} className={`guild-message-row flex items-end gap-2 ${message.mine ? 'guild-message-row--mine justify-end' : 'justify-start'}`}>
               {!message.mine && (
                 <Avatar emoji={activeFriend.avatar} url={activeFriend.avatarUrl} className="size-8 rounded-xl bg-white text-lg shadow-sm" />
               )}
@@ -226,7 +232,7 @@ export default function ChatPanel() {
         </div>
 
         {error && <p className="mb-2 text-center text-xs font-bold text-rose-500">{error}</p>}
-        <div className="sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] flex gap-2 rounded-2xl bg-white/90 p-2 shadow-lg backdrop-blur">
+        <div className="guild-chat-composer sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] flex gap-2 rounded-2xl bg-white/90 p-2 shadow-lg backdrop-blur">
           <input
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
@@ -245,13 +251,15 @@ export default function ChatPanel() {
   }
 
   return (
-    <section className="px-4 pb-5">
+    <section className="guild-screen guild-lobby px-4 pb-5">
       <div className="mb-5">
         <h1 className="text-[1.75rem] font-black tracking-[-0.04em] text-[#173366]">消息</h1>
         <p className="mt-1 text-sm font-semibold text-emerald-600">找到玩家，成为好友后开始聊天</p>
       </div>
 
-      <form className="flex gap-2" onSubmit={(event) => { event.preventDefault(); void searchUsers(); }}>
+      <button type="button" className="guild-search-trigger" onClick={() => setSearchOpen(true)} aria-label="寻找玩家" />
+
+      {searchOpen && <form className="guild-search-panel flex gap-2" onSubmit={(event) => { event.preventDefault(); void searchUsers(); }}>
         <label className="flex min-h-12 flex-1 items-center gap-2 rounded-2xl border-2 border-white bg-white/80 px-3 shadow-sm">
           <Search size={18} className="text-slate-400" />
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索用户名或六位 UID" className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none" />
@@ -259,7 +267,8 @@ export default function ChatPanel() {
         <button type="submit" disabled={searching} className="rounded-2xl bg-emerald-500 px-4 text-sm font-black text-white disabled:bg-slate-300">
           {searching ? '搜索中' : '搜索'}
         </button>
-      </form>
+        <button type="button" onClick={() => setSearchOpen(false)} className="rounded-2xl bg-slate-100 px-3 text-sm font-black text-slate-500" aria-label="关闭搜索">×</button>
+      </form>}
 
       {error && <p className="mt-2 px-1 text-sm font-bold text-rose-500">{error}</p>}
       {results.length > 0 && (
@@ -300,9 +309,9 @@ export default function ChatPanel() {
         <Users size={20} className="text-emerald-600" />
         <h2 className="text-lg font-black text-[#173366]">好友</h2>
       </div>
-      <div className="space-y-2">
+      <div className="guild-friend-list space-y-2">
         {friends.length === 0 && <p className="rounded-3xl bg-white/60 px-4 py-10 text-center text-sm font-bold text-slate-400">还没有好友，先搜索昵称添加一个吧</p>}
-        {friends.map((friend) => (
+        {friends.slice(0, 4).map((friend) => (
           <button key={friend.id} type="button" onClick={() => {
             setFriends((current) => current.map((item) => (
               item.id === friend.id ? { ...item, unreadCount: 0 } : item
