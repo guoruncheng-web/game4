@@ -50,27 +50,11 @@ jobs:
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H 47.86.46.212 >> ~/.ssh/known_hosts 2>/dev/null
-      - name: Reclaim archived failed bot release storage
+      - name: Reclaim inactive release storage
+        env:
+          BACKEND_SHA: ${{ steps.revision.outputs.backend }}
         run: |
-          ssh deploy@47.86.46.212 'set -Eeuo pipefail
-          for sha in \
-            eafcd5070023cde6fea1a3792662c828020c6bc8 \
-            52231f87afab122c05bae2fb160832e272d14a64 \
-            92dedc6460fc35f881dad93333fcb94789eb7c0f \
-            baabb3c681001dae3a6d5c4c9383746dc67628aa \
-            bbad409e2d1f8799acf9abaf50ec6bd6706a3273 \
-            011c0ff305b9ccf7cdb46d9bacf7f8d8738f52f1 \
-            67be0868860168a128f32b5867def9e942f06bd9 \
-            0da1bffc7f7996a516ad26cc4e0258c5d4c4b157 \
-            5ead0ac71c3c28fff030c29105d707e83a4d0652 \
-            f847e8bb6d00de1367a3726d28827efeec24da41 \
-            05357491f6ed4d579a19e6ad7c59f00cdc202411 \
-            72d878207f5907492c3ffe18d0eed9ebff5626f6
-          do
-            [[ "$sha" =~ ^[a-f0-9]{40}$ ]]
-            rm -rf -- "/srv/gameai/.releases/$sha" "/srv/gameai/.backend/rollback/$sha"
-          done
-          df -Pk /srv/gameai'
+          ssh deploy@47.86.46.212 bash -s -- /srv/gameai "$GITHUB_SHA" "$BACKEND_SHA" < frontend-source/deploy/reclaim-release-storage.sh
       - name: Stage immutable release directories
         env:
           BACKEND_SHA: ${{ steps.revision.outputs.backend }}
