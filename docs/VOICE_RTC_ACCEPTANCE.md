@@ -25,3 +25,5 @@ SDK 根因与补丁：上述 fresh-session 恢复调整后 voice-rtc-reconnect-f
 最终本地生产复验：evidence/voice-rtc-sdk-patched/result.json 的 passed=true、13 项功能断言通过、browserErrors=[]、accountsCleaned=true，进程退出码 0。使用实际声网网络和合成音频，包含连续三次在开麦过程中断网的压力场景；先前失败证据原样保留。
 
 发布固定后端：6bef8f412a5113bf1bf518359e50cec9a2775b7a。
+
+首轮 Actions 34485871411 在切换前的 frozen install 失败，原因为本机 pnpm 10 补丁哈希与生产 pnpm 9.15.9 不兼容。已在全新临时目录用 pnpm 9.15.9 重建锁文件并通过完整冻结安装，固定 packageManager=pnpm@9.15.9；SDK 补丁及依赖版本未变。原流水线状态为 failure，未部署该候选。

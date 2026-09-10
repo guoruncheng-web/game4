@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   agora-rtc-sdk-ng@4.24.8:
-    hash: 8b9ca48ea4a58b64144b4ca6b0966a396dfe1aab303b93e6263260e71155a357
+    hash: bgqkau4yz5sidsz6t3mmjxizkq
     path: patches/agora-rtc-sdk-ng@4.24.8.patch
 
 importers:
@@ -18,7 +18,7 @@ importers:
         version: 0.20.0
       agora-rtc-sdk-ng:
         specifier: 4.24.8
-        version: 4.24.8(patch_hash=8b9ca48ea4a58b64144b4ca6b0966a396dfe1aab303b93e6263260e71155a357)
+        version: 4.24.8(patch_hash=bgqkau4yz5sidsz6t3mmjxizkq)
       lucide-react:
         specifier: ^1.31.0
         version: 1.31.0(react@19.2.8)
@@ -1200,6 +1200,7 @@ packages:
   eslint@9.39.5:
     resolution: {integrity: sha512-DgZS62aPLXKlnxILS/AYCoRvHaZeXceIzlXPkkGGzJWSow1aEk0lbTlxUSlyjC8jcaKxAdOnTDz+o1JFSBsyjw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -2911,7 +2912,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  agora-rtc-sdk-ng@4.24.8(patch_hash=8b9ca48ea4a58b64144b4ca6b0966a396dfe1aab303b93e6263260e71155a357):
+  agora-rtc-sdk-ng@4.24.8(patch_hash=bgqkau4yz5sidsz6t3mmjxizkq):
     dependencies:
       '@agora-js/media': 4.24.8
       '@agora-js/protocol': 4.24.8

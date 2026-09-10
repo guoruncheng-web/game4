@@ -10,6 +10,8 @@ const sorted = value => Array.isArray(value) ? value.map(sorted) : value && type
 const canonical = object => JSON.stringify(sorted(object));
 function withoutRtcDependency(text) {
  const p=JSON.parse(text);
+ // 固定到既有生产包管理器不会改变运行依赖；其他版本仍走全验。
+ if(p.packageManager==='pnpm@9.15.9')delete p.packageManager;
  for(const section of ['dependencies','devDependencies']) {
   if(p[section]) { delete p[section]['agora-rtc-sdk-ng'];p[section]=Object.fromEntries(Object.entries(p[section]).sort()); }
  }
@@ -23,9 +25,9 @@ function withoutRtcDependency(text) {
 // pnpm lockfile 的旧解析记录必须逐项保持原样；只允许额外加入 RTC 依赖树。
 export function additiveRtcLock(before, after) {
  function sections(text) {
-  const header=text.replace(/^patchedDependencies:\n  agora-rtc-sdk-ng@4\.24\.8:\n    hash: [a-f0-9]+\n    path: patches\/agora-rtc-sdk-ng@4\.24\.8\.patch\n\n/m,'').split('\npackages:\n')[0].replace(/^      agora-rtc-sdk-ng:\n        specifier: [^\n]+\n        version: [^\n]+\n/m,'');
+  const header=text.replace(/^patchedDependencies:\n  agora-rtc-sdk-ng@4\.24\.8:\n    hash: [a-z0-9]+\n    path: patches\/agora-rtc-sdk-ng@4\.24\.8\.patch\n\n/m,'').split('\npackages:\n')[0].replace(/^      agora-rtc-sdk-ng:\n        specifier: [^\n]+\n        version: [^\n]+\n/m,'');
   const blocks=new Map();let section='';let key=null;let lines=[];
-  const flush=()=>{if(key){const id=section+':'+key;if(blocks.has(id))throw Error('duplicate lock entry');blocks.set(id,lines.join('\n').trim());}};
+  const flush=()=>{if(key){const id=section+':'+key;if(blocks.has(id))throw Error('duplicate lock entry');blocks.set(id,lines.filter(line=>section!=='packages:'||!/^    deprecated: /.test(line)).join('\n').trim());}};
   for(const line of text.split('\n')) {
    if(/^(packages|snapshots):$/.test(line)){flush();key=null;section=line;continue;}
    if(!section)continue;

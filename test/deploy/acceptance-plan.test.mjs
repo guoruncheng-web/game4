@@ -41,12 +41,12 @@ test('cumulative production diff includes an earlier failed commit, not just HEA
  }finally{rmSync(root,{recursive:true,force:true});}
 });
 test('only the pinned RTC patch stays voice-scoped; unrelated dependency patches require all suites',()=>{
- const patched=JSON.stringify({...JSON.parse(newPackage),pnpm:{patchedDependencies:{'agora-rtc-sdk-ng@4.24.8':'patches/agora-rtc-sdk-ng@4.24.8.patch'}}});
+ const patched=JSON.stringify({...JSON.parse(newPackage),packageManager:'pnpm@9.15.9',pnpm:{patchedDependencies:{'agora-rtc-sdk-ng@4.24.8':'patches/agora-rtc-sdk-ng@4.24.8.patch'}}});
  const p=classifyPaths(['package.json','patches/agora-rtc-sdk-ng@4.24.8.patch'],[],(_,old)=>old?oldPackage:patched);
  assert.equal(p.voice,true);assert.equal(p.thirteen,false);
  const q=classifyPaths(['package.json'],[],(_,old)=>old?oldPackage:patched.replace('agora-rtc-sdk-ng@4.24.8','next@16.3.0'));
  assert.equal(q.thirteen,true);
- const patchedLock=newLock.replace('packages:', 'patchedDependencies:\n  agora-rtc-sdk-ng@4.24.8:\n    hash: abcdef\n    path: patches/agora-rtc-sdk-ng@4.24.8.patch\n\npackages:');
+ const patchedLock=newLock.replace('packages:', 'patchedDependencies:\n  agora-rtc-sdk-ng@4.24.8:\n    hash: bgqkau4yz5sidsz6t3mmjxizkq\n    path: patches/agora-rtc-sdk-ng@4.24.8.patch\n\npackages:');
  assert.equal(additiveRtcLock(oldLock,patchedLock),true);
  assert.equal(additiveRtcLock(oldLock,patchedLock.replace('agora-rtc-sdk-ng@4.24.8:','next@16.3.0:')),false);
 });
@@ -55,5 +55,6 @@ test('additive lock snapshots include pnpm inline empty dependency blocks',()=>{
  const before=oldLock+'\n  existing@1: {}\n';
  const after=before+'\n  added@1: {}\n';
  assert.equal(additiveRtcLock(before,after),true);
+ assert.equal(additiveRtcLock(before,after.replace('resolution: x','resolution: x\n    deprecated: Registry notice')),true);
  assert.equal(additiveRtcLock(before,after.replace('existing@1: {}','existing@1:\n    dependencies: changed')),false);
 });

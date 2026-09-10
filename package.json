@@ -61,5 +61,6 @@
     "patchedDependencies": {
       "agora-rtc-sdk-ng@4.24.8": "patches/agora-rtc-sdk-ng@4.24.8.patch"
     }
-  }
+  },
+  "packageManager": "pnpm@9.15.9"
 }
