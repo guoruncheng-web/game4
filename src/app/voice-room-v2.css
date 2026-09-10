@@ -1,0 +1,109 @@
+/* 语音房 v2：轻量语音客厅。仅覆盖房间主页面，管理与邀请弹层沿用现有协议。 */
+.voice-room-v2 { --voice-ink: #15211e; --voice-muted: #747d79; --voice-green: #2e7b66; --voice-coral: #ff5c70; min-height: 100dvh; color: var(--voice-ink); background: #e9eeea; }
+.voice-room-v2 .voice-room-shell { display: block; width: min(100%, 480px); min-height: 100dvh; margin: auto; padding: 0 16px calc(172px + env(safe-area-inset-bottom)); background: #faf9f5; background-image: radial-gradient(circle at 8% 13%, #dff3e7 0 70px, transparent 71px), radial-gradient(circle at 100% 22%, #ffe8e8 0 92px, transparent 93px); }
+.voice-room-v2 .voice-room-header { position: sticky; z-index: 15; top: 0; display: grid; min-height: calc(70px + env(safe-area-inset-top)); grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; gap: 8px; margin: 0 -16px; padding: env(safe-area-inset-top) 16px 0; border-bottom: 1px solid #e9e6df; background: #faf9f5eF; backdrop-filter: blur(14px); }
+.voice-room-v2 .voice-room-header > button { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid #e3e2dc; border-radius: 50%; color: var(--voice-ink); background: #fffdfa; font-size: 26px; box-shadow: none; }
+.voice-room-v2 .voice-room-header > div { display: grid; min-width: 0; justify-items: center; gap: 3px; padding: 0; text-align: center; }
+.voice-room-v2 .voice-room-header b { display: block; max-width: 100%; overflow: hidden; color: var(--voice-ink); font-size: 17px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.voice-room-v2 .voice-room-header small { color: var(--voice-muted); font-size: 10px; letter-spacing: .3px; }
+.voice-room-v2 .voice-room-status { display: flex; justify-content: flex-start; flex-wrap: wrap; gap: 7px; margin: 18px 0 15px; }
+.voice-room-v2 .voice-room-status > span { display: inline-flex; min-height: 30px; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid #dce7e0; border-radius: 16px; color: #426257; background: #f1f8f3; font-size: 11px; font-weight: 650; }
+.voice-room-v2 .voice-room-status i { display: block; width: 7px; height: 7px; border-radius: 50%; background: #47a987; box-shadow: 0 0 0 3px #47a98720; }
+.voice-room-v2 .voice-room-status .voice-connection { color: #81744d; border-color: #e9e1c9; background: #fff9e9; }
+.voice-room-v2 .voice-room-status .voice-connection i { border: 2px solid #b79a45; background: transparent; box-shadow: none; }
+.voice-room-v2 .voice-room-status .voice-connection.is-lost { color: #a33a4b; border-color: #f1cfd4; background: #fff0f2; }
+.voice-room-v2 .voice-room-status .voice-connection.is-lost i { border-color: #d94d63; }
+.voice-room-v2 .voice-error { margin: 0 0 14px; border-color: #efc9cf; border-radius: 12px; background: #fff0f2; }
+.voice-room-v2 .voice-game-banner { margin: 0 0 14px; border-color: #e4e1da; border-radius: 16px; box-shadow: none; }
+.voice-room-v2 .voice-stage { position: relative; overflow: hidden; margin: 0; padding: 20px 14px 0; border: 1px solid #dce6df; border-radius: 22px; background: linear-gradient(145deg, #f1f8f3, #eaf2ed); box-shadow: 0 10px 28px #55726410; }
+.voice-room-v2 .voice-stage::after { position: absolute; top: -45px; right: -35px; width: 130px; height: 130px; border: 24px solid #fff7; border-radius: 50%; content: ''; pointer-events: none; }
+.voice-room-v2 .voice-stage-heading { position: relative; z-index: 1; display: grid; min-height: 47px; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 9px; margin-bottom: 17px; }
+.voice-room-v2 .voice-stage-heading > span { display: grid; gap: 2px; }
+.voice-room-v2 .voice-stage-heading small, .voice-room-v2 .voice-stage-title small { color: #609080; font-size: 8px; font-weight: 800; letter-spacing: 1.4px; }
+.voice-room-v2 .voice-stage-heading h2 { color: var(--voice-ink); font-size: 21px; font-weight: 800; }
+.voice-room-v2 .voice-stage-heading > b { padding: 5px 8px; border-radius: 10px; color: #567067; background: #ffffffa8; font-size: 10px; font-weight: 650; }
+.voice-room-v2 .voice-stage-heading > button { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid #d9e2dc; border-radius: 50%; background: #fff; }
+.voice-room-v2 .voice-seat-grid { position: relative; z-index: 1; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 6px; }
+.voice-room-v2 .voice-seat { min-height: 88px; gap: 6px; }
+.voice-room-v2 .voice-seat > span { width: clamp(56px, 16vw, 68px); height: auto; border: 3px solid #fff; background: #dfe9e3; box-shadow: 0 4px 12px #35534718; }
+.voice-room-v2 .voice-seat.is-occupied > span { outline: 2px solid #69b89d; outline-offset: 2px; }
+.voice-room-v2 .voice-seat > span > strong { right: -3px; bottom: -4px; left: auto; padding: 3px 7px; transform: none; border: 2px solid #eef6f1; color: #fff; background: #2e7b66; font-size: 8px; }
+.voice-room-v2 .voice-seat > span > em { background: #9a5662; }
+.voice-room-v2 .voice-seat b { margin-top: 0; color: #45534e; font-size: 10px; font-weight: 650; }
+.voice-room-v2 .voice-seat > span > .voice-seat-empty-icon { opacity: .65; }
+.voice-room-v2 .voice-stage-members { position: relative; z-index: 1; display: flex; min-height: 58px; align-items: center; gap: 8px; margin-top: 14px; border-top: 1px solid #d8e4dc; }
+.voice-room-v2 .voice-stage-members > span { display: flex; overflow: visible; padding-left: 3px; }
+.voice-room-v2 .voice-stage-members > span > * { width: 30px; height: 30px; margin-left: -5px; border: 2px solid #edf5f0; }
+.voice-room-v2 .voice-stage-members > b { color: #617069; font-size: 10px; font-weight: 650; }
+.voice-room-v2 .voice-stage-members > button { display: flex; min-height: 38px; align-items: center; gap: 4px; margin-left: auto; padding: 0 10px; border: 1px solid #bcd5c8; border-radius: 12px; color: #286c59; background: #fff; font-size: 11px; font-weight: 700; }
+.voice-room-v2 .voice-stage-members > button i { font-size: 17px; font-style: normal; font-weight: 400; }
+.voice-room-v2 .voice-chat-panel { display: block; margin-top: 14px; overflow: hidden; border: 1px solid #e6e3dc; border-radius: 20px; background: #fffdfa; }
+.voice-room-v2 .voice-stage-title { display: flex; min-height: 67px; align-items: center; justify-content: space-between; padding: 14px 16px 10px; border-bottom: 1px solid #efede7; }
+.voice-room-v2 .voice-stage-title > span { display: grid; gap: 2px; }
+.voice-room-v2 .voice-stage-title h2 { color: var(--voice-ink); font-size: 18px; }
+.voice-room-v2 .voice-stage-title > b { color: var(--voice-muted); font-size: 10px; font-weight: 600; }
+.voice-room-v2 .voice-message-list { display: grid; min-height: 180px; max-height: 38dvh; align-content: start; gap: 16px; padding: 15px; overflow-y: auto; }
+.voice-room-v2 .voice-message-empty { display: grid; align-self: center; justify-items: center; gap: 5px; padding: 28px 0; color: #8a918e; text-align: center; }
+.voice-room-v2 .voice-message-empty > span { display: grid; width: 46px; height: 40px; place-items: center; border-radius: 16px 16px 16px 5px; color: #fff; background: #9fc8b9; letter-spacing: 3px; }
+.voice-room-v2 .voice-message-empty b { color: #59645f; font-size: 13px; }
+.voice-room-v2 .voice-message-empty small { font-size: 11px; }
+.voice-room-v2 .voice-message > span:first-child { width: 36px; height: 36px; }
+.voice-room-v2 .voice-message b { border-radius: 5px 14px 14px 14px; color: #3e4945; background: #f0f2ef; font-size: 13px; font-weight: 500; }
+.voice-room-v2 .voice-message.is-mine b { border-radius: 14px 5px 14px 14px; color: #fff; background: #2e7b66; }
+.voice-room-v2 .voice-message small { color: #68736e; }
+.voice-room-v2 .voice-room-dock { position: fixed; z-index: 22; right: 0; bottom: 0; left: 0; width: min(100%, 480px); margin: auto; padding: 9px 12px calc(10px + env(safe-area-inset-bottom)); border-top: 1px solid #e5e2dc; background: #fffdfaec; box-shadow: 0 -10px 30px #36433e12; backdrop-filter: blur(16px); }
+.voice-room-v2 .voice-room-actions { position: static; display: flex; width: 100%; min-height: 48px; align-items: center; justify-content: center; gap: 8px; padding: 0 0 8px; border: 0; border-radius: 0; background: transparent; backdrop-filter: none; }
+.voice-room-v2 .voice-room-actions > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.voice-room-v2 .voice-room-actions button { display: flex; min-height: 44px; flex: 1; align-items: center; justify-content: center; gap: 6px; padding: 0 12px; border: 1px solid #d6e3db; border-radius: 12px; color: #265e4f; background: #edf7f1; font-size: 12px; font-weight: 750; }
+.voice-room-v2 .voice-room-actions .gb-icon { width: 24px; height: 24px; }
+.voice-room-v2 .voice-room-actions .voice-mic-main.is-active { color: #fff; border-color: #2e7b66; background: #2e7b66; }
+.voice-room-v2 .voice-room-actions .voice-mic-main.is-pending { color: #77682e; border-color: #e7dab3; background: #fff8e4; }
+.voice-room-v2 .voice-room-actions .voice-leave-main { flex: 0 0 94px; color: #b33d52; border-color: #efccd2; background: #fff7f8; }
+.voice-room-v2 .voice-room-actions .voice-requests-main { position: relative; flex: 0 0 78px; }
+.voice-room-v2 .voice-room-actions .voice-requests-main i { top: -6px; right: -4px; }
+.voice-room-v2 .voice-composer { position: static; display: grid; width: 100%; min-height: 48px; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 0; background: transparent; }
+.voice-room-v2 .voice-composer input { min-height: 48px; padding: 0 15px; border: 1px solid #e0dfda; border-radius: 14px; background: #f4f3ef; font-size: 14px; }
+.voice-room-v2 .voice-composer button { min-width: 66px; min-height: 48px; border-radius: 14px; color: #fff; background: var(--voice-coral); font-size: 13px; }
+.voice-room-v2 .voice-composer button:disabled { color: #9ea29f; background: #e7e7e3; }
+.voice-room-v2 .voice-room-toast { bottom: calc(166px + env(safe-area-inset-bottom)); }
+.voice-room-v2 .voice-sheet-backdrop { align-items: end; padding: 70px 10px 0; background: #14231e70; backdrop-filter: blur(5px); }
+.voice-room-v2 .voice-action-sheet { width: min(100%, 460px); max-height: calc(100dvh - 70px); min-height: 280px; padding: 0 20px calc(28px + env(safe-area-inset-bottom)); border-radius: 24px 24px 0 0; background: #fffcf8; box-shadow: 0 -18px 50px #172a2326; }
+.voice-room-v2 .voice-action-sheet > header { position: sticky; top: 0; min-height: 68px; margin: 0; padding: 0; border-bottom: 1px solid #ebe8e0; background: #fffcf8ed; backdrop-filter: blur(12px); }
+.voice-room-v2 .voice-action-sheet > header h2 { color: var(--voice-ink); font-size: 18px; }
+.voice-room-v2 .voice-action-sheet > header button { display: grid; top: 14px; width: 40px; height: 40px; place-items: center; border: 1px solid #e4e2dc; border-radius: 50%; background: #fff; }
+.voice-room-v2 .voice-sheet-help { padding: 16px 0 9px; color: var(--voice-muted); font-size: 12px; text-align: left; }
+.voice-room-v2 .voice-sheet-list > div, .voice-room-v2 .voice-member-row { min-height: 72px; border-color: #ebe9e3; }
+.voice-room-v2 .voice-sheet-list button:not(.voice-member-row) { min-height: 40px; border-radius: 12px; background: var(--voice-green); }
+.voice-room-v2 .voice-sheet-empty { padding: 48px 0; color: var(--voice-muted); }
+.voice-room-v2 .voice-confirm-backdrop { align-items: center; padding: 20px; }
+.voice-room-v2 .voice-confirm { width: min(100%, 344px); gap: 10px; padding: 28px 22px 22px; border: 1px solid #e7e2dc; border-radius: 22px; background: #fffcf8; box-shadow: 0 20px 60px #172a2333; }
+.voice-room-v2 .voice-confirm > .gb-icon { width: 70px; height: 70px; }
+.voice-room-v2 .voice-confirm h2 { color: var(--voice-ink); font-size: 21px; }
+.voice-room-v2 .voice-confirm p { color: var(--voice-muted); font-size: 12px; line-height: 1.7; }
+.voice-room-v2 .voice-confirm > div { gap: 10px; margin-top: 12px; }
+.voice-room-v2 .voice-confirm button { min-height: 46px; border-radius: 12px; color: #59645f; background: #eeefec; }
+.voice-room-v2 .voice-confirm button:last-child { color: #fff; background: var(--voice-coral); }
+.voice-room-v2 .voice-management-page { width: min(100%, 480px); min-height: 100dvh; max-height: 100dvh; padding: 0 18px calc(28px + env(safe-area-inset-bottom)); border-radius: 0; background: #faf9f5; }
+.voice-room-v2 .voice-management-page > header { min-height: calc(70px + env(safe-area-inset-top)); margin: 0 -18px; padding: env(safe-area-inset-top) 18px 0; border-bottom: 1px solid #e7e4dd; background: #faf9f5ed; }
+.voice-room-v2 .voice-management-page > header button { top: calc(14px + env(safe-area-inset-top)); left: 12px; }
+.voice-room-v2 .voice-management-page .voice-page-art { display: none; }
+.voice-room-v2 .voice-manage-meta, .voice-room-v2 .voice-manage-list { margin-top: 18px; border-color: #e5e3dd; border-radius: 16px; background: #fffdfa; }
+.voice-room-v2 .voice-manage-meta > :is(button,div), .voice-room-v2 .voice-manage-list button { min-height: 58px; border-color: #ebe8e2; }
+.voice-room-v2 .voice-setting-editor input { border-color: #ddddd7; border-radius: 12px; background: #fffdfa; }
+.voice-room-v2 .voice-setting-editor button, .voice-room-v2 .voice-close-room button { border-radius: 12px; background: var(--voice-coral); }
+.voice-room-v2 .voice-choice-list button.is-selected { color: var(--voice-green); }
+.voice-room-v2 .voice-choice-list button > span { color: var(--voice-green); }
+.voice-room-v2 .voice-close-room-button { border-color: #efc8cf; border-radius: 12px; color: #b23d51; }
+.voice-room-v2 .voice-leave-room { border-radius: 12px; }
+@media (max-width: 359px) {
+  .voice-room-v2 .voice-room-shell { padding-inline: 12px; }
+  .voice-room-v2 .voice-seat-grid { gap-inline: 2px; }
+  .voice-room-v2 .voice-room-actions .voice-leave-main { flex-basis: 82px; }
+}
+@media (max-height: 520px) and (min-aspect-ratio: 1/1) {
+  .voice-room-v2 .voice-room-shell { padding-bottom: calc(118px + env(safe-area-inset-bottom)); }
+  .voice-room-v2 .voice-room-dock { display: grid; grid-template-columns: 1fr 1.5fr; gap: 8px; }
+  .voice-room-v2 .voice-room-actions { padding: 0; }
+  .voice-room-v2 .voice-stage { margin-right: 50%; }
+  .voice-room-v2 .voice-chat-panel { position: absolute; top: calc(88px + env(safe-area-inset-top)); right: 16px; width: calc(50% - 24px); margin: 0; }
+}
