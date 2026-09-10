@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import GameLoading from '@/components/GameLoading';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useCallback, useEffect, useRef, type CSSProperties } from 'react';
@@ -9,7 +10,7 @@ import { useCoop } from '@/components/CoopProvider';
 import { setCoopBridge } from '@/games/neon-strike-2d/coop/bridge';
 
 const meta = getGame('neon-strike-2d')!;
-const PhaserCanvas = dynamic(() => import('@/components/PhaserCanvas'), { ssr: false, loading: () => <div className="grid h-dvh place-items-center bg-[#06051b] text-cyan-200">战机启动中…</div> });
+const PhaserCanvas = dynamic(() => import('@/components/PhaserCanvas'), { ssr: false, loading: () => <GameLoading /> });
 
 /**
  * HUD 贴图(ns-hud-frame)左上角画了一个虚线圆,那个位置就是留给返回按钮的。

@@ -1,0 +1,194 @@
+/* 补充语音状态沿用 voice-v1；主页面与创建弹窗以用户指定的 pwa-v5 为准。 */
+.gb-tab-voice .gb-hero { display: none; }
+.gb-tab-voice .gb-surface { margin: 0; padding: 0 12px calc(88px + env(safe-area-inset-bottom, 0px)); background: white; }
+.voice-lobby { gap: 0; }
+.voice-lobby-hero { display: flex; min-height: 200px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 18px; margin: 0 -12px; padding: calc(28px + env(safe-area-inset-top, 0px)) 22px 26px; background: #ffeef5 url('/assets/game-box/v5/voice-hero.webp') 58% center / auto 100% no-repeat; }
+.voice-lobby-hero h2 { color: #171820; font-size: 30px; line-height: 1.2; font-weight: 900; letter-spacing: 0; }
+.voice-lobby-hero p { margin-top: 6px; color: #414354; font-size: 16px; }
+.voice-lobby-hero > button { min-height: 44px; gap: 6px; padding: 0 18px; border: 1px solid #fff9; font-size: 16px; box-shadow: inset 0 1px 2px #ffffff85; }
+.voice-lobby-hero > button > span { font-size: 25px; font-weight: 400; }
+.voice-lobby-tabs { z-index: 1; display: flex; min-height: 62px; gap: 30px; margin: -12px -12px 0; padding: 9px 24px 8px; border: 0; border-radius: 24px 24px 0 0; }
+.voice-lobby-tabs button { min-height: 42px; font-size: 16px; }
+.voice-lobby-tabs button[aria-selected='true']::after { right: 0; bottom: 2px; left: 0; border-radius: 3px; }
+.voice-room-list { gap: 8px 10px; }
+.voice-room-card { --room-art-position: 0% 0%; display: flex; aspect-ratio: 198 / 260; flex-direction: column; padding: 4px; border-width: 1px; border-radius: 16px; background: #fff9ed; box-shadow: none; }
+.voice-room-card:nth-child(4n+2) { --room-art-position: 100% 0%; background: #fff6fb; }
+.voice-room-card:nth-child(4n+3) { --room-art-position: 0% 100%; background: #fbf6ff; }
+.voice-room-card:nth-child(4n) { --room-art-position: 100% 100%; background: #f4faff; }
+.voice-room-card::after { display: none; }
+.voice-room-card > .voice-room-illustration { position: absolute; z-index: 0; inset: 4px 4px 43px; border-radius: 12px; background: url('/assets/game-box/v5/voice-room-cards.webp') var(--room-art-position) / 200% 200%; }
+.voice-room-copy { max-width: 100%; gap: 4px; padding: 12px 10px 0; }
+.voice-room-copy b { color: #181922; font-size: clamp(17px, 4.6vw, 23px); line-height: 1.25; letter-spacing: 0; }
+.voice-room-copy small { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.voice-room-copy em { display: flex; align-items: center; gap: 3px; margin-top: 3px; padding: 3px 7px; border: 1px solid white; border-radius: 14px; background: #fffc; font-size: 11px; }
+.voice-room-copy em .gb-icon { width: 14px; height: 14px; }
+.voice-room-footer { display: flex; min-height: 39px; align-items: center; justify-content: space-between; gap: 4px; margin-top: auto; padding: 3px 4px; }
+.voice-room-footer .voice-room-avatars { position: static; display: flex; }
+.voice-room-avatars > span { width: 28px; height: 28px; margin-left: -4px; font-size: 14px; }
+.voice-room-count { display: flex; align-items: center; gap: 3px; color: #535867; font-size: 13px; }
+.voice-room-count .gb-icon { width: 20px; height: 20px; }
+.voice-room-card-loading { animation: none; background: #f7f3f5; }
+.voice-error { margin: 0 0 12px; }
+
+.voice-full-page-backdrop { z-index: 130; align-items: stretch; padding: 0; background: #fff8fa; }
+.voice-create-sheet { display: flex; max-height: 100dvh; flex-direction: column; padding: 0; border-radius: 0; box-shadow: none; }
+.voice-create-sheet > header { display: block; min-height: calc(196px + env(safe-area-inset-top, 0px)); flex: 0 0 auto; margin: 0; padding: 0; background-image: url('/assets/game-box/v5/voice-create-header-v2.webp'); background-position: center bottom; background-size: cover; }
+.voice-create-sheet > header h2 { top: calc(18px + env(safe-area-inset-top, 0px)); right: 55px; bottom: auto; left: 55px; font-size: 20px; text-align: center; }
+.voice-create-sheet > header > button { top: calc(12px + env(safe-area-inset-top, 0px)); }
+.voice-create-sheet > header .gb-brand { position: absolute; top: calc(64px + env(safe-area-inset-top, 0px)); left: 38px; transform: rotate(-5deg); transform-origin: center; }
+.voice-create-body { z-index: 1; display: flex; flex: 1; flex-direction: column; gap: 24px; margin-top: -12px; padding: 28px 20px calc(28px + env(safe-area-inset-bottom, 0px)); border-radius: 24px 24px 0 0; background: white; }
+.voice-create-body > label { position: relative; display: grid; gap: 8px; font-size: 16px; font-weight: 750; }
+.voice-create-body > label > small { justify-self: end; margin-top: -3px; padding-right: 7px; color: #969bad; font-size: 13px; font-weight: 400; }
+.voice-create-body fieldset { margin: 0; }
+.voice-create-body legend { margin-bottom: 10px; font-size: 16px; }
+.voice-create-body fieldset label { min-height: 106px; gap: 5px; padding: 12px 18px; border-radius: 12px; }
+.voice-create-body fieldset label.is-selected { border-width: 1px; }
+.voice-create-body fieldset label .gb-icon { width: 28px; height: 28px; }
+.voice-create-body fieldset b { color: #22232d; font-size: 16px; }
+.voice-create-body fieldset small { font-size: 12px; }
+.voice-create-body fieldset .is-selected small { color: #f24d6b; }
+.voice-game-picker { position: relative; display: flex; min-height: 90px; align-items: center; gap: 10px; padding: 10px; border: 1px solid #e9e5ea; border-radius: 12px; }
+.voice-game-picker > .gb-icon { width: 68px; height: 68px; }
+.voice-create-sheet .voice-game-picker select { min-width: 0; min-height: 68px; flex: 1; padding: 0; border: 0; border-radius: 0; appearance: none; background: transparent; font-weight: 750; }
+.voice-game-picker > span:last-child { padding-right: 7px; color: #7c8194; font-size: 25px; }
+.voice-switch-row > span small { font-size: 12px; font-weight: 400; }
+.voice-switch-row input { position: relative; width: 55px; height: 30px; flex: 0 0 auto; appearance: none; border-radius: 20px; background: #cfd2db; }
+.voice-switch-row input:checked { background: #ff5871; }
+.voice-switch-row input::after { position: absolute; top: 2px; left: 2px; width: 26px; height: 26px; border-radius: 50%; background: white; box-shadow: 0 1px 3px #0002; content: ''; }
+.voice-switch-row input:checked::after { left: 27px; }
+.voice-create-summary { align-items: center; margin: 0 0 30px; padding: 0; border: 0; font-size: 16px; }
+.voice-create-summary small { font-size: 12px; }
+.voice-create-body > .voice-primary { min-height: 52px; margin-top: auto; font-size: 18px; }
+
+.voice-room-shell { display: flex; flex-direction: column; padding: calc(17px + env(safe-area-inset-top, 0px)) 12px calc(138px + env(safe-area-inset-bottom, 0px)); background-image: linear-gradient(#fff8, #fffd 190px), url('/assets/game-box/v5/cloud-header.webp'); background-size: auto 190px; background-position: left top; }
+.voice-room-header { min-height: 38px; grid-template-columns: 36px 1fr 36px; align-items: center; }
+.voice-room-header > button { width: 36px; height: 36px; }
+.voice-room-header b { font-size: 20px; }
+.voice-room-status { display: flex; justify-content: center; gap: 8px; margin: 6px 0 40px; }
+.voice-room-status > span { display: flex; min-height: 28px; align-items: center; margin: 0; padding: 0 10px; border-radius: 18px; color: #666b7a; background: #fffd; font-size: 12px; font-weight: 500; }
+.voice-room-status > .voice-connection { color: #8b6f39; background: #fff6e1; }
+.voice-stage { margin: 0 -12px; padding: 0 14px 17px; background: transparent; }
+.voice-seat-grid { gap: 28px 10px; }
+.voice-seat > span { width: min(100%, 74px); border-width: 2px; background: #e6e8ee; box-shadow: none; }
+.voice-seat > span > strong { right: auto; bottom: -5px; left: 50%; padding: 2px 10px; transform: translateX(-50%); font-size: 11px; white-space: nowrap; }
+.voice-seat b { margin-top: 5px; font-size: 13px; font-weight: 500; }
+.voice-seat > span > i { font-size: 33px; font-weight: 400; }
+.voice-game-banner { display: flex; min-height: 94px; gap: 12px; margin: 5px 0 10px; padding: 9px; border: 1px solid #f1eef1; border-radius: 12px; color: #22232b; background: white; text-shadow: none; box-shadow: 0 2px 9px #46465a06; }
+.voice-game-banner > .voice-game-thumbnail { width: 74px; height: 74px; flex: 0 0 auto; border-radius: 12px; background-image: url('/assets/game-box/v5/game-cards.webp'); background-size: 200% 500%; }
+.voice-game-banner > span:nth-child(2) { min-width: 0; flex: 1; }
+.voice-game-banner b { font-size: 17px; }
+.voice-game-banner small { color: #8b8fa3; font-size: 12px; }
+.voice-game-banner em { flex: 0 0 auto; padding: 12px 14px; border-radius: 24px; color: white; background: linear-gradient(#ff7a8b, #ff536e); font-size: 13px; }
+.voice-chat-panel { display: flex; flex: 1; flex-direction: column; border-radius: 12px; }
+.voice-stage-title { padding: 12px 13px 8px; }
+.voice-message-list { min-height: 200px; max-height: none; flex: 1; align-content: start; gap: 18px; padding: 12px; }
+.voice-message { align-items: start; gap: 10px; }
+.voice-message > span:first-child { width: 40px; height: 40px; flex-shrink: 0; font-size: 22px; }
+.voice-message small { font-size: 12px; }
+.voice-message b { max-width: min(275px, 64vw); padding: 10px 12px; font-size: 15px; font-weight: 400; }
+.voice-room-actions { bottom: calc(68px + env(safe-area-inset-bottom, 0px)); min-height: 64px; gap: 8px; padding: 8px 12px; border-radius: 22px 22px 0 0; background: white; }
+.voice-room-actions > span { display: grid; min-height: 44px; max-width: none; flex: 1; place-items: center; padding: 0 7px; border-radius: 14px; background: #eceef3; font-size: 11px; }
+.voice-room-actions button { min-height: 44px; flex: 1; padding: 0 10px; border-radius: 14px; font-size: 13px; white-space: nowrap; }
+.voice-composer { min-height: calc(68px + env(safe-area-inset-bottom, 0px)); padding: 4px 12px calc(16px + env(safe-area-inset-bottom, 0px)); }
+.voice-composer input { min-height: 48px; border-radius: 18px; }
+.voice-composer button { min-width: 74px; min-height: 48px; border-radius: 18px; font-size: 15px; }
+.voice-action-sheet { min-height: 280px; padding: 22px 20px calc(40px + env(safe-area-inset-bottom, 0px)); }
+.voice-action-sheet > header { position: relative; top: auto; min-height: 55px; justify-content: center; margin: -10px 0 0; padding: 0; }
+.voice-action-sheet > header h2 { font-size: 20px; }
+.voice-action-sheet > header button { position: absolute; top: 5px; right: 0; }
+.voice-sheet-help { padding: 0 0 16px; font-size: 13px; text-align: center; }
+.voice-sheet-list > div, .voice-member-row { min-height: 78px; gap: 13px; }
+.voice-sheet-list > div > span:first-child, .voice-member-row > span:first-child { width: 52px; height: 52px; }
+.voice-sheet-list b { font-size: 16px; }
+.voice-sheet-list small { font-size: 12px; }
+.voice-sheet-list button:not(.voice-member-row) { min-width: 70px; min-height: 40px; font-size: 13px; }
+.voice-sheet-list button:disabled { color: #999ca8; background: #f0f1f4; }
+.voice-member-summary { display: flex; align-items: center; gap: 14px; }
+.voice-member-summary > span:first-child { width: 58px; height: 58px; border-radius: 50%; }
+.voice-member-summary > span:last-child { display: grid; gap: 4px; }
+.voice-member-summary small { color: #8b8fa0; font-size: 12px; }
+.voice-invitations-page { position: fixed; z-index: 85; inset: 0; display: block; width: min(100%, 480px); margin: auto; padding: 0 12px 28px; overflow-y: auto; background: #fffafd; }
+.voice-invitations-page > .voice-lobby-hero, .voice-invitations-page > .voice-lobby-tabs { display: none; }
+.voice-page-top { position: relative; display: grid; min-height: calc(66px + env(safe-area-inset-top, 0px)); place-items: center; padding-top: env(safe-area-inset-top, 0px); }
+.voice-page-top h2 { font-size: 18px; }
+.voice-page-top button { position: absolute; top: calc(14px + env(safe-area-inset-top, 0px)); left: 0; width: 40px; height: 40px; font-size: 30px; }
+.voice-page-art { position: relative; min-height: 135px; margin: 0 -12px 14px; background: #fff3f7 url('/assets/game-box/v5/cloud-header.webp') 65% center / auto 100% no-repeat; }
+.voice-page-art .gb-brand { position: absolute; top: 20px; left: 65px; transform: scale(.75) rotate(-5deg); transform-origin: top left; }
+.voice-invite-card { border-radius: 14px; padding: 14px; }
+.voice-invite-sender b { font-size: 16px; }
+.voice-invite-sender small { font-size: 12px; }
+.voice-invite-room { min-height: 64px; margin-left: 60px; padding: 9px 12px; border-radius: 10px; color: #292a35; background-image: linear-gradient(90deg, #ffeaf3, #f1ecff); background-size: 100% 100%; text-shadow: none; }
+.voice-management-page { display: flex; min-height: 100dvh; max-height: 100dvh; flex-direction: column; padding: 0 16px calc(28px + env(safe-area-inset-bottom, 0px)); border-radius: 0; background: #fffbfd; }
+.voice-management-page > header { flex: 0 0 auto; min-height: calc(66px + env(safe-area-inset-top, 0px)); margin: 0 -16px; padding-top: env(safe-area-inset-top, 0px); border: 0; background: #fff5f9; }
+.voice-management-page > header button { top: calc(14px + env(safe-area-inset-top, 0px)); right: auto; left: 12px; font-size: 30px; }
+.voice-management-page .voice-page-art { flex: 0 0 auto; margin: 0 -16px 12px; }
+.voice-management-page .voice-manage-meta { flex: 0 0 auto; background: white; }
+.voice-management-page .voice-manage-meta > :is(button,div) { min-height: 65px; font-size: 15px; }
+.voice-management-page .voice-manage-meta b { color: #777c90; font-size: 14px; font-weight: 500; }
+.voice-management-page .voice-manage-meta span { color: #292a35; font-weight: 700; }
+.voice-manage-members { margin: 14px 0 60px; }
+.voice-management-page .voice-close-room-button { min-height: 48px; flex: 0 0 auto; margin-top: auto; font-size: 17px; }
+.voice-management-page .voice-leave-room { min-height: 40px; flex: 0 0 auto; border: 0; font-size: 13px; }
+@media (max-width: 359px) {
+  .voice-game-banner { gap: 7px; }
+  .voice-game-banner > .voice-game-thumbnail { width: 55px; height: 55px; }
+  .voice-game-banner b { font-size: 15px; }
+  .voice-game-banner em { padding: 10px; font-size: 12px; }
+  .voice-room-actions button { padding: 0 6px; font-size: 11px; }
+}
+
+/* PWA 02/09：横向头图与居中创建弹窗，保留现行好友可见性和上麦审批协议。 */
+.voice-lobby-hero { position: relative; min-height: 0; height: auto; aspect-ratio: 418 / 125; padding: 0; background: url('/assets/game-box/v5/pwa-main-reference-atlas.png') 50% 3.809524% / 351.674641% 856%; }
+.voice-lobby-hero > div { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.voice-lobby-hero > button { position: absolute; top: 24%; right: 3%; width: 35%; height: 36%; min-height: 40px; padding: 0; border: 0; color: transparent; background: transparent; box-shadow: none; }
+.voice-lobby-tabs { min-height: 54px; margin-top: -4px; gap: 28px; padding-block: 4px; border-radius: 18px 18px 0 0; }
+.voice-lobby-tabs button { font-size: 14px; }
+.voice-room-card { aspect-ratio: 193 / 114; }
+.voice-room-card > .voice-room-illustration { inset: 0; }
+.voice-room-copy { max-width: 85%; padding: 8px 7px 0; gap: 2px; }
+.voice-room-copy b { font-size: 17px; }
+.voice-room-copy small { font-size: 11px; }
+.voice-room-copy em { display: none; }
+.voice-room-footer { min-height: 32px; padding: 3px 7px; }
+.voice-room-count { padding: 2px 5px; border-radius: 12px; background: #ffffffdf; font-size: 11px; }
+.voice-room-avatars > span { width: 25px; height: 25px; }
+.voice-pwa-create-backdrop { z-index: 130; align-items: center; padding: max(16px, env(safe-area-inset-top, 0px)) 10px max(16px, env(safe-area-inset-bottom, 0px)); background: #302d486b; }
+.voice-pwa-create-backdrop .voice-create-sheet { width: min(100%, 398px); max-height: calc(100dvh - 32px); flex: 0 1 auto; padding: 0; border-radius: 14px; box-shadow: 0 12px 36px #27233720; }
+.voice-pwa-create-backdrop .voice-create-sheet > header { position: relative; display: flex; min-height: 64px; align-items: center; justify-content: center; background: white; }
+.voice-pwa-create-backdrop .voice-create-sheet > header h2 { position: static; color: #171820; font-size: 20px; }
+.voice-pwa-create-backdrop .voice-create-sheet > header > button { position: absolute; top: 12px; right: 12px; left: auto; display: grid; place-items: center; width: 40px; height: 40px; border: 0; color: #46536c; background: transparent; font-size: 25px; }
+.voice-pwa-create-backdrop .voice-create-body { flex: 0 0 auto; gap: 18px; margin: 0; padding: 4px 18px 24px; border-radius: 0; }
+.voice-pwa-create-backdrop .voice-create-body > label:not(.voice-switch-row) { grid-template-columns: 72px minmax(0, 1fr); align-items: center; gap: 8px; font-size: 14px; }
+.voice-pwa-create-backdrop .voice-create-body > label > small { grid-column: 2; font-size: 10px; }
+.voice-pwa-create-backdrop .voice-create-body input:not([type='radio']):not([type='checkbox']) { min-height: 42px; padding: 0 12px; border: 1px solid #e7e8ef; border-radius: 12px; font-size: 14px; }
+.voice-pwa-create-backdrop .voice-create-body fieldset { position: relative; min-width: 0; padding-left: 80px; }
+.voice-pwa-create-backdrop .voice-create-body legend { position: absolute; top: 18px; left: 0; width: 72px; font-size: 14px; }
+.voice-pwa-create-backdrop .voice-create-body fieldset label { min-width: 0; min-height: 74px; padding: 8px 4px; gap: 4px; }
+.voice-pwa-create-backdrop .voice-create-body fieldset label .gb-icon { width: 22px; height: 22px; }
+.voice-pwa-create-backdrop .voice-create-body fieldset b { font-size: 14px; }
+.voice-pwa-create-backdrop .voice-create-body fieldset small { font-size: 10px; white-space: normal; }
+.voice-pwa-create-backdrop .voice-switch-row { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
+.voice-pwa-create-backdrop .voice-switch-row > span small { font-size: 11px; }
+.voice-pwa-create-backdrop .voice-create-body > .voice-primary { min-height: 48px; margin-top: 8px; font-size: 16px; }
+
+/* 08 房间麦位与成员区域；所有计数和角色来自权威房间快照。 */
+.voice-room-shell { padding-top: calc(20px + env(safe-area-inset-top, 0px)); background-size: auto 150px; }
+.voice-room-status { margin: 5px 0 22px; }
+.voice-stage { margin: 0; padding: 10px 12px 0; border: 1px solid #f0edf1; border-radius: 16px; background: white; }
+.voice-stage-heading { display: flex; justify-content: space-between; align-items: center; min-height: 28px; margin-bottom: 12px; }
+.voice-stage-heading h2 { font-size: 14px; font-weight: 700; }
+.voice-stage-heading button { width: 32px; height: 32px; color: #566078; font-size: 21px; }
+.voice-seat-grid { gap: 14px 10px; }
+.voice-seat > span { width: 64px; height: 64px; background: #edf0f5; }
+.voice-seat > span > .voice-seat-empty-icon { display: block; width: 20px; height: 28px; background: url('/assets/game-box/v5/pwa-secondary-reference-atlas.png') -865px -279px / 1470px 1070px; }
+.voice-seat b { font-size: 11px; }
+.voice-stage-members { display: flex; align-items: center; gap: 8px; min-height: 48px; margin-top: 12px; border-top: 1px solid #f0edf1; }
+.voice-stage-members > b { white-space: nowrap; font-size: 11px; }
+.voice-stage-members > span { display: flex; min-width: 0; overflow: hidden; }
+.voice-stage-members > span > * { width: 28px; height: 28px; flex-shrink: 0; margin-left: -3px; border: 2px solid white; border-radius: 50%; font-size: 17px; }
+.voice-stage-members > button { margin-left: auto; padding: 6px; color: #f34c68; font-size: 11px; white-space: nowrap; }
+.voice-room-actions > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.voice-room-actions .voice-mic-main { border: 1px solid #ff526d; color: #ff526d; background: white; border-radius: 24px; }
+.voice-room-actions .voice-leave-main { border: 1px solid #ff526d; color: white; background: #ff6078; border-radius: 24px; }
+.voice-stage-heading button { display: grid; place-items: center; }
+.voice-stage-settings-icon { width: 20px; height: 20px; background: url('/assets/game-box/v5/pwa-secondary-reference-atlas.png') -898px -231px / 1470px 1070px; }

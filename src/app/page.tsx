@@ -1,14 +1,16 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import ChatPanel from '@/components/ChatPanel';
 import ProfilePanel from '@/components/ProfilePanel';
-import type { ReactNode } from 'react';
+import VoiceLobby from '@/components/VoiceLobby';
+import type { ReactNode, CSSProperties } from 'react';
 import { apiFetch, withGameCredentials } from '@/lib/api-client';
 import Avatar from '@/components/Avatar';
+import { Volume2, VolumeX } from 'lucide-react';
+import { ClubIcon, homeCardStyle } from '@/components/ClubArt';
 
 export default function Home() {
   const { user, wallet, loading: authLoading } = useAuth();
@@ -26,7 +28,7 @@ export default function Home() {
   const [pileLevel, setPileLevel] = useState(1);
   /** 捕鱼没有分数,卡片上显示的是钱包余额(单机模式那份,存在本机) */
   const [fishCoins, setFishCoins] = useState(500);
-  const [activeTab, setActiveTab] = useState<'games' | 'messages' | 'profile'>('games');
+  const [activeTab, setActiveTab] = useState<'games' | 'voice' | 'messages' | 'profile'>('games');
   const [conversationOpen, setConversationOpen] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [gameAvailability, setGameAvailability] = useState<Record<string, boolean>>({});
@@ -112,7 +114,7 @@ export default function Home() {
   useEffect(() => {
     function openMessages() { setActiveTab('messages'); }
     const requestedTab = new URLSearchParams(window.location.search).get('tab');
-    if (requestedTab === 'messages' || requestedTab === 'profile') {
+    if (requestedTab === 'voice' || requestedTab === 'messages' || requestedTab === 'profile') {
       const timer = window.setTimeout(() => setActiveTab(requestedTab), 0);
       window.addEventListener('game-box-open-messages', openMessages);
       return () => {
@@ -139,202 +141,65 @@ export default function Home() {
   }
 
   const worlds = [
-    {
-      slug: 'neon-strike',
-      href: '/neon-strike',
-      title: '霓虹突击',
-      subtitle: '星际飞行',
-      stat: `最高分 ${neonBestScore}`,
-      image: '/neon-strike/concepts/neon-strike-gameplay-ui-concept-v1.png',
-      alt: '霓虹太空战场',
-      tone: 'blue',
-    },
-    {
-      slug: 'fruit-slasher',
-      href: '/fruit-slasher',
-      title: '水果道场',
-      subtitle: '挥刀挑战',
-      stat: `最高分 ${fruitBestScore}`,
-      image: '/fruit-slasher/concepts/gameplay-concept-portrait-v2.png',
-      alt: '月夜水果道场',
-      tone: 'coral',
-    },
-    {
-      slug: 'eight-ball',
-      href: '/eight-ball',
-      title: '台球俱乐部',
-      subtitle: '挑战 AI',
-      stat: '三档对手',
-      image: '/eight-ball/concepts/3d-gameplay-concept-v1.png',
-      alt: '绿色台球俱乐部',
-      tone: 'green',
-    },
-    {
-      slug: 'triple-pile',
-      href: '/triple-pile',
-      title: '火锅派对',
-      subtitle: '三个一组',
-      stat: `第 ${pileLevel} / 12 关`,
-      image: '/triple-pile/scene/tabletop.jpg',
-      alt: '热闹的火锅餐桌',
-      tone: 'orange',
-    },
-    {
-      slug: 'fish-hunter',
-      href: '/fish-hunter',
-      title: '欢乐钓鱼',
-      subtitle: '深海寻宝',
-      stat: `金币 ${fishCoins}`,
-      image: '/fish-hunter/concept.png',
-      alt: '卡通深海捕鱼场',
-      tone: 'cyan',
-    },
-    {
-      slug: 'thirteen',
-      href: '/thirteen',
-      title: '卡牌酒馆',
-      subtitle: '南方十三张',
-      stat: '单机 / 四人联机',
-      image: '/thirteen/cover.png',
-      alt: '西贡夜市卡牌酒馆',
-      tone: 'purple',
-      requiresAuth: false,
-    },
-    {
-      slug: 'ludo',
-      href: '/ludo',
-      title: '飞行棋堡',
-      subtitle: '好友开房',
-      stat: '真人 / 机器人',
-      image: '/ludo/ui/game-start.jpg',
-      alt: '天空飞行棋城堡',
-      tone: 'yellow',
-    },
-    {
-      slug: 'umo',
-      href: '/umo',
-      title: 'UMO 竞技场',
-      subtitle: '脉冲卡牌',
-      stat: '经典 / 2v2',
-      image: '/umo/cover.png',
-      alt: 'UMO 卡牌竞技场',
-      tone: 'teal',
-      requiresAuth: false,
-    },
-    {
-      slug: 'neon-strike-2d',
-      href: '/neon-strike-2d',
-      title: '光廊远征',
-      subtitle: '竖屏弹幕',
-      stat: `最高分 ${neon2dBestScore}`,
-      image: '/neon-strike-2d/assets/space-corridor-v2.png',
-      alt: '霓虹光廊远征入口',
-      tone: 'violet',
-    },
+    { slug: 'star-runner', title: '星际跑酷', subtitle: '收集星星', stat: `最高分 ${bestScore}` },
+    { slug: 'fruit-slasher', title: '水果乱斗', subtitle: '指尖切水果', stat: `最高分 ${fruitBestScore}` },
+    { slug: 'eight-ball', title: '3D 台球', subtitle: '挑战 AI', stat: '三档对手' },
+    { slug: 'triple-pile', title: '叠叠消', subtitle: '火锅消除', stat: `第 ${pileLevel} / 12 关` },
+    { slug: 'fish-hunter', title: '捕鱼达人', subtitle: '好友同玩', stat: `金币 ${fishCoins}` },
+    { slug: 'umo', title: 'UMO', subtitle: '脉冲卡牌', stat: '经典 / 2v2' },
+    { slug: 'neon-strike-2d', title: '霓虹突击 2D', subtitle: '竖屏弹幕', stat: `最高分 ${neon2dBestScore}` },
+    { slug: 'ludo', title: '飞行棋', subtitle: '棋盘竞速', stat: '真人 / 机器人' },
+    { slug: 'thirteen', title: '南方十三张', subtitle: '好友开房', stat: '单机 / 四人联机' },
+    { slug: 'neon-strike', title: '霓虹突击', subtitle: '星际飞行', stat: `最高分 ${neonBestScore}` },
+  ];
+  const tabs = [
+    { id: 'games', icon: 'home', label: '首页' },
+    { id: 'voice', icon: 'voice', label: '语聊' },
+    { id: 'messages', icon: 'messages', label: '消息' },
+    { id: 'profile', icon: 'profile', label: '我的' },
   ] as const;
 
   return (
-    <main className="game-world min-h-dvh text-[#173366]">
-      <div className="game-world-shell mx-auto min-h-dvh w-full max-w-[480px]">
-        <div className="live-hud-layer">
-          <button type="button" className="map-player" onClick={() => setActiveTab('profile')} aria-label="打开我的资料">
-            <Image src="/assets/game-box/v3/runtime/player-hud-empty.png" alt="" fill sizes="110px" priority />
-            <span className="map-player-avatar">
-              {user ? <Avatar emoji={user.avatar} url={user.avatarUrl} /> : <Image src="/assets/game-box/v3/runtime/cube-mascot.png" alt="游客" fill sizes="42px" />}
-            </span>
-            <b>{user ? '玩家' : '游客'}</b>
-          </button>
-          <div className="map-currency" aria-label={`${wallet?.diamonds ?? 0} 钻石`}>
-            <Image src="/assets/game-box/v3/runtime/currency-hud-empty.png" alt="" fill sizes="120px" priority />
-            <b>{(wallet?.diamonds ?? 0).toLocaleString('zh-CN')}</b>
-          </div>
-          <button type="button" className="map-sound" onClick={toggleSound} aria-label={silent ? '打开音效' : '关闭音效'} aria-pressed={silent}>
-            <Image src="/assets/game-box/v3/runtime/sound-button.png" alt="" fill sizes="48px" priority />
-          </button>
-        </div>
-        {activeTab === 'games' && (
-          <section className="sky-map" aria-label="天空街机世界地图">
-            <Image className="map-brand" src="/assets/game-box/v3/runtime/brand-logo.png" alt="GAME BOX" width={426} height={277} priority />
-            <Image className="map-coming" src="/assets/game-box/v3/runtime/coming-soon-sign.png" alt="更多世界 敬请期待" width={260} height={228} />
-
-            <GameLink href="/star-runner" enabled={gameAvailability['star-runner'] !== false} className="map-portal">
-              <Image src="/assets/game-box/v3/runtime/adventure-portal.png" alt="继续冒险：星际跑酷" fill sizes="270px" priority />
-              <Image className="map-mascot" src="/assets/game-box/v3/runtime/cube-mascot.png" alt="" width={248} height={276} />
-              <Image className="map-portal-plaque" src="/assets/game-box/v3/runtime/wood-plaque.png" alt="" width={362} height={209} />
-              <span className="map-portal-title">继续冒险<small>最高分 {bestScore.toLocaleString('zh-CN')}</small></span>
-            </GameLink>
-
-            <Image className="map-star-road" src="/assets/game-box/v3/runtime/star-road.png" alt="" width={558} height={1442} />
-            <div className="map-worlds" role="list">
-              {worlds.slice(0, 6).map((world, index) => (
-                <GameLink
-                  key={world.slug}
-                  href={world.href}
-                  enabled={gameAvailability[world.slug] !== false}
-                  requiresAuth={'requiresAuth' in world ? world.requiresAuth : true}
-                  className={`map-world map-world--${world.slug}`}
-                >
-                  <Image
-                    src={`/assets/game-box/v3/runtime/${['world-star-runner', 'world-fruit-slasher', 'world-eight-ball', 'world-triple-pile', 'world-fish-hunter', 'world-thirteen'][index]}.png`}
-                    alt={`${world.title}：${world.subtitle}，${world.stat}`}
-                    fill
-                    sizes="190px"
-                  />
-                </GameLink>
-              ))}
+    <main className={`gb-app gb-tab-${activeTab} ${conversationOpen ? 'gb-conversation-open' : ''}`}>
+      <div className="gb-shell">
+        <header className="gb-hero">
+          {activeTab === 'games' ? (
+            <div className="gb-player-header">
+              <button type="button" className="gb-avatar-button" onClick={() => setActiveTab('profile')} aria-label="打开我的资料">
+                {user ? <Avatar emoji={user.avatar} url={user.avatarUrl} /> : <ClubIcon name="profile" />}
+              </button>
+              <div className="gb-player-details"><b>{user?.username ?? '加载中'}</b><small>UID {user?.uid ?? '—'}</small><span className="gb-wallet"><ClubIcon name="diamond" />{(wallet?.diamonds ?? 0).toLocaleString('zh-CN')}</span></div>
+              <button type="button" className="gb-sound" onClick={toggleSound} aria-label={silent ? '打开音效' : '关闭音效'} aria-pressed={silent}>{silent ? <VolumeX /> : <Volume2 />}</button>
             </div>
-          </section>
-        )}
-
-        {activeTab === 'messages' && (
-          <div className={`concept-tab ${conversationOpen ? 'concept-tab--chat' : 'concept-tab--messages'}`}>
-            <Image
-              src={conversationOpen
-                ? '/assets/game-box/v3/game-box-chat-background-clean-v3.webp'
-                : '/assets/game-box/v3/game-box-messages-background-clean-v4.webp'}
-              alt={conversationOpen ? '冒险者通讯台' : '冒险者邮局'}
-              fill
-              priority
-              unoptimized
-              sizes="480px"
-            />
-            <div className="concept-tab-content"><ChatPanel onConversationChange={setConversationOpen} /></div>
-          </div>
-        )}
-        {activeTab === 'profile' && (
-          <div className="concept-tab concept-tab--profile">
-            <Image src="/assets/game-box/v3/game-box-profile-background-clean-v3.webp" alt="玩家小屋" fill priority unoptimized sizes="480px" />
-            <div className="concept-tab-content"><ProfilePanel /></div>
-          </div>
-        )}
-
-        <nav className="game-controller-dock" aria-label="主导航">
-          <button
-            type="button"
-            onClick={() => setActiveTab('games')}
-            aria-current={activeTab === 'games' ? 'page' : undefined}
-            className={`controller-button ${activeTab === 'games' ? 'is-active' : ''}`}
-          >
-            <Image src="/assets/game-box/v3/runtime/nav-games-active.png" alt="游戏" fill sizes="145px" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('messages')}
-            aria-current={activeTab === 'messages' ? 'page' : undefined}
-            className={`controller-button ${activeTab === 'messages' ? 'is-active' : ''}`}
-          >
-            <Image src="/assets/game-box/v3/runtime/nav-messages.png" alt="消息" fill sizes="145px" />
-            {unreadMessages > 0 && <span className="controller-unread" aria-label={`${unreadMessages} 条未读消息`} />}
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('profile')}
-            aria-current={activeTab === 'profile' ? 'page' : undefined}
-            className={`controller-button ${activeTab === 'profile' ? 'is-active' : ''}`}
-            aria-label="我的个人资料"
-          >
-            <Image src="/assets/game-box/v3/runtime/nav-profile.png" alt="我的" fill sizes="145px" />
-          </button>
+          ) : <div className="gb-page-heading"><h1>{activeTab === 'voice' ? '语聊开黑' : activeTab === 'messages' ? '消息' : '我的'}</h1><p>{activeTab === 'voice' ? '找个房间，一起聊聊' : activeTab === 'messages' ? '和好友一起玩，更开心' : '记录每一次游戏时光'}</p></div>}
+        </header>
+        <section className="gb-surface">
+          {activeTab === 'games' && <div className="gb-home">
+            <div className="gb-shortcuts" aria-label="快捷入口">
+              <button type="button" onClick={() => document.getElementById('gb-games')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })}><ClubIcon name="games" /><span>全部游戏</span></button>
+              <button type="button" onClick={() => setActiveTab('voice')}><ClubIcon name="voice" /><span>语聊开黑</span></button>
+              <button type="button" onClick={() => setActiveTab('messages')}><ClubIcon name="messages" /><span>好友消息</span>{unreadMessages > 0 && <i className="gb-dot" />}</button>
+              <button type="button" onClick={() => setActiveTab('profile')}><ClubIcon name="security" /><span>账号安全</span></button>
+            </div>
+            <div className="gb-section-heading"><h1>一起玩</h1><button type="button" onClick={() => document.getElementById('gb-games')?.scrollIntoView()}>全部游戏 ›</button></div>
+            <GameLink href="/thirteen" label="南方十三张 · 好友开房 · 四人联机" enabled={gameAvailability.thirteen !== false} className="gb-game-card gb-featured" style={homeCardStyle('thirteen')}>
+              <span className="gb-card-copy"><b>南方十三张</b><small>好友开房 · 四人联机</small><em>一起开局 ›</em></span>
+            </GameLink>
+            <div id="gb-games" className="gb-game-grid">
+              {worlds.map((world) => <GameLink key={world.slug} href={`/${world.slug}`} label={`${world.title} · ${world.subtitle} · ${world.stat}`} enabled={gameAvailability[world.slug] !== false} className="gb-game-card" style={homeCardStyle(world.slug)}>
+                <span className="gb-card-copy"><b>{world.title}</b><small>{world.subtitle}</small><em>{world.stat}</em></span>
+              </GameLink>)}
+            </div>
+          </div>}
+          {activeTab === 'voice' && <VoiceLobby />}
+          {activeTab === 'messages' && <ChatPanel onConversationChange={setConversationOpen} />}
+          {activeTab === 'profile' && <ProfilePanel />}
+        </section>
+        <nav className="gb-bottom-nav" aria-label="主导航">
+          {tabs.map((tab) => <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} aria-current={activeTab === tab.id ? 'page' : undefined}>
+            <ClubIcon name={tab.icon} /><span>{tab.label}</span>
+            {tab.id === 'messages' && unreadMessages > 0 && <i className="gb-unread" aria-label={`${unreadMessages} 条未读消息`}>{unreadMessages > 99 ? '99+' : unreadMessages}</i>}
+          </button>)}
         </nav>
       </div>
     </main>
@@ -348,28 +213,29 @@ export default function Home() {
  * 未登录时点卡片就地弹登录面板,而不是先跳进游戏页再被 middleware 弹回首页。
  * /me 还没回来的那一小会儿按登录处理:middleware 在后面兜着,不会漏进去。
  */
-function GameLink({ href, className, children, enabled = true, requiresAuth = true }: {
-  href: string; className: string; children: ReactNode; enabled?: boolean; requiresAuth?: boolean;
+function GameLink({ href, label, className, children, style, enabled = true, requiresAuth = true }: {
+  href: string; label: string; className: string; children: ReactNode; style?: CSSProperties; enabled?: boolean; requiresAuth?: boolean;
 }) {
   const { user, credentials, loading, openPanel } = useAuth();
   if (!enabled) {
     return (
-      <div aria-disabled="true" className={`${className} relative overflow-hidden opacity-60`}>
+      <div style={style} role="link" aria-label={`${label} · 维护中`} aria-disabled="true" className={`${className} relative overflow-hidden opacity-60`}>
         {children}
         <span className="absolute right-3 top-3 rounded-full bg-slate-900/80 px-2.5 py-1 text-[10px] font-black text-white">维护中</span>
       </div>
     );
   }
   if (user || !requiresAuth) {
-    return <Link href={withGameCredentials(href, credentials)} className={className}>{children}</Link>;
+    return <Link href={withGameCredentials(href, credentials)} aria-label={label} className={className} style={style}>{children}</Link>;
   }
   return (
     <button
       type="button"
       disabled={loading}
       onClick={() => openPanel('register')}
-      aria-label="需要先登录才能玩"
+      aria-label={`${label} · 需要先登录才能玩`}
       className={`${className} w-full text-left`}
+      style={style}
     >
       {children}
     </button>

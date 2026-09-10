@@ -2,17 +2,14 @@
 
 import dynamic from 'next/dynamic';
 import GameShell from '@/components/GameShell';
+import GameLoading from '@/components/GameLoading';
 import { getGame } from '@/games/registry';
 
 const meta = getGame('star-runner')!;
 
 const PhaserCanvas = dynamic(() => import('@/components/PhaserCanvas'), {
   ssr: false,
-  loading: () => (
-    <div className="flex aspect-[8/5] w-full max-w-5xl items-center justify-center rounded-xl border border-slate-700/70 text-slate-400">
-      加载中…
-    </div>
-  ),
+  loading: () => <GameLoading />,
 });
 
 export default function Game1Page() {
@@ -25,5 +22,4 @@ export default function Game1Page() {
     </GameShell>
   );
 }
-
 

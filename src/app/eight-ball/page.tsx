@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import GameLoading from '@/components/GameLoading';
 import Link from 'next/link';
 import { getGame } from '@/games/registry';
 
@@ -8,7 +9,7 @@ const meta = getGame('eight-ball')!;
 
 const ThreeCanvas = dynamic(() => import('@/components/ThreeCanvas'), {
   ssr: false,
-  loading: () => <div className="grid h-dvh w-full place-items-center bg-[#0d1a14] text-emerald-200">Racking up…</div>,
+  loading: () => <GameLoading />,
 });
 
 export default function EightBallPage() {

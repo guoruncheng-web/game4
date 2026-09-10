@@ -183,6 +183,8 @@ export default function PwaProvider() {
   const home = pathname === '/';
   const showInstall = home && !hidden && (!!install || ios);
 
+  // 房内嵌入的游戏由外层 PWA 负责更新提示，避免重复浮层遮挡游戏操作。
+  if (typeof window !== 'undefined' && window.self !== window.top) return null;
   if (!showInstall && !waiting) return null;
 
   return (
@@ -205,7 +207,7 @@ export default function PwaProvider() {
         <div
           role="dialog"
           aria-label="安装到桌面"
-          className="fixed inset-x-0 bottom-0 z-40 mx-auto mb-[calc(5.5rem+env(safe-area-inset-bottom))] w-[min(92vw,420px)] rounded-3xl border border-white bg-white/95 p-4 shadow-[0_12px_36px_rgba(47,104,97,0.22)] backdrop-blur"
+          className="gb-install-prompt fixed inset-x-0 bottom-0 z-40 mx-auto mb-[calc(5.5rem+env(safe-area-inset-bottom))] w-[min(92vw,420px)] rounded-3xl border border-white bg-white/95 p-4 shadow-[0_12px_36px_rgba(47,104,97,0.22)] backdrop-blur"
         >
           <button
             type="button"

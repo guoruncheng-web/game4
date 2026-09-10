@@ -6,7 +6,6 @@ import { useAuth } from './AuthProvider';
 import Avatar from './Avatar';
 import { apiFetch } from '@/lib/api-client';
 import { encodeAvatar } from '@/lib/avatar-encode';
-import { MAX_AVATAR_BYTES } from '@/lib/avatar';
 
 /** 选文件时先按这个挡一道。真正的上限在压缩之后,由服务端再卡一次 */
 const MAX_SOURCE_BYTES = 12 * 1024 * 1024;
@@ -103,7 +102,7 @@ export default function AvatarUploader() {
   const previewUrl = pending?.previewUrl ?? user.avatarUrl ?? null;
 
   return (
-    <div className="space-y-3">
+    <div className="gb-avatar-editor space-y-3">
       <div className="flex items-center gap-4">
         <Avatar
           emoji={user.avatar}
@@ -111,20 +110,18 @@ export default function AvatarUploader() {
           alt={pending ? '新头像预览' : '我的头像'}
           className="size-20 rounded-[1.6rem] border-4 border-white/70 bg-white text-4xl shadow-lg"
         />
-        <div className="min-w-0 space-y-2">
+      </div>
+        <div className="gb-avatar-picker-actions">
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={busy}
             className="inline-flex min-h-10 items-center gap-1.5 rounded-2xl bg-white/25 px-4 text-sm font-black text-white disabled:opacity-60"
           >
-            <Camera size={16} />{user.avatarUrl || pending ? '换一张' : '上传头像'}
+            <Camera size={16} />选择图片
           </button>
-          <p className="text-[11px] font-bold leading-relaxed text-white/75">
-            会自动居中裁成方形,压到 256×256({Math.floor(MAX_AVATAR_BYTES / 1024)}KB 以内)
-          </p>
+          <button type="button" onClick={() => { replacePending(null); setError(''); if (user.avatarUrl) void removeAvatar(); }} disabled={busy || (!pending && !user.avatarUrl)}><Trash2 size={16} />恢复默认</button>
         </div>
-      </div>
 
       <input
         ref={inputRef}
@@ -136,37 +133,24 @@ export default function AvatarUploader() {
 
       {error && <p className="rounded-xl bg-rose-500/20 px-3 py-2 text-xs font-bold text-white">{error}</p>}
 
-      {pending && (
-        <div className="flex gap-2">
+        <div className="gb-avatar-confirm-actions flex gap-2">
           <button
             type="button"
             onClick={() => { void upload(); }}
-            disabled={busy}
+            disabled={busy || !pending}
             className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-white px-4 text-sm font-black text-emerald-600 disabled:opacity-60"
           >
             {busy ? <><Loader2 size={16} className="animate-spin" />上传中…</> : '确认使用'}
           </button>
-          <button
+          {pending && <button
             type="button"
             onClick={() => { replacePending(null); setError(''); }}
             disabled={busy}
             className="min-h-10 rounded-2xl bg-white/20 px-4 text-sm font-black text-white disabled:opacity-60"
           >
             取消
-          </button>
+          </button>}
         </div>
-      )}
-
-      {!pending && user.avatarUrl && (
-        <button
-          type="button"
-          onClick={() => { void removeAvatar(); }}
-          disabled={busy}
-          className="inline-flex min-h-9 items-center gap-1.5 rounded-2xl bg-white/15 px-3 text-xs font-black text-white/90 disabled:opacity-60"
-        >
-          <Trash2 size={14} />恢复默认头像
-        </button>
-      )}
     </div>
   );
 }

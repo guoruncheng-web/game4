@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import GameLoading from '@/components/GameLoading';
 import Link from 'next/link';
 import { getGame } from '@/games/registry';
 
@@ -8,7 +9,7 @@ const meta = getGame('neon-strike')!;
 
 const ThreeCanvas = dynamic(() => import('@/components/ThreeCanvas'), {
   ssr: false,
-  loading: () => <div className="grid h-dvh place-items-center bg-[#05041a] text-cyan-200">战机启动中…</div>,
+  loading: () => <GameLoading />,
 });
 
 /**

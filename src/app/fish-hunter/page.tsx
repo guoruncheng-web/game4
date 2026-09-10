@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import GameLoading from '@/components/GameLoading';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getGame } from '@/games/registry';
@@ -12,7 +13,7 @@ const meta = getGame('fish-hunter')!;
 // 这一款是 Three.js 的(鱼是带骨骼动画的 glb),走 ThreeCanvas 而不是 PhaserCanvas
 const ThreeCanvas = dynamic(() => import('@/components/ThreeCanvas'), {
   ssr: false,
-  loading: () => <div className="grid h-dvh place-items-center bg-[#021320] text-cyan-200">下网中…</div>,
+  loading: () => <GameLoading />,
 });
 
 /**

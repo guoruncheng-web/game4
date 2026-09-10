@@ -16,7 +16,7 @@ import { useCoop } from '@/components/CoopProvider';
  * 这一页保持竖屏可用:选房是普通网页交互,没必要跟着游戏一起强制横屏。
  */
 export default function FishLobbyPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { connected, fishRooms, createFishRoom, joinFishRoom, refreshFishRooms, error } = useCoop();
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export default function FishLobbyPage() {
   }, [connected, refreshFishRooms]);
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-[480px] flex-col gap-4 bg-[#04202f] p-5">
+    <main className="gb-platform-lobby gb-fish-lobby mx-auto flex min-h-dvh w-full max-w-[480px] flex-col gap-4 bg-[#04202f] p-5">
       <header className="flex items-baseline justify-between">
         <div>
           <h1 className="text-2xl font-black text-cyan-200">深海捕鱼 · 大厅</h1>
@@ -35,7 +35,8 @@ export default function FishLobbyPage() {
         </Link>
       </header>
 
-      {!user && (
+      {authLoading && <p role="status">正在确认登录状态…</p>}
+      {!authLoading && !user && (
         <p className="rounded-2xl border border-amber-300/30 bg-amber-400/10 p-4 text-sm text-amber-200">
           联机需要先登录。也可以
           <Link href="/fish-hunter" className="mx-1 underline">
@@ -86,11 +87,12 @@ export default function FishLobbyPage() {
                 className="flex items-center justify-between rounded-2xl border border-cyan-300/20 bg-white/5 p-4 text-left transition active:scale-[0.99] disabled:opacity-40"
               >
                 <span className="min-w-0">
-                  <span className="block truncate font-bold text-cyan-100">{r.names.join('、')}</span>
-                  <span className="mt-0.5 block text-xs text-cyan-100/50">房号 {r.id}</span>
+                  <span className="block truncate font-bold text-cyan-100">房间 {r.id}</span>
+                  <span className="mt-0.5 block text-xs text-cyan-100/50">{r.names.join('、')}</span>
+                  <span className="gb-fish-room-members">{Array.from({ length: r.max }, (_, index) => <span key={index} className={index < r.count ? 'is-occupied' : ''} aria-label={index < r.count ? r.names[index] ?? '已入座' : '空位'}>{index < r.count ? (r.names[index] ?? '玩').slice(0, 1) : '·'}</span>)}</span>
                 </span>
                 <span className="shrink-0 text-sm font-black text-cyan-300">
-                  {r.count}/{r.max} 人
+                  <small>{r.count}/{r.max} 人</small><span className="gb-fish-join-label">{r.count >= r.max ? '房间已满' : '加入房间'}</span>
                 </span>
               </button>
             ))}

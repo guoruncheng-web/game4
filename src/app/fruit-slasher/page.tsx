@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import GameLoading from '@/components/GameLoading';
 import Link from 'next/link';
 import { getGame } from '@/games/registry';
 
@@ -8,7 +9,7 @@ const meta = getGame('fruit-slasher')!;
 
 const PhaserCanvas = dynamic(() => import('@/components/PhaserCanvas'), {
   ssr: false,
-  loading: () => <div className="grid h-dvh w-full place-items-center bg-[#071326] text-slate-300">加载中…</div>,
+  loading: () => <GameLoading />,
 });
 
 export default function FruitSlasherPage() {

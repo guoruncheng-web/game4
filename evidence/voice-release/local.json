@@ -1,0 +1,21 @@
+{
+  "viewportChecks": [
+    {
+      "width": 393,
+      "height": 852,
+      "popup": 681.59375,
+      "framePath": "/star-runner",
+      "canvases": 1
+    }
+  ],
+  "closeCheck": {
+    "room": true,
+    "iframeRemoved": true
+  },
+  "normalRegistration": true,
+  "setupPassword": true,
+  "createdRoom": true,
+  "apiMocked": false,
+  "originOverride": "localhost:3000 for local candidate port 3336",
+  "rtc": "not implemented"
+}

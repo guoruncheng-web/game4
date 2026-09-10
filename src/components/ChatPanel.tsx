@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, MessageCircle, Plus, Search, Send, Users } from 'lucide-react';
+import { ArrowLeft, MessageCircle, Plus, Search, Users } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { useCoop } from './CoopProvider';
@@ -39,6 +39,7 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [searching, setSearching] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [requestsOpen, setRequestsOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -177,7 +178,7 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
 
   if (!user) {
     return (
-      <section className="guild-screen guild-screen--empty grid min-h-[55dvh] place-items-center px-6 text-center">
+      <section className="gb-chat-screen gb-chat-screen--empty grid min-h-[55dvh] place-items-center px-6 text-center">
         <div>
           <span className="mx-auto grid size-20 place-items-center rounded-[2rem] bg-emerald-50 text-emerald-500">
             <MessageCircle size={38} />
@@ -199,8 +200,8 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
   if (activeFriend) {
     const friendOnline = onlineIds.has(activeFriend.id);
     return (
-      <section className="guild-screen guild-chat flex min-h-[calc(100dvh-12rem)] flex-col px-4">
-        <div className="guild-chat-header flex items-center gap-3 border-b border-emerald-100 pb-3">
+      <section className="gb-chat-screen gb-chat-chat flex min-h-[calc(100dvh-12rem)] flex-col px-4">
+        <div className="gb-chat-chat-header flex items-center gap-3 border-b border-emerald-100 pb-3">
           <button type="button" onClick={() => setActiveFriend(null)} className="grid size-10 place-items-center rounded-full bg-white text-slate-500" aria-label="返回好友列表">
             <ArrowLeft size={21} />
           </button>
@@ -213,15 +214,16 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
           </div>
         </div>
 
-        <div className="guild-chat-messages flex-1 space-y-2 overflow-y-auto py-4">
+        <div className="gb-chat-chat-messages flex-1 space-y-2 overflow-y-auto py-4">
           {messages.length === 0 && <p className="py-12 text-center text-sm font-bold text-slate-400">还没有消息，打个招呼吧</p>}
-          {messages.slice(-5).map((message) => (
-            <div key={message.id} className={`guild-message-row flex items-end gap-2 ${message.mine ? 'guild-message-row--mine justify-end' : 'justify-start'}`}>
+          {messages.map((message) => (
+            <div key={message.id} className={`gb-chat-message-row flex items-end gap-2 ${message.mine ? 'gb-chat-message-row--mine justify-end' : 'justify-start'}`}>
               {!message.mine && (
                 <Avatar emoji={activeFriend.avatar} url={activeFriend.avatarUrl} className="size-8 rounded-xl bg-white text-lg shadow-sm" />
               )}
               <div className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm font-semibold leading-relaxed ${message.mine ? 'rounded-br-md bg-emerald-500 text-white' : 'rounded-bl-md bg-white text-slate-700 shadow-sm'}`}>
                 {message.content}
+                <time className="gb-chat-message-time" dateTime={message.createdAt}>{new Date(message.createdAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</time>
               </div>
               {message.mine && (
                 <Avatar emoji={user.avatar} url={user.avatarUrl} className="size-8 rounded-xl bg-emerald-50 text-lg shadow-sm" />
@@ -232,7 +234,7 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
         </div>
 
         {error && <p className="mb-2 text-center text-xs font-bold text-rose-500">{error}</p>}
-        <div className="guild-chat-composer sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] flex gap-2 rounded-2xl bg-white/90 p-2 shadow-lg backdrop-blur">
+        <div className="gb-chat-chat-composer sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] flex gap-2 rounded-2xl bg-white/90 p-2 shadow-lg backdrop-blur">
           <input
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
@@ -243,7 +245,7 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
             className="min-w-0 flex-1 rounded-xl bg-slate-100 px-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-300"
           />
           <button type="button" onClick={() => { void sendMessage(); }} disabled={!draft.trim()} className="grid size-11 place-items-center rounded-xl bg-emerald-500 text-white disabled:bg-slate-300" aria-label="发送消息">
-            <Send size={19} />
+            发送
           </button>
         </div>
       </section>
@@ -251,15 +253,19 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
   }
 
   return (
-    <section className="guild-screen guild-lobby px-4 pb-5">
+    <section className="gb-chat-screen gb-chat-lobby px-4 pb-5">
       <div className="mb-5">
         <h1 className="text-[1.75rem] font-black tracking-[-0.04em] text-[#173366]">消息</h1>
         <p className="mt-1 text-sm font-semibold text-emerald-600">找到玩家，成为好友后开始聊天</p>
       </div>
 
-      <button type="button" className="guild-search-trigger" onClick={() => setSearchOpen(true)} aria-label="寻找玩家" />
+      <div className="gb-chat-search-row"><button type="button" className="gb-chat-search-trigger" onClick={() => setSearchOpen(true)} aria-label="寻找玩家">
+        <Search size={19} />
+        <span>搜索好友或玩家</span>
+      </button>
+      <button type="button" className="gb-chat-add-friend" onClick={() => setSearchOpen(true)}><Plus size={18} />添加好友</button></div>
 
-      {searchOpen && <form className="guild-search-panel flex gap-2" onSubmit={(event) => { event.preventDefault(); void searchUsers(); }}>
+      {searchOpen && <form className="gb-chat-search-panel flex gap-2" onSubmit={(event) => { event.preventDefault(); void searchUsers(); }}>
         <label className="flex min-h-12 flex-1 items-center gap-2 rounded-2xl border-2 border-white bg-white/80 px-3 shadow-sm">
           <Search size={18} className="text-slate-400" />
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索用户名或六位 UID" className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none" />
@@ -289,9 +295,15 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
         </div>
       )}
 
-      {requests.length > 0 && (
-        <div className="mt-6 rounded-3xl border-2 border-amber-100 bg-amber-50/80 p-3">
+      <button type="button" className="gb-chat-request-summary" aria-expanded={requestsOpen} aria-controls="gb-chat-requests" onClick={() => setRequestsOpen(!requestsOpen)}>
+        <span className="gb-chat-request-symbol"><Users size={23} /></span><b>好友申请</b>
+        <span className="gb-chat-request-avatars">{requests.slice(0, 3).map((request) => <Avatar key={request.id} emoji={request.sender.avatar} url={request.sender.avatarUrl} />)}</span>
+        <span className="gb-chat-request-count">{requests.length}</span><span aria-hidden="true">›</span>
+      </button>
+      {requestsOpen && (
+        <div id="gb-chat-requests" className="gb-chat-requests">
           <p className="mb-2 px-1 text-sm font-black text-amber-700">好友申请</p>
+          {requests.length === 0 && <p className="text-sm text-slate-500">暂无待处理的好友申请</p>}
           <div className="space-y-2">
             {requests.map((request) => (
               <div key={request.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm">
@@ -305,13 +317,13 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
         </div>
       )}
 
-      <div className="mb-3 mt-7 flex items-center gap-2 px-1">
+      <div className="gb-chat-friend-heading mb-3 mt-7 flex items-center gap-2 px-1">
         <Users size={20} className="text-emerald-600" />
         <h2 className="text-lg font-black text-[#173366]">好友</h2>
       </div>
-      <div className="guild-friend-list space-y-2">
+      <div className="gb-chat-friend-list space-y-2">
         {friends.length === 0 && <p className="rounded-3xl bg-white/60 px-4 py-10 text-center text-sm font-bold text-slate-400">还没有好友，先搜索昵称添加一个吧</p>}
-        {friends.slice(0, 4).map((friend) => (
+        {friends.map((friend) => (
           <button key={friend.id} type="button" onClick={() => {
             setFriends((current) => current.map((item) => (
               item.id === friend.id ? { ...item, unreadCount: 0 } : item
@@ -327,7 +339,7 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
             </span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-sm font-black text-[#173366]">{friend.username}</span>
-              <span className="block font-mono text-[10px] font-bold text-emerald-600">UID {friend.uid}</span>
+              <span className="sr-only">UID {friend.uid}</span>
               <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs font-semibold text-slate-400">
                 <span className={connected && onlineIds.has(friend.id) ? 'text-emerald-500' : 'text-slate-400'}>
                   {!connected ? '连接中' : onlineIds.has(friend.id) ? '在线' : '离线'}
@@ -336,13 +348,11 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
                 <span className="truncate">{friend.lastMessage ?? '开始聊天'}</span>
               </span>
             </span>
-            {friend.unreadCount ? (
+            <span className="gb-chat-friend-meta"><time dateTime={friend.lastMessageAt ?? undefined}>{friend.lastMessageAt && Number.isFinite(Date.parse(friend.lastMessageAt)) ? new Date(friend.lastMessageAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : ''}</time>{friend.unreadCount ? (
               <span className="grid min-w-5 place-items-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-black text-white">
                 {friend.unreadCount > 99 ? '99+' : friend.unreadCount}
               </span>
-            ) : (
-              <MessageCircle size={19} className="text-emerald-500" />
-            )}
+            ) : null}</span>
           </button>
         ))}
       </div>
