@@ -192,3 +192,14 @@
 .voice-room-actions .voice-leave-main { border: 1px solid #ff526d; color: white; background: #ff6078; border-radius: 24px; }
 .voice-stage-heading button { display: grid; place-items: center; }
 .voice-stage-settings-icon { width: 20px; height: 20px; background: url('/assets/game-box/v5/pwa-secondary-reference-atlas.png') -898px -231px / 1470px 1070px; }
+
+/* 房间语音保留在外层页面，打开游戏弹窗时仍可通话。 */
+.voice-audio-panel { margin: 10px 0 16px; padding: 14px; border-radius: 18px; background: #fffaf1; border: 1px solid #e9dcc6; color: #4c4540; }
+.voice-audio-status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; font-size: 13px; }
+.voice-audio-controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.voice-audio-controls button { min-height: 44px; padding: 8px 14px; border-radius: 12px; background: #fff; border: 1px solid #e3d0b5; font-weight: 700; }
+.voice-audio-controls button[aria-pressed="true"] { background: #d6f2e6; border-color: #63b391; }
+.voice-audio-controls button:disabled { opacity: .5; }
+.voice-audio-panel small { display: block; line-height: 1.5; }
+.voice-audio-panel p { margin: 8px 0 0; font-size: 12px; }
+.voice-audio-panel [role="alert"] { color: #a43738; }

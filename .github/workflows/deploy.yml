@@ -3,6 +3,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      full_acceptance:
+        description: Run every production acceptance suite
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -16,6 +21,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: frontend-source
+          fetch-depth: 0
       - name: Read pinned backend revision
         id: revision
         run: |
@@ -29,19 +35,10 @@ jobs:
           ssh-key: ${{ secrets.BACKEND_READ_KEY }}
           persist-credentials: false
           path: backend-source
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Validate and build independent Nest services
-        working-directory: backend-source
-        run: |
-          npm ci --ignore-scripts
-          npm run lint
-          npm test
-          npm run test:thirteen
-          FRONTEND_SOURCE=../frontend-source node --test test/deploy/*.test.mjs
-          npm run build:all
-          npm prune --omit=dev --ignore-scripts
       - name: Prepare production SSH
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
@@ -50,12 +47,44 @@ jobs:
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H 47.86.46.212 >> ~/.ssh/known_hosts 2>/dev/null
+      - name: Read current production revisions
+        id: baseline
+        run: |
+          front=$(ssh deploy@47.86.46.212 'cat /srv/gameai/.backend/frontend.current')
+          back=$(ssh deploy@47.86.46.212 'basename "$(readlink -f /srv/gameai/.backend/current)"')
+          [[ "$front" =~ ^[a-f0-9]{40}$ && "$back" =~ ^[a-f0-9]{40}$ ]]
+          echo "frontend=$front" >> "$GITHUB_OUTPUT"
+          echo "backend=$back" >> "$GITHUB_OUTPUT"
+      - name: Select acceptance from cumulative production diff
+        id: plan
+        env:
+          BASE_FRONT: ${{ steps.baseline.outputs.frontend }}
+          BASE_BACK: ${{ steps.baseline.outputs.backend }}
+          FULL_ACCEPTANCE: ${{ inputs.full_acceptance }}
+        run: |
+          node --test frontend-source/test/deploy/*.test.mjs
+          mkdir -p frontend-source/evidence
+          node frontend-source/deploy/acceptance-plan.mjs frontend-source backend-source "$BASE_FRONT" "$BASE_BACK" frontend-source/evidence/acceptance-plan.json
+      - name: Validate and build independent Nest services
+        if: steps.plan.outputs.deploy == 'true'
+        working-directory: backend-source
+        run: |
+          npm ci --ignore-scripts
+          npm run lint
+          npm test
+          if [ "${{ steps.plan.outputs.thirteen }}" = true ]; then npm run test:thirteen; fi
+          node --experimental-transform-types --test ../frontend-source/test/voice/*.test.mjs
+          FRONTEND_SOURCE=../frontend-source node --test test/deploy/*.test.mjs
+          npm run build:all
+          npm prune --omit=dev --ignore-scripts
       - name: Reclaim inactive release storage
+        if: steps.plan.outputs.deploy == 'true'
         env:
           BACKEND_SHA: ${{ steps.revision.outputs.backend }}
         run: |
           ssh deploy@47.86.46.212 bash -s -- /srv/gameai "$GITHUB_SHA" "$BACKEND_SHA" < frontend-source/deploy/reclaim-release-storage.sh
       - name: Stage immutable release directories
+        if: steps.plan.outputs.deploy == 'true'
         env:
           BACKEND_SHA: ${{ steps.revision.outputs.backend }}
         run: |
@@ -63,6 +92,7 @@ jobs:
           rsync -az --exclude=.git --exclude=node_modules --exclude=.next --exclude=.env.local frontend-source/ "deploy@47.86.46.212:/srv/gameai/.releases/$GITHUB_SHA/"
           rsync -az --exclude=.git --exclude=.env --exclude=evidence backend-source/ "deploy@47.86.46.212:/srv/gameai/.backend/releases/$BACKEND_SHA/"
       - name: Provision production Agora configuration
+        if: steps.plan.outputs.deploy == 'true'
         env:
           BACKEND_SHA: ${{ steps.revision.outputs.backend }}
           AGORA_APP_ID: ${{ secrets.AGORA_APP_ID }}
@@ -72,24 +102,31 @@ jobs:
           [[ "$AGORA_APP_CERTIFICATE" =~ ^[0-9a-fA-F]{32}$ ]]
           printf '%s\n%s\n' "$AGORA_APP_ID" "$AGORA_APP_CERTIFICATE" | ssh deploy@47.86.46.212 "/opt/node24/bin/node /srv/gameai/.backend/releases/$BACKEND_SHA/deploy/provision-agora-env.mjs /srv/gameai"
       - name: Build candidate and switch services with rollback
+        if: steps.plan.outputs.deploy == 'true'
         id: switch
         env:
           BACKEND_SHA: ${{ steps.revision.outputs.backend }}
         run: |
+          # Refuse stale test selection if production changed while this candidate was being built.
+          test "$(ssh deploy@47.86.46.212 'cat /srv/gameai/.backend/frontend.current')" = '${{ steps.baseline.outputs.frontend }}'
+          test "$(ssh deploy@47.86.46.212 'basename "$(readlink -f /srv/gameai/.backend/current)"')" = '${{ steps.baseline.outputs.backend }}'
           ssh deploy@47.86.46.212 bash "/srv/gameai/.releases/$GITHUB_SHA/deploy/nest-release.sh" "$GITHUB_SHA" "$BACKEND_SHA"
       - name: Create temporary acceptance accounts
+        if: steps.plan.outputs.deploy == 'true'
         run: |
           ssh deploy@47.86.46.212 "/opt/node24/bin/node --env-file=/srv/gameai/.backend/.env /srv/gameai/.backend/current/deploy/test-accounts.mjs seed /srv/gameai/.backend/acceptance-$GITHUB_RUN_ID.json"
           umask 077
           scp "deploy@47.86.46.212:/srv/gameai/.backend/acceptance-$GITHUB_RUN_ID.json" "$RUNNER_TEMP/acceptance.json"
       - name: Public login, authorization and multiplayer acceptance
+        if: steps.plan.outputs.deploy == 'true'
         working-directory: backend-source
         env:
-          PWA_CACHE_VERSION: 'v84'
+          PWA_CACHE_VERSION: 'v85'
         run: |
           mkdir -p evidence
           node deploy/public-smoke.mjs https://www.gameai.xingzdh.com "$RUNNER_TEMP/acceptance.json" evidence/public-smoke.json
       - name: Public four-player countdown and reconnect acceptance
+        if: steps.plan.outputs.thirteen == 'true'
         working-directory: backend-source
         env:
           COCOS_CHROME: /usr/bin/google-chrome
@@ -99,6 +136,7 @@ jobs:
         run: |
           node tools/sim/thirteen/match-start-pwa-test.mjs https://www.gameai.xingzdh.com "$RUNNER_TEMP/acceptance.json" evidence/public-match-start
       - name: Public robot rooms, matchmaking, results and history
+        if: steps.plan.outputs.thirteen == 'true'
         working-directory: backend-source
         env:
           COCOS_CHROME: /usr/bin/google-chrome
@@ -107,25 +145,35 @@ jobs:
         run: |
           node tools/sim/thirteen/bots-pwa-test.mjs https://www.gameai.xingzdh.com "$RUNNER_TEMP/acceptance.json" evidence/public-bots
       - name: Public fresh-profile PWA, audio, cache and offline acceptance
+        if: steps.plan.outputs.thirteen_pwa == 'true'
         working-directory: backend-source
         env:
           COCOS_CHROME: /usr/bin/google-chrome
-          PWA_CACHE_VERSION: 'v84'
+          PWA_CACHE_VERSION: 'v85'
           # Existing cross-region startup exception: retain measured latency and failed 30s evidence;
           # Owner-approved performance exception does not waive functional/audio/offline acceptance.
           THIRTEEN_PWA_LOBBY_TIMEOUT_MS: '180000'
         run: |
           node tools/sim/thirteen/pwa-offline-test.mjs https://www.gameai.xingzdh.com/thirteen evidence/public-pwa-offline.png evidence/public-pwa.json
       - name: Public UMO shared-cache compatibility
+        if: steps.plan.outputs.umo_pwa == 'true'
         working-directory: backend-source
         env:
           COCOS_CHROME: /usr/bin/google-chrome
-          PWA_CACHE_VERSION: 'v84'
+          PWA_CACHE_VERSION: 'v85'
           UMO_PWA_MAIN_MENU_TIMEOUT_MS: '180000'
         run: |
           node tools/sim/umo/pwa-offline-test.mjs https://www.gameai.xingzdh.com/umo evidence/public-umo-pwa.png evidence/public-umo-pwa.json
+      - name: Public two-client voice RTC acceptance
+        if: steps.plan.outputs.voice == 'true'
+        working-directory: backend-source
+        env:
+          COCOS_CHROME: /usr/bin/google-chrome
+          VOICE_RTC_USERS_PATH: ${{ runner.temp }}/acceptance.json
+        run: |
+          node --experimental-strip-types tools/sim/voice/rtc-browser-test.mjs https://www.gameai.xingzdh.com evidence/public-voice-rtc
       - name: Clean temporary accounts
-        if: always()
+        if: always() && steps.switch.outcome == 'success'
         run: |
           ssh deploy@47.86.46.212 "if test -f /srv/gameai/.backend/acceptance-$GITHUB_RUN_ID.json; then /opt/node24/bin/node --env-file=/srv/gameai/.backend/.env /srv/gameai/.backend/current/deploy/test-accounts.mjs clean /srv/gameai/.backend/acceptance-$GITHUB_RUN_ID.json; fi"
           rm -f "$RUNNER_TEMP/acceptance.json"
@@ -134,6 +182,8 @@ jobs:
         with:
           name: production-acceptance-${{ github.sha }}
           path: |
+            frontend-source/evidence/acceptance-plan.json
+            backend-source/evidence/public-voice-rtc/
             backend-source/evidence/public-smoke.json
             backend-source/evidence/public-match-start/
             backend-source/evidence/public-bots/

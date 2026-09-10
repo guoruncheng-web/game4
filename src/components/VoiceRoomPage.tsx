@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import Avatar from './Avatar';
 import VoiceGameSheet from './VoiceGameSheet';
+import VoiceAudioPanel from './VoiceAudioPanel';
 import { ClubBrand, ClubIcon, cardStyle } from './ClubArt';
 import { useAuth } from './AuthProvider';
 import { apiFetch, withGameCredentials } from '@/lib/api-client';
@@ -28,6 +29,8 @@ export default function VoiceRoomPage({ roomId }: { roomId: string }) {
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const [releasingMic, setReleasingMic] = useState(false);
   const [sheet, setSheet] = useState<Sheet>(null);
   const [selected, setSelected] = useState<VoiceMember | null>(null);
   const [leaveOpen, setLeaveOpen] = useState(false);
@@ -60,6 +63,7 @@ export default function VoiceRoomPage({ roomId }: { roomId: string }) {
 
   async function updateMic(action: 'request' | 'release') {
     if (busy) return;
+    if (action === 'release') setReleasingMic(true);
     setBusy(true);
     try {
       const data = await voiceRequest<{ state: string; room: VoiceRoom }>(`/rooms/${roomId}/mic-request`, {
@@ -69,7 +73,7 @@ export default function VoiceRoomPage({ roomId }: { roomId: string }) {
       setError(data.state === 'pending' ? '上麦申请已提交，等待房主或管理员批准' : '');
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '操作失败');
-    } finally { setBusy(false); }
+    } finally { setBusy(false); setReleasingMic(false); }
   }
 
   async function sendMessage(event: FormEvent) {
@@ -88,12 +92,14 @@ export default function VoiceRoomPage({ roomId }: { roomId: string }) {
 
   async function leave() {
     if (busy) return;
+    setLeaving(true);
     setBusy(true);
     try {
       await voiceRequest(`/rooms/${roomId}/leave`, { method: 'POST' });
       router.replace(withGameCredentials('/?tab=voice', credentials));
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : '离开房间失败');
+      setLeaving(false);
       setBusy(false);
     }
   }
@@ -115,8 +121,10 @@ export default function VoiceRoomPage({ roomId }: { roomId: string }) {
         <div><b>{room.title}</b><small>{room.visibility === 'friends' ? '好友房' : '私密房'}{room.roomCode ? ` · ${room.roomCode}` : ''}</small></div>
         <button type="button" aria-label="房间操作" onClick={() => manages ? setSheet('manage') : setLeaveOpen(true)}>•••</button>
       </header>
-      <div className="voice-room-status" aria-label="房间状态"><span><i aria-hidden="true" />{room.members.length}/{room.maxMembers} 人在线</span><span className={`voice-connection ${connectionLost ? 'is-lost' : ''}`}><i aria-hidden="true" />{connectionLost ? '房间连接中断' : '语音尚未连接'}</span></div>
+      <div className="voice-room-status" aria-label="房间状态"><span><i aria-hidden="true" />{room.members.length}/{room.maxMembers} 人在线</span><span className={`voice-connection ${connectionLost ? 'is-lost' : ''}`}><i aria-hidden="true" />{connectionLost ? '房间连接中断' : '房间已连接'}</span></div>
       {connectionLost && <div className="voice-error" role="alert"><span>连接中断，正在尝试恢复</span><button type="button" onClick={() => void refresh()}>重新连接</button></div>}
+
+      <VoiceAudioPanel room={room} roomId={roomId} uid={credentials?.uid} healthy={!connectionLost && !leaving} microphoneBlocked={releasingMic} />
 
       {room.gameSlug && <button type="button" onClick={() => setSheet('games')} className="voice-game-banner"><span className="voice-game-thumbnail" style={cardStyle(room.gameSlug)} /><span><b>{voiceGameTitle(room.gameSlug)}</b><small>和房间好友一起玩</small></span><em>查看游戏 ›</em></button>}
 

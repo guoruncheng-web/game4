@@ -19,3 +19,17 @@ To release backend changes, push its private commit first, update `backend-revis
 `thirteen-bots.enabled` enables quick/private bot entry points through `bot-release-env.mjs`; only those two production env keys change. v4 room snapshots are forward-only relative to v69. For a bot-capable release, `backend.compatible` records the compatible backend in the rollback directory. Automatic/manual rollback restores the previous frontend but retains that compatible backend with both bot entry points disabled, allowing active rooms to finish. It does **not** downgrade the backend binary or restore stale room/database data. Backend failures require a compatible forward fix. The old frontend does not advertise bots and uses human-only rooms.
 
 Actions additionally verifies real authenticated browser bot management, human replacement, 15-second matching, full mixed games, reconnect/rematch/history and v70 PWA offline/audio. The existing cross-region cold-start performance exception remains a recorded risk, not a performance pass.
+
+## 按改动范围验收（2026-09-10）
+
+`acceptance-plan.mjs` 比较服务器真实的 `frontend.current` 和 `.backend/current` 与两个候选 HEAD，保存完整路径列表、基线和选择理由到 `acceptance-plan.json`。不能使用 HEAD 的父提交作为生产基线，否则失败/取消发布后的累积改动会漏测。切换前再次检查两份生产 SHA；变化时终止当前候选。
+
+- 仅文档、设计稿和证据变化：不构建、不切换。
+- 语聊页面、RTC SDK 的纯新增依赖、voice Nest 服务变化：基础鉴权/健康 + 双端 RTC。
+- 十三张资源/规则/宿主变化：基础检查 + 十三张四人开场、机器人和 PWA。
+- UMO 资源/宿主变化：基础检查 + UMO PWA。
+- SW 行为或公共布局变化：增加两个游戏的 PWA 检查；只有缓存版本数字变化，不额外触发无关游戏长测，版本仍由公网 smoke 核对。
+- 账号/网关、已有框架依赖及解析变化、未知运行文件或无法解析的历史基线：全套。新增 SDK 的锁文件只有在既有包/快照与 importer 均不变时才可缩小范围。
+- 手动 workflow_dispatch 可勾选 `full_acceptance` 强制全套。
+
+部署互斥、候选独立构建、磁盘保留规则、凭据管理、基础公网鉴权/联机接口检查、测试账号清理和失败自动回滚不变。未选中的测试不计为“本次通过”。语聊验收使用平台临时账号、真实声网和合成音源；源码与公网路径共用同一脚本。
