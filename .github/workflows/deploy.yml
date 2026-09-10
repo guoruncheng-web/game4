@@ -1,48 +1,14 @@
-name: deploy
+name: voice-release-diagnostic
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
-concurrency:
-  group: deploy-production
-  cancel-in-progress: false
 jobs:
-  deploy:
+  diagnostic:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-        with:
-          path: frontend-source
-      - name: Read pinned backend revision
-        id: revision
-        run: |
-          revision=$(cat frontend-source/deploy/backend-revision.txt)
-          [[ "$revision" =~ ^[a-f0-9]{40}$ ]]
-          echo "backend=$revision" >> "$GITHUB_OUTPUT"
-      - uses: actions/checkout@v4
-        with:
-          repository: guoruncheng-web/game-studio-backend
-          ref: ${{ steps.revision.outputs.backend }}
-          ssh-key: ${{ secrets.BACKEND_READ_KEY }}
-          persist-credentials: false
-          path: backend-source
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Validate and build independent Nest services
-        working-directory: backend-source
-        run: |
-          npm ci --ignore-scripts
-          npm run lint
-          npm test
-          npm run test:thirteen
-          FRONTEND_SOURCE=../frontend-source node --test test/deploy/*.test.mjs
-          npm run build:all
-          npm prune --omit=dev --ignore-scripts
-      - name: Prepare production SSH
+      - name: Read-only production diagnostics
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
@@ -50,99 +16,4 @@ jobs:
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H 47.86.46.212 >> ~/.ssh/known_hosts 2>/dev/null
-      - name: Reclaim inactive release storage
-        env:
-          BACKEND_SHA: ${{ steps.revision.outputs.backend }}
-        run: |
-          ssh deploy@47.86.46.212 bash -s -- /srv/gameai "$GITHUB_SHA" "$BACKEND_SHA" < frontend-source/deploy/reclaim-release-storage.sh
-      - name: Stage immutable release directories
-        env:
-          BACKEND_SHA: ${{ steps.revision.outputs.backend }}
-        run: |
-          ssh deploy@47.86.46.212 "mkdir -p /srv/gameai/.releases/$GITHUB_SHA /srv/gameai/.backend/releases/$BACKEND_SHA"
-          rsync -az --exclude=.git --exclude=node_modules --exclude=.next --exclude=.env.local frontend-source/ "deploy@47.86.46.212:/srv/gameai/.releases/$GITHUB_SHA/"
-          rsync -az --exclude=.git --exclude=.env --exclude=evidence backend-source/ "deploy@47.86.46.212:/srv/gameai/.backend/releases/$BACKEND_SHA/"
-      - name: Provision production Agora configuration
-        env:
-          BACKEND_SHA: ${{ steps.revision.outputs.backend }}
-          AGORA_APP_ID: ${{ secrets.AGORA_APP_ID }}
-          AGORA_APP_CERTIFICATE: ${{ secrets.AGORA_APP_CERTIFICATE }}
-        run: |
-          [[ "$AGORA_APP_ID" =~ ^[0-9a-fA-F]{32}$ ]]
-          [[ "$AGORA_APP_CERTIFICATE" =~ ^[0-9a-fA-F]{32}$ ]]
-          printf '%s\n%s\n' "$AGORA_APP_ID" "$AGORA_APP_CERTIFICATE" | ssh deploy@47.86.46.212 "/opt/node24/bin/node /srv/gameai/.backend/releases/$BACKEND_SHA/deploy/provision-agora-env.mjs /srv/gameai"
-      - name: Build candidate and switch services with rollback
-        id: switch
-        env:
-          BACKEND_SHA: ${{ steps.revision.outputs.backend }}
-        run: |
-          ssh deploy@47.86.46.212 bash "/srv/gameai/.releases/$GITHUB_SHA/deploy/nest-release.sh" "$GITHUB_SHA" "$BACKEND_SHA"
-      - name: Create temporary acceptance accounts
-        run: |
-          ssh deploy@47.86.46.212 "/opt/node24/bin/node --env-file=/srv/gameai/.backend/.env /srv/gameai/.backend/current/deploy/test-accounts.mjs seed /srv/gameai/.backend/acceptance-$GITHUB_RUN_ID.json"
-          umask 077
-          scp "deploy@47.86.46.212:/srv/gameai/.backend/acceptance-$GITHUB_RUN_ID.json" "$RUNNER_TEMP/acceptance.json"
-      - name: Public login, authorization and multiplayer acceptance
-        working-directory: backend-source
-        env:
-          PWA_CACHE_VERSION: 'v82'
-        run: |
-          mkdir -p evidence
-          node deploy/public-smoke.mjs https://www.gameai.xingzdh.com "$RUNNER_TEMP/acceptance.json" evidence/public-smoke.json
-      - name: Public four-player countdown and reconnect acceptance
-        working-directory: backend-source
-        env:
-          COCOS_CHROME: /usr/bin/google-chrome
-          THIRTEEN_PWA_LOBBY_TIMEOUT_MS: '180000'
-          # Retain preparation timing; a longer functional timeout is not a performance pass.
-          THIRTEEN_PWA_PREPARATION_TIMEOUT_MS: '240000'
-        run: |
-          node tools/sim/thirteen/match-start-pwa-test.mjs https://www.gameai.xingzdh.com "$RUNNER_TEMP/acceptance.json" evidence/public-match-start
-      - name: Public robot rooms, matchmaking, results and history
-        working-directory: backend-source
-        env:
-          COCOS_CHROME: /usr/bin/google-chrome
-          THIRTEEN_PWA_LOBBY_TIMEOUT_MS: '180000'
-          THIRTEEN_PWA_PREPARATION_TIMEOUT_MS: '240000'
-        run: |
-          node tools/sim/thirteen/bots-pwa-test.mjs https://www.gameai.xingzdh.com "$RUNNER_TEMP/acceptance.json" evidence/public-bots
-      - name: Public fresh-profile PWA, audio, cache and offline acceptance
-        working-directory: backend-source
-        env:
-          COCOS_CHROME: /usr/bin/google-chrome
-          PWA_CACHE_VERSION: 'v82'
-          # Existing cross-region startup exception: retain measured latency and failed 30s evidence;
-          # Owner-approved performance exception does not waive functional/audio/offline acceptance.
-          THIRTEEN_PWA_LOBBY_TIMEOUT_MS: '180000'
-        run: |
-          node tools/sim/thirteen/pwa-offline-test.mjs https://www.gameai.xingzdh.com/thirteen evidence/public-pwa-offline.png evidence/public-pwa.json
-      - name: Public UMO shared-cache compatibility
-        working-directory: backend-source
-        env:
-          COCOS_CHROME: /usr/bin/google-chrome
-          PWA_CACHE_VERSION: 'v82'
-          UMO_PWA_MAIN_MENU_TIMEOUT_MS: '180000'
-        run: |
-          node tools/sim/umo/pwa-offline-test.mjs https://www.gameai.xingzdh.com/umo evidence/public-umo-pwa.png evidence/public-umo-pwa.json
-      - name: Clean temporary accounts
-        if: always()
-        run: |
-          ssh deploy@47.86.46.212 "if test -f /srv/gameai/.backend/acceptance-$GITHUB_RUN_ID.json; then /opt/node24/bin/node --env-file=/srv/gameai/.backend/.env /srv/gameai/.backend/current/deploy/test-accounts.mjs clean /srv/gameai/.backend/acceptance-$GITHUB_RUN_ID.json; fi"
-          rm -f "$RUNNER_TEMP/acceptance.json"
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: production-acceptance-${{ github.sha }}
-          path: |
-            backend-source/evidence/public-smoke.json
-            backend-source/evidence/public-match-start/
-            backend-source/evidence/public-bots/
-            backend-source/evidence/public-pwa.json
-            backend-source/evidence/public-pwa-offline.png
-            backend-source/evidence/public-umo-pwa.json
-            backend-source/evidence/public-umo-pwa.png
-          if-no-files-found: ignore
-      - name: Restore previous release if public acceptance fails
-        if: failure() && steps.switch.outcome == 'success'
-        run: |
-          ssh deploy@47.86.46.212 bash "/srv/gameai/.releases/$GITHUB_SHA/deploy/nest-rollback.sh" "$GITHUB_SHA"
+          ssh -o ConnectTimeout=10 deploy@47.86.46.212 'date -u; uptime; df -Pk /srv/gameai; free -m; ps -eo pid,ppid,etime,pcpu,pmem,comm --sort=-pcpu | head -20; cat /srv/gameai/.backend/frontend.current; ls -l /srv/gameai/.releases/821bf7db4cf264f0d63175724b255f5fa0bbd430/.next/BUILD_ID /srv/gameai/.releases/821bf7db4cf264f0d63175724b255f5fa0bbd430/.next/build-manifest.json 2>/dev/null || true'
