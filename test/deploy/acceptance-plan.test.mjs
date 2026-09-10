@@ -58,3 +58,9 @@ test('additive lock snapshots include pnpm inline empty dependency blocks',()=>{
  assert.equal(additiveRtcLock(before,after.replace('resolution: x','resolution: x\n    deprecated: Registry notice')),true);
  assert.equal(additiveRtcLock(before,after.replace('existing@1: {}','existing@1:\n    dependencies: changed')),false);
 });
+
+test('shared page styles retain PWA and RTC checks without game-rule suites',()=>{
+ const p=classifyPaths(['src/app/pwa-v5.css','src/app/globals.css','src/app/layout.tsx']);
+ assert.ok(p.deploy && p.thirteen_pwa && p.umo_pwa && p.voice);
+ assert.equal(p.thirteen,false);
+});

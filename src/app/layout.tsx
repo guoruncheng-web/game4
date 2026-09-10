@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     // iOS 只认这套私有 meta:没有它,从主屏启动仍然会带 Safari 的地址栏
     capable: true,
     title: "GAME BOX",
-    // 让天空背景延伸到 iOS PWA 状态栏下方；交互 HUD 在 CSS 中单独避让安全区。
+    // 让页面背景延伸到 iOS PWA 状态栏下方；交互 HUD 在 CSS 中单独避让安全区。
     statusBarStyle: "black-translucent",
   },
   icons: {
@@ -59,7 +59,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="zh-CN"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#62c9ee]">
+      <body className="min-h-full flex flex-col">
         {/* 登录状态全站一份:头部按钮和首页卡片都要看它,各自 fetch 会互相打架 */}
         <AuthProvider>
           {/* 联机连接挂在全站:邀请必须在任何页面都能收到,包括首页 */}

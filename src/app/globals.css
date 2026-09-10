@@ -3,7 +3,7 @@
 @source not "../../public/thirteen/game/**";
 
 :root {
-  --background: #6ed8f7;
+  --background: #fff5f7;
   --foreground: #173366;
   --world-navy: #173366;
   --world-blue: #4aa9ec;
@@ -28,7 +28,7 @@ html {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  background: #62c9ee;
+  background: var(--background);
 }
 
 body {

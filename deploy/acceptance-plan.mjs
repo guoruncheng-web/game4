@@ -59,7 +59,7 @@ export function classify({frontendPaths,backendPaths,readFrontend,forceFull=fals
   else if(p==='patches/agora-rtc-sdk-ng@4.24.8.patch')mark('rtc-sdk-patch','voice');
   else if(p==='package.json'&&rtcOnlyPackage)mark('rtc-sdk-dependency','voice');
   else if(p==='pnpm-lock.yaml'&&rtcOnlyPackage&&additiveRtcLock(readFrontend(p,true),readFrontend(p,false)))mark('additive-rtc-lock','voice');
-  else if(/^src\/app\/(layout\.tsx|globals\.css)|^src\/components\/PwaProvider\.tsx$/.test(p))mark('shared-shell:'+p,'thirteen_pwa','umo_pwa','voice');
+  else if(/^src\/app\/(layout\.tsx|globals\.css|pwa-v5\.css)|^src\/components\/PwaProvider\.tsx$/.test(p))mark('shared-shell:'+p,'thirteen_pwa','umo_pwa','voice');
   else if(p==='.github/workflows/deploy.yml'||p==='deploy/acceptance-plan.mjs'||/^test\/deploy\//.test(p))mark('deployment-planner:'+p);
   else full('shared-or-unclassified-frontend:'+p);
  }

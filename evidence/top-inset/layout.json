@@ -1,0 +1,104 @@
+{
+  "environment": "Chrome CDP safe-area emulation; not iOS system status bar",
+  "results": [
+    {
+      "top": 0,
+      "path": "/",
+      "rootBackground": "rgb(255, 245, 247) url(\"http://localhost:3339/assets/game-box/v5/cloud-header.webp\") no-repeat scroll 100% 0px / auto 84px padding-box border-box",
+      "bodyBackground": "rgb(255, 245, 247)",
+      "hero": {
+        "x": 0,
+        "y": 0,
+        "width": 393,
+        "height": 88,
+        "top": 0,
+        "right": 393,
+        "bottom": 88,
+        "left": 0
+      },
+      "player": {
+        "x": 16,
+        "y": 8,
+        "width": 361,
+        "height": 72,
+        "top": 8,
+        "right": 377,
+        "bottom": 80,
+        "left": 16
+      },
+      "viewport": "width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover"
+    },
+    {
+      "top": 59,
+      "path": "/",
+      "rootBackground": "rgb(255, 245, 247) url(\"http://localhost:3339/assets/game-box/v5/cloud-header.webp\") no-repeat scroll 100% 0px / auto 143px padding-box border-box",
+      "bodyBackground": "rgb(255, 245, 247)",
+      "hero": {
+        "x": 0,
+        "y": 0,
+        "width": 393,
+        "height": 147,
+        "top": 0,
+        "right": 393,
+        "bottom": 147,
+        "left": 0
+      },
+      "player": {
+        "x": 16,
+        "y": 67,
+        "width": 361,
+        "height": 72,
+        "top": 67,
+        "right": 377,
+        "bottom": 139,
+        "left": 16
+      },
+      "viewport": "width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover"
+    },
+    {
+      "tab": "语聊",
+      "path": "/",
+      "bodyTop": 0,
+      "main": {
+        "x": 0,
+        "y": 0,
+        "width": 393,
+        "height": 852,
+        "top": 0,
+        "right": 393,
+        "bottom": 852,
+        "left": 0
+      }
+    },
+    {
+      "tab": "消息",
+      "path": "/",
+      "bodyTop": 0,
+      "main": {
+        "x": 0,
+        "y": 0,
+        "width": 393,
+        "height": 852,
+        "top": 0,
+        "right": 393,
+        "bottom": 852,
+        "left": 0
+      }
+    },
+    {
+      "tab": "我的",
+      "path": "/",
+      "bodyTop": 0,
+      "main": {
+        "x": 0,
+        "y": 0,
+        "width": 393,
+        "height": 852,
+        "top": 0,
+        "right": 393,
+        "bottom": 852,
+        "left": 0
+      }
+    }
+  ]
+}

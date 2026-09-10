@@ -363,7 +363,7 @@
 .gb-auth-form-page .gb-auth-captcha-input { letter-spacing: normal; text-transform: none; }
 
 /* 01 首页的首屏密度：一张主卡、三排双列卡和固定导航。更多游戏向下滚动。 */
-.gb-tab-games .gb-hero { min-height: 100px; padding: calc(22px + env(safe-area-inset-top, 0px)) 16px 10px; }
+.gb-tab-games .gb-hero { min-height: calc(84px + env(safe-area-inset-top, 0px)); padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 8px; }
 .gb-tab-games .gb-surface { padding-inline: 13px; }
 .gb-shortcuts { gap: 8px; padding: 4px 0 6px; }
 .gb-shortcuts button { min-height: 68px; gap: 2px; align-content: center; }
@@ -381,7 +381,7 @@
 .gb-bottom-nav { border-radius: 15px 15px 0 0; padding-top: 3px; padding-bottom: calc(5px + env(safe-area-inset-bottom, 0px)); }
 
 .gb-tab-games .gb-hero { background-size: cover; }
-.gb-tab-games .gb-hero::after { position: absolute; inset: 0; content: ''; background: url('/assets/game-box/v5/pwa-main-reference-atlas.png') 7.319392% 3.71134% / 351.674641% 1070%; clip-path: inset(0 0 0 52%); pointer-events: none; }
+.gb-tab-games .gb-hero::after { position: absolute; inset: env(safe-area-inset-top, 0px) 0 0; content: ''; background: url('/assets/game-box/v5/pwa-main-reference-atlas.png') 7.319392% 3.71134% / 351.674641% 1070%; clip-path: inset(0 0 0 52%); pointer-events: none; }
 .gb-player-header { z-index: 1; }
 .gb-tab-messages .gb-hero { min-height: 0; height: auto; padding: 0; aspect-ratio: 418 / 105; background: url('/assets/game-box/v5/pwa-main-reference-atlas.png') 92.680608% 3.73057% / 351.674641% 1019.047619%; }
 .gb-tab-messages .gb-hero::before { display: none; }
@@ -517,3 +517,8 @@ body:has(.gb-conversation-open, .gb-profile-editor-page, .gb-profile-password-pa
 .gb-install-prompt > button:last-child { border-radius: 24px; background: linear-gradient(#ff7581, #ff5068); box-shadow: none; }
 /* 右侧原稿装饰与底图柔和衔接，避免人物信息区旁出现直线接缝。 */
 .gb-profile-player-identity::before { clip-path: none; mask-image: linear-gradient(to right, transparent 56%, #000 72%); }
+
+/* 状态栏延续页面头图；安全区只由头部内容避让，不额外撑开根容器。 */
+html:has(.gb-app) {
+  background: #fff5f7 url('/assets/game-box/v5/cloud-header.webp') right top / auto calc(84px + env(safe-area-inset-top, 0px)) no-repeat;
+}
