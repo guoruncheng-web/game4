@@ -7,3 +7,5 @@
 缓存 v86。共享样式选择基础鉴权、Thirteen/UMO PWA 音频离线与 RTC 验收；游戏权威规则长测不在本次 CSS 影响范围内。生产结果以本次 Actions 为准。
 
 顶部修复生产提交 52b69ff9f3b97d4f9779c12e020451f1f219ce6b，Actions 34491260325 全部所选检查成功：https://github.com/guoruncheng-web/game4/actions/runs/34491260325 。
+
+用户真机反馈 v86 背景仍未延伸到状态栏。随后核对公网原始 HTML：Next 配置 appleWebApp.capable=true 只生成 mobile-web-app-capable=yes，没有 apple-mobile-web-app-capable=yes。v88 用 metadata.other 显式补入 Apple 兼容标签。Apple 文档说明状态栏样式以前述全屏配置为前置：https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html 。这说明配置有缺项，但不能据此认定全部 iOS 版本都已修复；WebKit 也有 iOS 26.1+ 状态栏覆盖回归记录 https://bugs.webkit.org/show_bug.cgi?id=301994 。最终沉浸效果仍等待用户设备/iOS 版本确认，不把 Chrome safe-area 模拟算作 iOS 实测。

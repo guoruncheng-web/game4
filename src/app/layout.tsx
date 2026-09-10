@@ -36,6 +36,8 @@ export const metadata: Metadata = {
     // 让页面背景延伸到 iOS PWA 状态栏下方；交互 HUD 在 CSS 中单独避让安全区。
     statusBarStyle: "black-translucent",
   },
+  // 当前 Next 只自动输出通用 mobile-web-app-capable；保留 iOS 状态栏所需兼容标签。
+  other: { "apple-mobile-web-app-capable": "yes" },
   icons: {
     icon: [
       { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
