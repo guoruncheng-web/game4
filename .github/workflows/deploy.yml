@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Read-only production diagnostics
+      - name: Stop verified cancelled candidate build
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
         run: |
@@ -16,4 +16,48 @@ jobs:
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H 47.86.46.212 >> ~/.ssh/known_hosts 2>/dev/null
-          ssh -o ConnectTimeout=10 deploy@47.86.46.212 'ps -eo pid,ppid,etime,args | grep -E "nest-release.sh|next build|next/dist/build|pnpm build" | grep -v grep; cat /srv/gameai/.backend/frontend.current'
+          ssh -o ConnectTimeout=10 deploy@47.86.46.212 python3 - <<'PYREMOTE'
+          import os, signal, time
+          from pathlib import Path
+          sha = "821bf7db4cf264f0d63175724b255f5fa0bbd430"
+          base = "/srv/gameai/.releases/" + sha
+          expected = ["bash", base + "/deploy/nest-release.sh", sha, "7fa2523361af748fda43425239114d3ebbce0f52"]
+          def snapshot():
+              out = {}
+              for p in Path("/proc").iterdir():
+                  if not p.name.isdigit(): continue
+                  try:
+                      stat = (p / "stat").read_text().rsplit(")", 1)[1].split()
+                      cmd = (p / "cmdline").read_bytes().decode().strip("\0").split("\0")
+                      out[int(p.name)] = (int(stat[1]), stat[19], cmd)
+                  except (OSError, UnicodeError): pass
+              return out
+          state = snapshot()
+          roots = [pid for pid, item in state.items() if item[2] == expected]
+          assert len(roots) <= 1, "Ambiguous candidate process"
+          assert Path("/srv/gameai/.backend/frontend.current").read_text().strip() == "d45a7fd70427cd85c6c640d16675589b3c45841e", "Production changed; stop cleanup"
+          if roots:
+              root = roots[0]
+              os.kill(root, signal.SIGSTOP)
+              state = snapshot()
+              targets = {root}
+              while True:
+                  more = {pid for pid, item in state.items() if item[0] in targets}
+                  if more <= targets: break
+                  targets |= more
+              assert any(item[2][-1:] == ["build"] for pid, item in state.items() if pid in targets), "No candidate build child"
+              os.kill(root, signal.SIGKILL)
+              for pid in targets - {root}:
+                  try: os.kill(pid, signal.SIGTERM)
+                  except ProcessLookupError: pass
+              time.sleep(3)
+              current = snapshot()
+              for pid in targets - {root}:
+                  if pid in current and current[pid][1] == state[pid][1]:
+                      try: os.kill(pid, signal.SIGKILL)
+                      except ProcessLookupError: pass
+              print("Stopped verified cancelled build process IDs:", sorted(targets))
+          else:
+              print("Cancelled candidate process already absent")
+          print("Production frontend:", Path("/srv/gameai/.backend/frontend.current").read_text().strip())
+          PYREMOTE
