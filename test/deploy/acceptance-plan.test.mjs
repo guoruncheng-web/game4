@@ -50,3 +50,10 @@ test('only the pinned RTC patch stays voice-scoped; unrelated dependency patches
  assert.equal(additiveRtcLock(oldLock,patchedLock),true);
  assert.equal(additiveRtcLock(oldLock,patchedLock.replace('agora-rtc-sdk-ng@4.24.8:','next@16.3.0:')),false);
 });
+
+test('additive lock snapshots include pnpm inline empty dependency blocks',()=>{
+ const before=oldLock+'\n  existing@1: {}\n';
+ const after=before+'\n  added@1: {}\n';
+ assert.equal(additiveRtcLock(before,after),true);
+ assert.equal(additiveRtcLock(before,after.replace('existing@1: {}','existing@1:\n    dependencies: changed')),false);
+});

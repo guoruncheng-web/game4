@@ -29,7 +29,7 @@ export function additiveRtcLock(before, after) {
   for(const line of text.split('\n')) {
    if(/^(packages|snapshots):$/.test(line)){flush();key=null;section=line;continue;}
    if(!section)continue;
-   if(/^  \S.*:$/.test(line)){flush();key=line;lines=[];}else if(key)lines.push(line);
+   if(/^  \S.*:(?: \{\})?$/.test(line)){flush();key=line;lines=[];}else if(key)lines.push(line);
   }
   flush();return {header,blocks};
  }
