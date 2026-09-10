@@ -1,0 +1,24 @@
+{
+  "kind": "four-authenticated-PWA-Cocos-clients",
+  "base": "https://www.gameai.xingzdh.com",
+  "startupTimeout": 180000,
+  "preparationTimeout": 240000,
+  "pollInterval": 35,
+  "lobbyReadyMs": [],
+  "preparationSamples": [],
+  "assertions": {},
+  "samples": [],
+  "errors": [],
+  "passed": false,
+  "error": "Error: timeout authenticated lobby 0",
+  "failureStates": [
+    {
+      "index": 0,
+      "scene": "R01Loading",
+      "loading": null,
+      "status": "idle",
+      "preparation": null,
+      "matchStart": null
+    }
+  ]
+}
