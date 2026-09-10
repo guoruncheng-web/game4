@@ -19,3 +19,22 @@ test('SDK publish cleanup awaits the rejected async generator and preserves the 
  assert.equal(cleaned,true);
  await new Promise(resolve=>setImmediate(resolve));
 });
+
+test('SDK nested media publishers await cleanup before rethrowing the publish error', async () => {
+ const patch=readFileSync(new URL('../../patches/agora-rtc-sdk-ng@4.24.8.patch',import.meta.url),'utf8');
+ const source=patch.split('\n').find(line=>line.startsWith('+')&&line.includes('async _publishHighStream('));
+ const statements=source.match(/throw\(yield Gw\([rs]\.throw\(e\)\.catch\(\(\)=>\{\}\)\)\),/g);
+ assert.equal(statements?.length,2);
+ const GeneratorFunction=Object.getPrototypeOf(function*(){}).constructor;
+ for(const statement of statements){
+  let cleaned=false;const original=Object.assign(Error('publish interrupted'),{code:'WS_ABORT'});
+  async function* nested(){try{yield 'offer';}finally{await Promise.resolve();cleaned=true;}}
+  const iterator=nested();await iterator.next();
+  const execute=new GeneratorFunction('r','s','e','Gw',statement+'e');
+  const running=execute(iterator,iterator,original,p=>p);
+  await running.next().value;
+  assert.equal(cleaned,true);
+  assert.throws(()=>running.next(),error=>error===original);
+ }
+ await new Promise(resolve=>setImmediate(resolve));
+});

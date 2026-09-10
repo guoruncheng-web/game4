@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   agora-rtc-sdk-ng@4.24.8:
-    hash: bgqkau4yz5sidsz6t3mmjxizkq
+    hash: vn3hp7gpdrwmadn2xz22epjbdi
     path: patches/agora-rtc-sdk-ng@4.24.8.patch
 
 importers:
@@ -18,7 +18,7 @@ importers:
         version: 0.20.0
       agora-rtc-sdk-ng:
         specifier: 4.24.8
-        version: 4.24.8(patch_hash=bgqkau4yz5sidsz6t3mmjxizkq)
+        version: 4.24.8(patch_hash=vn3hp7gpdrwmadn2xz22epjbdi)
       lucide-react:
         specifier: ^1.31.0
         version: 1.31.0(react@19.2.8)
@@ -2912,7 +2912,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  agora-rtc-sdk-ng@4.24.8(patch_hash=bgqkau4yz5sidsz6t3mmjxizkq):
+  agora-rtc-sdk-ng@4.24.8(patch_hash=vn3hp7gpdrwmadn2xz22epjbdi):
     dependencies:
       '@agora-js/media': 4.24.8
       '@agora-js/protocol': 4.24.8
