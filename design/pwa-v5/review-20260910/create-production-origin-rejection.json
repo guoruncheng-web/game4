@@ -1,0 +1,9 @@
+{
+  "origin": "http://localhost:3314",
+  "request": {
+    "title": "PWA页面复核0910",
+    "visibility": "friends",
+    "requiresMicApproval": true
+  },
+  "result": "Forbidden; custom preview origin is not yet verified against gateway policy"
+}

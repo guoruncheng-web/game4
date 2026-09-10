@@ -3,6 +3,10 @@ import { fileURLToPath } from "node:url";
 
 const nextConfig: NextConfig = {
   distDir: process.env.NEXT_DIST_DIR || ".next",
+  experimental: {
+    // 共享盘上持久缓存已出现 SST 缺失/越界；dev 仅保留内存缓存。
+    turbopackFileSystemCacheForDev: false,
+  },
   turbopack: {
     // **必须显式指定,不能让 Turbopack 自己往上找。**
     // 它靠向上搜索 lockfile 来推断项目根,而开发机的家目录里可能躺着无关的

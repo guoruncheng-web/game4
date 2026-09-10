@@ -1,0 +1,86 @@
+[
+  {
+    "scene": "13-mic-request-result",
+    "path": "/voice/5510298d-e470-48d6-9418-364ba58c9bb3",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "test": "mic-release",
+    "passed": true
+  },
+  {
+    "scene": "03-profile",
+    "path": "/",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "14-avatar",
+    "path": "/",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "15-avatar-preview",
+    "path": "/",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "16-avatar-saved",
+    "path": "/",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "test": "avatar-upload-and-restore",
+    "passed": true
+  },
+  {
+    "scene": "17-change-password",
+    "path": "/",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "18-player-search",
+    "path": "/",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "19-admin-no-access",
+    "path": "/admin",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "20-offline-page",
+    "path": "/offline",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "21-login",
+    "path": "/auth",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "22-uid-login-success",
+    "path": "/",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "test": "uid-login",
+    "passed": true
+  },
+  {
+    "scene": "01-home",
+    "path": "/",
+    "width": 393,
+    "scrollWidth": 393
+  }
+]

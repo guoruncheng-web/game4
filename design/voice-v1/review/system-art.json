@@ -1,0 +1,7 @@
+{
+  "file": "public/assets/game-box/v5/system-scenes-v1.webp",
+  "source": "/home/gary/.codex/generated_images/01a089ad-1534-7c92-a4ae-67287d48989b/exec-1f88bfb0-c7e0-4629-b303-71a2d7584462.png",
+  "purpose": "2x2独立装饰图集：无权限、离线、加载、聊天爱心吉祥物；没有UI或动态文字",
+  "method": "built-in imagegen",
+  "prompt": "Edit targets are approved GAME BOX PWA mockups. Produce a 2 by 2 atlas of ONLY decorative artwork extracted from these mockups, no UI frames or text anywhere. Top-left: from image 1 screen14, the large gold padlock and small green cube headphones mascot on pastel cloud background. Top-right: from image 2 screen12, sad green cube with headphones holding black controller, grey wifi symbol and coral disconnect cross, pastel clouds. Bottom-left: from image1 screen15, friendly pink joystick console with colored buttons and small floating green headphones cube, pastel clouds. Bottom-right: from image2 screen07, the green headphones cube holding a pink heart, with floating small hearts and pink clouds. Preserve original characters poses materials color palette, do not redesign. Each equal square tile fills exactly one quadrant, without margins gutters labels or outlines. All four backgrounds light pastel fading white at bottom for independent use above real live UI. No words letters numbers controls buttons HUD or phone frames."
+}

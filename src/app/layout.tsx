@@ -5,6 +5,10 @@ import CoopProvider from "@/components/CoopProvider";
 import PwaProvider from "@/components/PwaProvider";
 import FriendRequestBanner from "@/components/FriendRequestBanner";
 import "./globals.css";
+import "./pwa-v5.css";
+import "./voice-layout.css";
+import "./voice-reference.css";
+import "./auth-v2.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +29,8 @@ export const metadata: Metadata = {
     // iOS 只认这套私有 meta:没有它,从主屏启动仍然会带 Safari 的地址栏
     capable: true,
     title: "GAME BOX",
-    statusBarStyle: "default",
+    // 让天空背景延伸到 iOS PWA 状态栏下方；交互 HUD 在 CSS 中单独避让安全区。
+    statusBarStyle: "black-translucent",
   },
   icons: {
     icon: [
@@ -37,7 +42,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#62c9ee",
+  themeColor: "#fff5f7",
   // 装到桌面后是全屏窗口,刘海区域要自己接管
   viewportFit: "cover",
   // 游戏靠触屏操作,双指缩放只会误触

@@ -1,0 +1,93 @@
+[
+  {
+    "file": "cloud-header.webp",
+    "size": [
+      2172,
+      724
+    ],
+    "purpose": "纯装饰头图，无文字和控件",
+    "generator": "built-in image_gen",
+    "source": "exec-70fc18a1-c27a-4c4f-8b67-189121c4bb07.png",
+    "sha256": "317cccc0523c6965c48f2f4b0c86b893f81e8b3847d8d2160ab63ba96fc6b188"
+  },
+  {
+    "file": "toy-icons.webp",
+    "size": [
+      1254,
+      1254
+    ],
+    "purpose": "4x4 白底图标 atlas；导航和功能图标",
+    "generator": "built-in image_gen",
+    "source": "exec-5e54853d-46f0-4069-aeff-223df8196faf.png",
+    "sha256": "1875ec709cf5a7c4995234233e7033a6cbf4e0c8ddea47ce3df74f1f47fa8f8b"
+  },
+  {
+    "file": "game-cards.webp",
+    "size": [
+      1254,
+      1254
+    ],
+    "purpose": "2x5 无文案卡片 atlas；游戏入口独立 DOM 标题",
+    "generator": "built-in image_gen",
+    "source": "exec-8cd54ae9-4dcd-46a4-ad96-5d0b76bfcd91.png",
+    "sha256": "8f32655e462ca6808376c5ed3f7539ec44d02f7bf2a10c7b2b6433351e9a1f47"
+  },
+  {
+    "file": "voice-room-cards.webp",
+    "size": [
+      1254,
+      1254
+    ],
+    "purpose": "2x2 无文字语聊房卡 atlas；房名、人数和权限状态由真实 DOM 渲染",
+    "generator": "built-in image_gen",
+    "source": "exec-0ff30b26-fa7e-4415-838b-42df6ac3904d.png",
+    "sha256": "a02e3ccc14ca1d1dd97779857d947cd4a63890cde5fb6c377d62185318d53d86"
+  },
+  {
+    "file": "voice-hero.webp",
+    "size": [
+      1881,
+      836
+    ],
+    "purpose": "语聊大厅与房间专用无文字头图；标题和操作由真实 DOM 渲染",
+    "generator": "built-in image_gen",
+    "source": "exec-56729067-2100-4da1-967a-5a8d5e1ac02e.png",
+    "sha256": "d4304fcae3a1a9bad663411dbd4448e1e39bacfa6d5b3170f645b2cb293006d1"
+  },
+  {
+    "file": "pwa-main-reference-atlas.png",
+    "size": [
+      1470,
+      1070
+    ],
+    "purpose": "批准稿原文件，CSS 裁切登录/注册头图、首页静态卡面和静态 UI 图标；动态身份、计数、输入和操作均为 DOM。",
+    "source": "design/pwa-v5/01-main-pages.png",
+    "generator": "原稿复用，未重新生成",
+    "sha256": "84522beffffb5e4500078cdff36812c5636ed998d38393c80707f7cd0aec88c8",
+    "bytes": 1654750
+  },
+  {
+    "file": "pwa-secondary-reference-atlas.png",
+    "size": [
+      1470,
+      1070
+    ],
+    "purpose": "批准稿原文件，CSS 裁切离线插画、改密头图、麦位与设置图标。",
+    "source": "design/pwa-v5/02-secondary-pages.png",
+    "generator": "原稿复用，未重新生成",
+    "sha256": "42af53c4ef358dac4de73bcae5ef929b9d31e48215f469d36181e7a8dd51a3fe",
+    "bytes": 1511907
+  },
+  {
+    "file": "pwa-system-reference-atlas.png",
+    "size": [
+      1470,
+      1070
+    ],
+    "purpose": "批准稿原文件，CSS 裁切无权限/加载插画、头像设置与两个联机大厅头图。",
+    "source": "design/pwa-v5/03-system-pages.png",
+    "generator": "原稿复用，未重新生成",
+    "sha256": "0368e3389925efb93a37cf516ab1be2e62da23f55e34d8d3ccc35417cc93b795",
+    "bytes": 1607901
+  }
+]

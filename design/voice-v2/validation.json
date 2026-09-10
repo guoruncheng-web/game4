@@ -1,0 +1,46 @@
+{
+  "mockedRoomSnapshot": true,
+  "databaseWrites": false,
+  "actionPosts": false,
+  "providedLinkResult": "Unauthorized",
+  "runtimeErrors": [],
+  "viewports": [
+    {
+      "width": 360,
+      "height": 800,
+      "scrollWidth": 360,
+      "scrollHeight": 923,
+      "header": 70,
+      "dock": 120
+    },
+    {
+      "width": 393,
+      "height": 852,
+      "scrollWidth": 393,
+      "scrollHeight": 923,
+      "header": 70,
+      "dock": 120
+    },
+    {
+      "width": 480,
+      "height": 900,
+      "scrollWidth": 480,
+      "scrollHeight": 925,
+      "header": 70,
+      "dock": 120
+    },
+    {
+      "width": 852,
+      "height": 393,
+      "scrollWidth": 852,
+      "scrollHeight": 605,
+      "header": 70,
+      "dock": 68
+    }
+  ],
+  "sheets": [
+    "management",
+    "invite",
+    "leave-confirm"
+  ]
+}

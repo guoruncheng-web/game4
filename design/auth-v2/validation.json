@@ -1,0 +1,59 @@
+{
+  "checks": [
+    {
+      "mode": "register",
+      "width": 360,
+      "height": 800,
+      "scrollWidth": 360
+    },
+    {
+      "mode": "register",
+      "width": 393,
+      "height": 852,
+      "scrollWidth": 393
+    },
+    {
+      "mode": "register",
+      "width": 480,
+      "height": 900,
+      "scrollWidth": 480
+    },
+    {
+      "mode": "register",
+      "width": 852,
+      "height": 393,
+      "scrollWidth": 852
+    },
+    {
+      "mode": "login",
+      "width": 360,
+      "height": 800,
+      "scrollWidth": 360
+    },
+    {
+      "mode": "login",
+      "width": 393,
+      "height": 852,
+      "scrollWidth": 393
+    },
+    {
+      "mode": "login",
+      "width": 480,
+      "height": 900,
+      "scrollWidth": 480
+    },
+    {
+      "mode": "login",
+      "width": 852,
+      "height": 393,
+      "scrollWidth": 852
+    }
+  ],
+  "passwordReveal": true,
+  "passwordHide": true,
+  "modeSwitch": true,
+  "captchaLoaded": true,
+  "lint": 0,
+  "build": 0,
+  "scope": "Visual implementation and UI controls; no new registration or authenticated end-to-end run"
+}

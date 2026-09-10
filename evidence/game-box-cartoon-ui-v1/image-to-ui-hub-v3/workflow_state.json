@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "status": "prepared",
+  "inputs": {
+    "design": {
+      "path": "/home/gary/work/cocos-game-studio/frontend/public/concepts/game-box-game-native-hub-concept-v3.png",
+      "size": 2547246,
+      "mtime_ns": 1788961447000000000,
+      "sha256": "75b7e1abb6bc7e8c7d442a32a9b6e120dc78f521f8d38f8c4b32188af5f2aee5"
+    },
+    "assets": {
+      "path": "/home/gary/work/cocos-game-studio/frontend/public/assets/game-box/v3/runtime",
+      "file_count": 18,
+      "signature": "b4cc5e033812b4a0ff2da61bdfae2179f89e8d508e27dea7c3bf7c96ff166cef"
+    }
+  },
+  "output": "/home/gary/work/cocos-game-studio/frontend/evidence/game-box-cartoon-ui-v1/image-to-ui-hub-v3",
+  "evidence_generation": 0,
+  "artifacts": {
+    "inventory": "/home/gary/work/cocos-game-studio/frontend/evidence/game-box-cartoon-ui-v1/image-to-ui-hub-v3/assets/assets_inventory.json",
+    "grid": "/home/gary/work/cocos-game-studio/frontend/evidence/game-box-cartoon-ui-v1/image-to-ui-hub-v3/design_grid.png",
+    "grid_metrics": "/home/gary/work/cocos-game-studio/frontend/evidence/game-box-cartoon-ui-v1/image-to-ui-hub-v3/design_grid_metrics.json"
+  }
+}

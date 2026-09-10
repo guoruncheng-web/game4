@@ -1,0 +1,236 @@
+[
+  {
+    "id": 1,
+    "title": "首页",
+    "reference": "01-main-pages.png",
+    "rect": [
+      77,
+      36,
+      418,
+      548
+    ],
+    "screenshot": "01-home-final.png",
+    "note": "头图区、快捷入口、主卡和三排游戏卡已按原稿调整；姓名、UID 和余额为真实测试数据。"
+  },
+  {
+    "id": 2,
+    "title": "语聊大厅",
+    "reference": "01-main-pages.png",
+    "rect": [
+      526,
+      36,
+      418,
+      548
+    ],
+    "screenshot": "02-voice-final.png",
+    "note": "恢复原稿头图和横向房卡比例。当前真实房间为空；好友房/房间邀请沿用现行协议，未伪造推荐分类或样例房间。"
+  },
+  {
+    "id": 3,
+    "title": "消息",
+    "reference": "01-main-pages.png",
+    "rect": [
+      975,
+      36,
+      418,
+      548
+    ],
+    "screenshot": "03-messages-final.png",
+    "note": "添加好友按钮、好友申请汇总和消息列表已调整。已另验两个测试账号的好友申请、接受及聊天。"
+  },
+  {
+    "id": 4,
+    "title": "我的",
+    "reference": "01-main-pages.png",
+    "rect": [
+      77,
+      625,
+      418,
+      432
+    ],
+    "screenshot": "04-profile-final.png",
+    "note": "压缩头像头图区、资产区和操作行。普通测试账号没有管理入口，未伪造管理员身份。"
+  },
+  {
+    "id": 5,
+    "title": "登录",
+    "reference": "01-main-pages.png",
+    "rect": [
+      526,
+      625,
+      418,
+      432
+    ],
+    "screenshot": "05-login-final.png",
+    "note": "复用原稿头图，表单宽度和顶部位置对齐；补账号/密码图标、密码显隐。保留 UID/用户名兼容登录。"
+  },
+  {
+    "id": 6,
+    "title": "注册",
+    "reference": "01-main-pages.png",
+    "rect": [
+      975,
+      625,
+      418,
+      432
+    ],
+    "screenshot": "06-register-compact.png",
+    "note": "复用独立注册头图。现行自动 UID → 设置密码协议与旧稿自填账号密码不同，未增加无效输入框；仍属明确差异。 后续补齐验证码盾牌图标，将输入行压至 38px，底部提醒改为单行。"
+  },
+  {
+    "id": 7,
+    "title": "聊天",
+    "reference": "02-secondary-pages.png",
+    "rect": [
+      77,
+      37,
+      418,
+      527
+    ],
+    "screenshot": "07-chat-final.png",
+    "note": "恢复聊天插画、消息时间和独立滚动；真实双账号收发通过。测试账号头像和内容不同于原稿示例。"
+  },
+  {
+    "id": 8,
+    "title": "语聊房",
+    "reference": "02-secondary-pages.png",
+    "rect": [
+      526,
+      37,
+      418,
+      527
+    ],
+    "screenshot": "08-room-after.png",
+    "note": "新增麦位标题、成员区和离开按钮；真实无游戏建房通过。仍未接 RTC，画面明确标注语音尚未连接。"
+  },
+  {
+    "id": 9,
+    "title": "创建房间",
+    "reference": "02-secondary-pages.png",
+    "rect": [
+      975,
+      37,
+      418,
+      527
+    ],
+    "screenshot": "09-create-final.png",
+    "note": "已从 voice-v1 整屏表单改为 pwa-v5 居中弹窗。按最新要求移除关联游戏；保留真实好友/私密可见性和上麦审批。"
+  },
+  {
+    "id": 10,
+    "title": "账号创建成功",
+    "reference": "02-secondary-pages.png",
+    "rect": [
+      77,
+      603,
+      418,
+      447
+    ],
+    "screenshot": "10-account-setup-final.png",
+    "note": "恢复成功页头图和紧凑信息行，增加复制 UID。沿用新协议，由用户设置密码，不展示不存在的一次性随机密码。"
+  },
+  {
+    "id": 11,
+    "title": "修改密码",
+    "reference": "02-secondary-pages.png",
+    "rect": [
+      526,
+      603,
+      418,
+      447
+    ],
+    "screenshot": "11-password-final.png",
+    "note": "使用原稿头图、横向标签和可切换显隐的密码框；账号区显示当前真实账号，未伪造五个账号。"
+  },
+  {
+    "id": 12,
+    "title": "离线",
+    "reference": "02-secondary-pages.png",
+    "rect": [
+      975,
+      603,
+      418,
+      447
+    ],
+    "screenshot": "12-offline-final.png",
+    "note": "使用对应原稿插画，已检查页面可达与布局。此截图不代表真实断网缓存验收通过。"
+  },
+  {
+    "id": 13,
+    "title": "管理后台",
+    "reference": "03-system-pages.png",
+    "rect": [
+      79,
+      37,
+      416,
+      675
+    ],
+    "screenshot": null,
+    "note": "已调整四列统计、上架开关和手机账号行；尚缺管理员真实页面实拍。现行 API 的统计含义不同于旧稿，不伪造游戏/在线/房间数。"
+  },
+  {
+    "id": 14,
+    "title": "无权限",
+    "reference": "03-system-pages.png",
+    "rect": [
+      526,
+      37,
+      418,
+      571
+    ],
+    "screenshot": "14-no-access-final.png",
+    "note": "使用原稿插画，真实普通账号访问管理页。顶部返回、切换账号和返回首页均为真实控件。"
+  },
+  {
+    "id": 15,
+    "title": "游戏加载",
+    "reference": "03-system-pages.png",
+    "rect": [
+      975,
+      37,
+      418,
+      571
+    ],
+    "screenshot": "15-loading-final.png",
+    "note": "已使用原稿加载插画，源码已隐藏重复宿主返回键。所列截图为修复前实拍，仍有绿色返回键；修复后瞬态截图超时，尚未取得最终画面证据。"
+  },
+  {
+    "id": 16,
+    "title": "捕鱼大厅",
+    "reference": "03-system-pages.png",
+    "rect": [
+      79,
+      741,
+      416,
+      329
+    ],
+    "screenshot": "16-fish-lobby-final.png",
+    "note": "使用原稿头图，房间卡显示权威房号/人数，补入座位置与加入入口；当前房间列表为空。原稿下半部分被截断。"
+  },
+  {
+    "id": 17,
+    "title": "联机大厅",
+    "reference": "03-system-pages.png",
+    "rect": [
+      526,
+      720,
+      418,
+      350
+    ],
+    "screenshot": "17-coop-lobby-final.png",
+    "note": "使用原稿头图，沿用真实网络、在线玩家与邀请状态。原稿下半部分被截断。"
+  },
+  {
+    "id": 18,
+    "title": "头像设置",
+    "reference": "03-system-pages.png",
+    "rect": [
+      975,
+      719,
+      418,
+      351
+    ],
+    "screenshot": "18-avatar-final.png",
+    "note": "使用原稿头图，补选择图片/恢复默认/确认使用布局；真实文件选择、预览、取消通过。本轮未上传修改原测试账号头像。"
+  }
+]

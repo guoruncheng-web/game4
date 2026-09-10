@@ -1,0 +1,27 @@
+{
+  "design": "/home/gary/work/cocos-game-studio/frontend/public/concepts/game-box-game-native-hub-concept-v3.png",
+  "grid_image": "/home/gary/work/cocos-game-studio/frontend/evidence/game-box-cartoon-ui-v1/image-to-ui-hub-v3/design_grid.png",
+  "canvas": {
+    "width": 870,
+    "height": 1808
+  },
+  "grid": {
+    "cols": 19,
+    "rows": 40
+  },
+  "px_per_cell_x": 45.78947368421053,
+  "px_per_cell_y": 45.2,
+  "cell_size_target": 45,
+  "grid_style": {
+    "strategy": "adaptive-complementary-hue",
+    "line_color": "#752E06",
+    "halo_color": "#FFFFFF",
+    "contrast_mode": "dark-on-light",
+    "source_tone": {
+      "dominant_hue_degrees": 201.7,
+      "hue_confidence": 0.3891,
+      "average_luminance": 0.6516,
+      "average_saturation": 0.4002
+    }
+  }
+}

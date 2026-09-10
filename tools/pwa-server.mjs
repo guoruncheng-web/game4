@@ -1,14 +1,27 @@
 import next from 'next';
 import http from 'node:http';
 import https from 'node:https';
+import { hostname } from 'node:os';
+import { createHash } from 'node:crypto';
 
 // Next 自定义宿主仅负责传输；所有鉴权和游戏业务仍在独立 Nest 网关。
 const dev = process.argv.includes('--dev');
+// 共享源码的 Mac/Linux 不能同时读写同一份 Next 开发产物。
+if (dev && !process.env.NEXT_DIST_DIR) {
+  const hostKey = createHash('sha256').update(hostname()).digest('hex').slice(0, 12);
+  process.env.NEXT_DIST_DIR = `.next-dev-${process.platform}-${process.arch}-${hostKey}`;
+}
 const port = Number(process.env.PORT ?? 3000);
 const app = next({ dev, port, hostname: process.env.HOST ?? 'localhost' });
 await app.prepare();
 const handler = app.getRequestHandler();
 const server = http.createServer((req, res) => { void handler(req, res); });
+// 包括 Next HMR 升级连接；closeAllConnections 不会关闭升级后的 socket。
+const connections = new Set();
+server.on('connection', socket => {
+  connections.add(socket);
+  socket.on('close', () => connections.delete(socket));
+});
 const upgraded = new Set();
 server.on('upgrade', (req, socket, head) => {
   const path = new URL(req.url ?? '/', 'http://localhost').pathname;
@@ -46,12 +59,29 @@ server.on('upgrade', (req, socket, head) => {
   });
   request.end();
 });
-server.listen(port, process.env.HOST ?? '0.0.0.0', () => console.log(`PWA ready on port ${port}`));
+server.listen(port, process.env.HOST ?? '0.0.0.0', () => {
+  console.log(`PWA ready on port ${port}`);
+  if (dev) console.log(`[dev] pid=${process.pid} distDir=${process.env.NEXT_DIST_DIR} persistentCache=false`);
+});
 let closing = false;
 async function close() {
-  if (closing) return; closing = true;
+  if (closing) {
+    if (dev) process.exit(0);
+    return;
+  }
+  closing = true;
+  // 开发编译器异常时 close 可能悬挂，给本进程设置有界退出兜底。
+  const deadline = dev ? setTimeout(() => process.exit(0), 5000) : null;
+  deadline?.unref();
   for (const socket of upgraded) socket.destroy();
-  server.closeAllConnections(); server.close(); await app.close();
+  for (const socket of connections) socket.destroy();
+  server.closeAllConnections(); server.close();
+  try {
+    await app.close();
+  } finally {
+    if (deadline) clearTimeout(deadline);
+    if (dev) process.exit(0);
+  }
 }
 process.on('SIGTERM', () => { void close(); });
 process.on('SIGINT', () => { void close(); });

@@ -1,0 +1,30 @@
+[
+  {
+    "width": 360,
+    "scrollWidth": 360,
+    "imageBottom": 524.734375,
+    "inputTop": 534.734375,
+    "separate": true
+  },
+  {
+    "width": 393,
+    "scrollWidth": 393,
+    "imageBottom": 546.3828125,
+    "inputTop": 556.3828125,
+    "separate": true
+  },
+  {
+    "width": 480,
+    "scrollWidth": 480,
+    "imageBottom": 605.859375,
+    "inputTop": 615.859375,
+    "separate": true
+  },
+  {
+    "width": 852,
+    "scrollWidth": 852,
+    "imageBottom": 334.9921875,
+    "inputTop": 344.9921875,
+    "separate": true
+  }
+]

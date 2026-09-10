@@ -1,0 +1,86 @@
+[
+  {
+    "scene": "01-home",
+    "path": "/",
+    "width": 393,
+    "height": 852,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "02-messages-empty",
+    "path": "/",
+    "width": 393,
+    "height": 852,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "03-profile",
+    "path": "/",
+    "width": 393,
+    "height": 852,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "04-voice-lobby",
+    "path": "/",
+    "width": 393,
+    "height": 852,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "05-voice-invitations",
+    "path": "/",
+    "width": 393,
+    "height": 852,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "06-create-room",
+    "path": "/",
+    "width": 393,
+    "height": 852,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "07-room",
+    "path": "/voice/5510298d-e470-48d6-9418-364ba58c9bb3",
+    "width": 393,
+    "height": 852,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "08-invite-friends",
+    "path": "/voice/5510298d-e470-48d6-9418-364ba58c9bb3",
+    "width": 393,
+    "height": 852,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "09-management",
+    "path": "/voice/5510298d-e470-48d6-9418-364ba58c9bb3",
+    "width": 393,
+    "height": 852,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "10-mic-requests",
+    "path": "/voice/5510298d-e470-48d6-9418-364ba58c9bb3",
+    "width": 393,
+    "height": 852,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "11-members",
+    "path": "/voice/5510298d-e470-48d6-9418-364ba58c9bb3",
+    "width": 393,
+    "height": 852,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "12-leave-confirm",
+    "path": "/voice/5510298d-e470-48d6-9418-364ba58c9bb3",
+    "width": 393,
+    "height": 852,
+    "scrollWidth": 393
+  }
+]

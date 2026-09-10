@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import GameLoading from './GameLoading';
 import type { ThreeGameModule } from '@/games/types';
 
 type Props = {
@@ -21,14 +23,22 @@ type Props = {
 export default function ThreeCanvas({ load }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<{ destroy(): void } | null>(null);
+  const [phase, setPhase] = useState<'loading' | 'ready' | 'error'>('loading');
 
   useEffect(() => {
     let cancelled = false;
 
     void (async () => {
-      const { startGame } = await load();
-      if (cancelled || !containerRef.current || gameRef.current) return;
-      gameRef.current = startGame(containerRef.current);
+      try {
+        const { startGame } = await load();
+        if (cancelled || !containerRef.current || gameRef.current) return;
+        gameRef.current = startGame(containerRef.current);
+        setPhase('ready');
+      } catch (error) {
+        if (cancelled) return;
+        console.error('Game initialization failed', error);
+        setPhase('error');
+      }
     })();
 
     return () => {
@@ -42,9 +52,12 @@ export default function ThreeCanvas({ load }: Props) {
   }, []);
 
   return (
-    <div
+    <><div
       ref={containerRef}
       className="absolute inset-0 size-full min-h-0 min-w-0 touch-none overflow-hidden"
     />
+      {phase === 'loading' && <div className="absolute inset-0 z-10 overflow-y-auto"><GameLoading /></div>}
+      {phase === 'error' && <div className="gb-system-page absolute inset-0 z-10 overflow-y-auto" role="alert"><section className="gb-system-card"><div className="gb-state-art gb-state-art--offline" aria-hidden="true" /><h1>暂时无法启动游戏</h1><p>请检查网络和浏览器的图形加速支持，再试一次。</p><button type="button" onClick={() => window.location.reload()}>重新加载</button><Link href="/">返回游戏盒子</Link></section></div>}
+    </>
   );
 }

@@ -1,0 +1,104 @@
+[
+  {
+    "scene": "40-member-room-closed",
+    "path": "/voice/5510298d-e470-48d6-9418-364ba58c9bb3",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "39-coop-lobby",
+    "path": "/neon-strike-2d/lobby",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "41-coop-invitation",
+    "path": "/neon-strike-2d/lobby",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "42-coop-ready",
+    "path": "/neon-strike-2d/lobby",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "43-coop-guest",
+    "path": "/neon-strike-2d/lobby",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "44-coop-game-start",
+    "path": "/neon-strike-2d",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "test": "coop-invite-accept-start-both-canvases",
+    "passed": true
+  },
+  {
+    "scene": "38-fish-lobby",
+    "path": "/fish-hunter/lobby",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "27-chat-reply",
+    "path": "/",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "entry-star-runner",
+    "path": "/star-runner",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "entry-fruit-slasher",
+    "path": "/fruit-slasher",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "entry-neon-strike",
+    "error": "Timeout !!document.querySelector(\"canvas,iframe\") || document.body.innerText.includes(\"暂时\")"
+  },
+  {
+    "scene": "entry-eight-ball",
+    "error": "Timeout !!document.querySelector(\"canvas,iframe\") || document.body.innerText.includes(\"暂时\")"
+  },
+  {
+    "scene": "entry-triple-pile",
+    "error": "Timeout !!document.querySelector(\"canvas,iframe\") || document.body.innerText.includes(\"暂时\")"
+  },
+  {
+    "scene": "entry-fish-hunter",
+    "error": "Timeout !!document.querySelector(\"canvas,iframe\") || document.body.innerText.includes(\"暂时\")"
+  },
+  {
+    "scene": "entry-ludo",
+    "error": "Timeout !!document.querySelector(\"canvas,iframe\") || document.body.innerText.includes(\"暂时\")"
+  },
+  {
+    "scene": "entry-umo",
+    "path": "/umo",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "entry-thirteen",
+    "path": "/thirteen",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "17-change-password",
+    "path": "/",
+    "width": 393,
+    "scrollWidth": 393
+  }
+]

@@ -34,7 +34,9 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "**/*.mts",
+    ".next-dev-darwin-arm64-d442acebeab7/types/**/*.ts",
+    ".next-dev-darwin-arm64-d442acebeab7/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",

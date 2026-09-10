@@ -1,0 +1,284 @@
+{
+  "assets_dir": "/home/gary/work/cocos-game-studio/frontend/public/assets/game-box/v3/runtime",
+  "total_images": 18,
+  "meta_border_count": 0,
+  "duplicate_basenames": {},
+  "assets": [
+    {
+      "path": "adventure-portal.png",
+      "basename": "adventure-portal.png",
+      "width": 439,
+      "height": 465,
+      "alpha_bbox": [
+        8,
+        8,
+        439,
+        457
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    },
+    {
+      "path": "brand-logo.png",
+      "basename": "brand-logo.png",
+      "width": 426,
+      "height": 277,
+      "alpha_bbox": [
+        8,
+        8,
+        418,
+        269
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    },
+    {
+      "path": "coming-soon-sign.png",
+      "basename": "coming-soon-sign.png",
+      "width": 260,
+      "height": 228,
+      "alpha_bbox": [
+        0,
+        8,
+        260,
+        228
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    },
+    {
+      "path": "controller-dock.png",
+      "basename": "controller-dock.png",
+      "width": 568,
+      "height": 251,
+      "alpha_bbox": [
+        8,
+        8,
+        560,
+        243
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    },
+    {
+      "path": "cube-mascot.png",
+      "basename": "cube-mascot.png",
+      "width": 248,
+      "height": 276,
+      "alpha_bbox": [
+        0,
+        0,
+        248,
+        268
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    },
+    {
+      "path": "currency-hud.png",
+      "basename": "currency-hud.png",
+      "width": 336,
+      "height": 111,
+      "alpha_bbox": [
+        8,
+        8,
+        328,
+        103
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    },
+    {
+      "path": "nav-games-active.png",
+      "basename": "nav-games-active.png",
+      "width": 237,
+      "height": 197,
+      "alpha_bbox": [
+        8,
+        8,
+        237,
+        189
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    },
+    {
+      "path": "nav-messages.png",
+      "basename": "nav-messages.png",
+      "width": 223,
+      "height": 171,
+      "alpha_bbox": [
+        8,
+        8,
+        223,
+        163
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    },
+    {
+      "path": "nav-profile.png",
+      "basename": "nav-profile.png",
+      "width": 215,
+      "height": 174,
+      "alpha_bbox": [
+        8,
+        8,
+        207,
+        166
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "portrait"
+    },
+    {
+      "path": "player-hud.png",
+      "basename": "player-hud.png",
+      "width": 287,
+      "height": 165,
+      "alpha_bbox": [
+        8,
+        8,
+        279,
+        157
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    },
+    {
+      "path": "sound-button.png",
+      "basename": "sound-button.png",
+      "width": 157,
+      "height": 136,
+      "alpha_bbox": [
+        0,
+        8,
+        149,
+        128
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "button_or_panel"
+    },
+    {
+      "path": "wood-plaque.png",
+      "basename": "wood-plaque.png",
+      "width": 362,
+      "height": 209,
+      "alpha_bbox": [
+        0,
+        8,
+        354,
+        201
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    },
+    {
+      "path": "world-eight-ball.png",
+      "basename": "world-eight-ball.png",
+      "width": 418,
+      "height": 499,
+      "alpha_bbox": [
+        8,
+        8,
+        410,
+        495
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    },
+    {
+      "path": "world-fish-hunter.png",
+      "basename": "world-fish-hunter.png",
+      "width": 423,
+      "height": 474,
+      "alpha_bbox": [
+        0,
+        8,
+        423,
+        466
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    },
+    {
+      "path": "world-fruit-slasher.png",
+      "basename": "world-fruit-slasher.png",
+      "width": 421,
+      "height": 528,
+      "alpha_bbox": [
+        0,
+        8,
+        413,
+        520
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    },
+    {
+      "path": "world-star-runner.png",
+      "basename": "world-star-runner.png",
+      "width": 419,
+      "height": 495,
+      "alpha_bbox": [
+        8,
+        8,
+        415,
+        487
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    },
+    {
+      "path": "world-thirteen.png",
+      "basename": "world-thirteen.png",
+      "width": 417,
+      "height": 479,
+      "alpha_bbox": [
+        2,
+        8,
+        409,
+        471
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    },
+    {
+      "path": "world-triple-pile.png",
+      "basename": "world-triple-pile.png",
+      "width": 416,
+      "height": 513,
+      "alpha_bbox": [
+        8,
+        8,
+        414,
+        505
+      ],
+      "has_meta_border": false,
+      "spriteBorder": null,
+      "likely_usage": "image"
+    }
+  ],
+  "contact_sheets": [
+    "assets_contact_sheet.png",
+    "assets_contact_sheet_usage_button_or_panel.png",
+    "assets_contact_sheet_usage_image.png",
+    "assets_contact_sheet_usage_portrait.png"
+  ]
+}

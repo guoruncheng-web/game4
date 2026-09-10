@@ -1,0 +1,8 @@
+{
+  "src/components/AuthDialog.tsx": "722e98726895cef556f9b0a4575139c286d3270bfd090ceedbf0ba2a67fc2677",
+  "src/components/AuthTextField.tsx": "b517758d1f9b97b2fb5f5be25d2d6322283e1e6673db243f5de791110aac40c2",
+  "src/app/auth-v2.css": "d01f3f4433bbf8babb42470cc095b67789411433e41b97593dd5b10702c6ee6d",
+  "src/app/layout.tsx": "f927c03528407c9a6ea019b58dc6e053c759e2a71f34f3e2aebb27f8c153ca06",
+  "public/assets/game-box/auth-v2/reference.png": "05f05faef4f827710bf53a080fd157c03a912f69a1ef60f54feb1bb4a27383e1",
+  "src/components/ProfilePanel.tsx": "23aaca211dc314020e91ced12d7bfe9d5855a484a3375fb3651ceac239b88868"
+}

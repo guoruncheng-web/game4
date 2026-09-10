@@ -1,0 +1,192 @@
+{
+  "checks": [
+    {
+      "scene": "home-418",
+      "width": 418,
+      "height": 548,
+      "scrollWidth": 418
+    },
+    {
+      "scene": "messages-418",
+      "width": 418,
+      "height": 548,
+      "scrollWidth": 418
+    },
+    {
+      "scene": "profile-418",
+      "width": 418,
+      "height": 548,
+      "scrollWidth": 418
+    },
+    {
+      "scene": "password-418",
+      "width": 418,
+      "height": 548,
+      "scrollWidth": 418
+    },
+    {
+      "scene": "avatar-418",
+      "width": 418,
+      "height": 548,
+      "scrollWidth": 418
+    },
+    {
+      "scene": "voice-418",
+      "width": 418,
+      "height": 548,
+      "scrollWidth": 418
+    },
+    {
+      "scene": "create-418",
+      "width": 418,
+      "height": 548,
+      "scrollWidth": 418
+    },
+    {
+      "scene": "no-access-418",
+      "width": 418,
+      "height": 548,
+      "scrollWidth": 418
+    },
+    {
+      "scene": "offline-418",
+      "width": 418,
+      "height": 548,
+      "scrollWidth": 418
+    },
+    {
+      "scene": "fish-lobby-418",
+      "width": 418,
+      "height": 548,
+      "scrollWidth": 418
+    },
+    {
+      "scene": "coop-lobby-418",
+      "width": 418,
+      "height": 548,
+      "scrollWidth": 418
+    },
+    {
+      "scene": "chat-418",
+      "width": 418,
+      "height": 548,
+      "scrollWidth": 418
+    },
+    {
+      "scene": "login-360",
+      "width": 360,
+      "height": 800,
+      "scrollWidth": 360
+    },
+    {
+      "scene": "register-360",
+      "width": 360,
+      "height": 800,
+      "scrollWidth": 360
+    },
+    {
+      "scene": "login-393",
+      "width": 393,
+      "height": 852,
+      "scrollWidth": 393
+    },
+    {
+      "scene": "register-393",
+      "width": 393,
+      "height": 852,
+      "scrollWidth": 393
+    },
+    {
+      "scene": "login-480",
+      "width": 480,
+      "height": 900,
+      "scrollWidth": 480
+    },
+    {
+      "scene": "register-480",
+      "width": 480,
+      "height": 900,
+      "scrollWidth": 480
+    },
+    {
+      "scene": "login-852",
+      "width": 852,
+      "height": 393,
+      "scrollWidth": 852
+    },
+    {
+      "scene": "register-852",
+      "width": 852,
+      "height": 393,
+      "scrollWidth": 852
+    },
+    {
+      "scene": "password-final",
+      "width": 418,
+      "height": 527,
+      "scrollWidth": 418
+    },
+    {
+      "scene": "fish-ready",
+      "width": 418,
+      "height": 527,
+      "scrollWidth": 418
+    },
+    {
+      "scene": "coop-ready",
+      "width": 418,
+      "height": 527,
+      "scrollWidth": 418
+    }
+  ],
+  "authViews": [
+    {
+      "scene": "login",
+      "width": 360,
+      "height": 800,
+      "scrollWidth": 360
+    },
+    {
+      "scene": "register",
+      "width": 360,
+      "height": 800,
+      "scrollWidth": 360
+    },
+    {
+      "scene": "login",
+      "width": 393,
+      "height": 852,
+      "scrollWidth": 393
+    },
+    {
+      "scene": "register",
+      "width": 393,
+      "height": 852,
+      "scrollWidth": 393
+    },
+    {
+      "scene": "login",
+      "width": 480,
+      "height": 900,
+      "scrollWidth": 480
+    },
+    {
+      "scene": "register",
+      "width": 480,
+      "height": 900,
+      "scrollWidth": 480
+    },
+    {
+      "scene": "login",
+      "width": 852,
+      "height": 393,
+      "scrollWidth": 852
+    },
+    {
+      "scene": "register",
+      "width": 852,
+      "height": 393,
+      "scrollWidth": 852
+    }
+  ]
+}

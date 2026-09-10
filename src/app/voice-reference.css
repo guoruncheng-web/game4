@@ -1,0 +1,85 @@
+/* 当前视觉基准：design/voice-v1 三张稿；取代 room-v2 与 PWA 旧版覆盖。 */
+.voice-room-v2 { color: #242532; background: #fff4f8; }
+.voice-room-v2 .voice-room-shell { width: min(100%, 480px); min-height: 100dvh; margin: auto; padding: calc(16px + env(safe-area-inset-top)) 12px calc(142px + env(safe-area-inset-bottom)); background: linear-gradient(180deg, #ffffff25, #ffffff85 180px, #fafbff 370px), url('/assets/game-box/v5/cloud-header.webp') center top / auto 240px no-repeat; }
+.voice-room-v2 .voice-room-header { order: 0; }
+.voice-room-v2 .voice-room-header > button { width: 44px; height: 44px; background: #ffffffcf; }
+.voice-room-v2 .voice-room-header small { display: none; }
+.voice-room-v2 .voice-room-status { order: 1; flex-wrap: wrap; margin: 5px 0 50px; }
+.voice-room-v2 .voice-error { order: 2; }
+.voice-room-v2 .voice-stage { order: 3; margin: 0; padding: 0 3px 18px; border: 0; border-radius: 0; background: transparent; }
+.voice-room-v2 .voice-stage-heading, .voice-room-v2 .voice-stage-members { display: none; }
+.voice-room-v2 .voice-seat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 26px 10px; }
+.voice-room-v2 .voice-seat { min-width: 0; }
+.voice-room-v2 .voice-seat > span { width: min(100%, 74px); height: auto; aspect-ratio: 1; border: 2px solid white; background: #e4e6ee; box-shadow: none; }
+.voice-room-v2 .voice-seat.is-occupied > span { background: linear-gradient(145deg, #e0d6ff, #fbe4f6); }
+.voice-room-v2 .voice-seat > span > strong { color: white; background: #ff5875; }
+.voice-room-v2 .voice-seat b { max-width: 100%; overflow: hidden; color: #4f556c; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.voice-room-v2 .voice-seat-empty-icon { position: relative; width: 26px; height: 26px; background: none; }
+.voice-room-v2 .voice-seat-empty-icon::before, .voice-room-v2 .voice-seat-empty-icon::after { position: absolute; top: 12px; left: 3px; width: 20px; height: 2px; border-radius: 2px; background: #858b9c; content: ''; }
+.voice-room-v2 .voice-seat-empty-icon::after { transform: rotate(90deg); }
+.voice-room-v2 .voice-game-banner { order: 4; }
+.voice-room-v2 .voice-chat-panel { order: 5; min-height: 200px; overflow: hidden; border: 1px solid #f0f0f5; background: #ffffffdf; }
+.voice-room-v2 .voice-stage-title { display: flex; justify-content: space-between; align-items: center; }
+.voice-room-v2 .voice-stage-title h2 { font-size: 16px; }
+.voice-room-v2 .voice-stage-title small, .voice-room-v2 .voice-stage-title > b { display: none; }
+.voice-room-v2 .voice-message-list { max-height: 36dvh; overflow-y: auto; }
+.voice-room-v2 .voice-message b { color: #282b38; background: #f1f3f8; }
+.voice-room-v2 .voice-message.is-mine b { color: #422f43; background: #ffeaf0; }
+.voice-room-v2 .voice-message-empty { display: grid; justify-items: center; gap: 8px; padding: 28px 12px; color: #8990a4; }
+.voice-room-v2 .voice-message-empty > span { font-size: 28px; }
+.voice-room-v2 .voice-room-dock { position: fixed; z-index: 22; right: 0; bottom: 0; left: 0; width: min(100%, 480px); margin: auto; padding: 10px 12px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid #f1eff4; border-radius: 22px 22px 0 0; background: #fff; }
+.voice-room-v2 .voice-room-actions { position: static; display: flex; width: 100%; min-height: 48px; gap: 7px; padding: 0 0 10px; border: 0; border-radius: 0; }
+.voice-room-v2 .voice-room-actions > span { position: static; width: auto; height: auto; clip-path: none; overflow: visible; min-width: 0; flex: 1; color: #737b92; font-size: 10px; }
+.voice-room-v2 .voice-room-actions button { min-height: 44px; min-width: 0; padding: 0 8px; font-size: 12px; }
+.voice-room-v2 .voice-room-actions .voice-mic-main { display: flex; align-items: center; justify-content: center; gap: 4px; flex: 1.25; border: 0; border-radius: 14px; color: white; background: linear-gradient(135deg, #ff8396, #ff4768); }
+.voice-room-v2 .voice-room-actions .gb-icon { width: 24px; height: 24px; }
+.voice-room-v2 .voice-room-actions .voice-invite-main { flex: 1; border: 1px solid #edeef4; border-radius: 14px; color: #535c74; background: white; }
+.voice-room-v2 .voice-composer { position: static; width: 100%; min-height: 48px; padding: 0; gap: 8px; }
+.voice-room-v2 .voice-composer input { min-width: 0; min-height: 48px; font-size: 16px; }
+.voice-room-v2 .voice-composer button { min-width: 68px; }
+.voice-room-v2 .voice-room-toast { bottom: calc(145px + env(safe-area-inset-bottom)); }
+.voice-room-v2 .voice-action-sheet { border-radius: 22px 22px 0 0; background: #fff; }
+.voice-room-v2 .voice-management-page { border-radius: 0; }
+.voice-room-v2 .voice-confirm { background: #fff; }
+.voice-room-v2 button:focus-visible, .voice-room-v2 input:focus-visible { outline: 3px solid #8585ec; outline-offset: 2px; }
+.voice-room-v2 button:disabled { cursor: default; }
+
+/* 大厅恢复高房卡与可读标题；创建恢复独立全屏表单。 */
+.voice-room-v2 .voice-game-list-entry { order: 4; display: flex; min-height: 72px; align-items: center; gap: 10px; margin: 0 0 12px; padding: 12px; border: 1px solid #ffe0e9; border-radius: 16px; background: linear-gradient(110deg, #fff0f5, #f3efff); text-align: left; }
+.voice-game-list-entry > .gb-icon { width: 44px; height: 44px; flex-shrink: 0; }
+.voice-game-list-entry > span:nth-child(2) { display: grid; flex: 1; gap: 4px; }
+.voice-game-list-entry b { color: #292a35; font-size: 15px; }
+.voice-game-list-entry small { color: #7a7f95; font-size: 11px; }
+.voice-game-list-entry em { color: #f24f70; font-size: 12px; font-style: normal; white-space: nowrap; }
+.voice-game-picker-sheet { width: min(100%, 480px); max-height: 80dvh; overflow-y: auto; overscroll-behavior: contain; }
+.voice-game-picker-list { display: grid; gap: 10px; }
+.voice-game-picker-list > button { width: 100%; text-align: left; }
+.voice-room-v2 .voice-game-window-backdrop { align-items: end; padding: 0; }
+.voice-room-v2 .voice-game-window { display: flex; flex-direction: column; width: min(100%, 960px); height: 80dvh; min-height: 0; max-height: 80dvh; margin: 0 auto; padding: 0; overflow: hidden; border-radius: 20px 20px 0 0; background: #fff; box-shadow: 0 -8px 36px #39324930; }
+.voice-room-v2 .voice-game-window > header { position: relative; display: flex; min-height: 48px; flex: 0 0 48px; align-items: center; justify-content: center; margin: 0; padding: 0 56px 0 16px; border-bottom: 1px solid #eeedf4; }
+.voice-room-v2 .voice-game-window > header h2 { overflow: hidden; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.voice-room-v2 .voice-game-window > header button { position: absolute; top: 2px; right: 8px; width: 44px; height: 44px; }
+.voice-game-frame { display: block; width: 100%; min-height: 0; flex: 1 1 0; border: 0; background: #171820; }
+.voice-game-picker-card { display: flex; min-height: 86px; align-items: center; gap: 12px; padding: 10px; border: 1px solid #efedf4; border-radius: 16px; background: #fff; }
+.voice-game-picker-art { width: 62px; height: 62px; flex-shrink: 0; border-radius: 12px; background-image: url('/assets/game-box/v5/game-cards.webp'); background-size: 200% 500%; }
+.voice-game-picker-card > span:nth-child(2) { display: grid; min-width: 0; flex: 1; gap: 5px; }
+.voice-game-picker-card b { color: #292a35; font-size: 14px; }
+.voice-game-picker-card small { color: #777e93; font-size: 11px; line-height: 1.5; }
+.voice-game-picker-card em { flex-shrink: 0; padding: 9px 12px; border-radius: 20px; color: white; background: #ff5875; font-size: 12px; font-style: normal; }
+.voice-game-picker-error { display: grid; justify-items: center; gap: 16px; padding: 24px 0; color: #737b92; }
+.voice-game-picker-error button { min-height: 44px; padding: 0 20px; border-radius: 22px; color: white; background: #ff5875; }
+.voice-lobby-hero { min-height: 200px; aspect-ratio: auto; padding: calc(24px + env(safe-area-inset-top)) 22px 26px; background: #ffeef5 url('/assets/game-box/v5/voice-hero.webp') 58% center / auto 100% no-repeat; }
+.voice-lobby-hero > div { position: static; width: auto; height: auto; overflow: visible; clip-path: none; }
+.voice-lobby-hero > button { position: static; width: auto; height: auto; min-height: 44px; padding: 0 18px; color: white; background: linear-gradient(#ff8093, #ff4b6b); }
+.voice-room-card { aspect-ratio: 198 / 260; }
+.voice-room-card > .voice-room-illustration { inset: 4px 4px 43px; }
+.voice-room-copy { max-width: 100%; padding: 12px 10px 0; gap: 4px; }
+.voice-room-copy b { font-size: clamp(17px, 4.6vw, 23px); }
+.voice-room-copy em { display: flex; }
+.voice-room-footer { min-height: 39px; padding: 3px 4px; }
+.voice-create-sheet > header { position: relative; }
+.voice-create-sheet > header h2 { position: absolute; }
+@media (max-height: 520px) and (min-aspect-ratio: 1/1) {
+  .voice-room-v2 .voice-room-status { margin-bottom: 20px; }
+  .voice-room-v2 .voice-room-shell { padding-bottom: 145px; }
+}

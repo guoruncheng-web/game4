@@ -1,0 +1,32 @@
+[
+  {
+    "path": "/neon-strike",
+    "text": "NEON STRIKE\n星门防卫协议 // ONLINE\n最高分 000000\n难度\n新兵\n王牌\n死神\n3 条命 · 标准配平 · 得分 ×1.0\n开始战役\n无尽模式 · 通关战役解锁\n🔊\n暂无战绩\n清空本地战绩\n拖动画面或方向键走位 · 自动开火 · P / ESC 暂停",
+    "canvases": 1
+  },
+  {
+    "path": "/eight-ball",
+    "text": "EIGHT BALL\nRACK UP · RUN THE TABLE\nOPPONENT\nROOKIE\nPRO\nSHARK\nSolid potter, punishes your fouls\nNO GAMES YET\nPLAY\nSOUND: ON\nDRAG THE TABLE TO AIM · SET POWER BELOW",
+    "canvases": 1
+  },
+  {
+    "path": "/triple-pile",
+    "text": "3:58\n48\n剩余\n移出\n凑齐\n打乱剩余\n点食材放进下方格子 · 凑齐 3 个就消",
+    "canvases": 1
+  },
+  {
+    "path": "/fish-hunter",
+    "text": "单机模式 · 余额存在本机,与账号不互通\n◎\n500\nLv.1\n−\n+\n联机大厅\n📱↻\n\n请横过手机\n\n深海捕鱼是横屏游戏，横过来才装得下一整片鱼池",
+    "canvases": 1
+  },
+  {
+    "path": "/ludo",
+    "text": "Ludo\n\n创建一间房，或用游戏 ID 加入好友的房间\n\n0/4\n返回\n空位\n空位\n空位\n空位\n创建新游戏房间\n加入已有游戏房间\n\n还没有人说话\n\n发送",
+    "canvases": 0
+  },
+  {
+    "path": "/fish-hunter",
+    "canvases": 1,
+    "text": "单机模式 · 余额存在本机,与账号不互通\n◎\n500\nLv.1\n−\n+\n联机大厅"
+  }
+]

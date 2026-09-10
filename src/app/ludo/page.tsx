@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
+import GameLoading from '@/components/GameLoading';
 import { getGame } from '@/games/registry';
 import { LUDO_BLOBS, LUDO_IMAGES } from '@/games/ludo/assets';
 import { DEFAULT_DURATION, DURATIONS, SEATS } from '@/games/ludo/config';
@@ -16,7 +17,7 @@ const meta = getGame('ludo')!;
 // dynamic + ssr:false 是硬性的 —— Phaser 在模块顶层就会碰 window
 const PhaserCanvas = dynamic(() => import('@/components/PhaserCanvas'), {
   ssr: false,
-  loading: () => <div className="grid h-dvh place-items-center bg-[#06184c] text-sky-200">棋盘加载中…</div>,
+  loading: () => <GameLoading />,
 });
 
 const EffekseerVs = dynamic(() => import('@/games/ludo/ui/EffekseerVs'), { ssr: false });

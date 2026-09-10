@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
 import { useAuth } from '@/components/AuthProvider';
 import { useCoop } from '@/components/CoopProvider';
 
@@ -14,23 +13,23 @@ import { useCoop } from '@/components/CoopProvider';
 export default function LobbyPage() {
   const { user, loading, openPanel } = useAuth();
   const { connected, me, online, room, error, doInvite, leave, startGame } = useCoop();
-  const [picked, setPicked] = useState<number | ''>('');
 
   const isHost = !!room && !!me && room.hostId === me.id;
   const ready = !!room && room.players.length === 2;
 
   return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col gap-4 p-4">
+    <main className="gb-platform-lobby gb-coop-lobby mx-auto flex min-h-dvh w-full max-w-md flex-col gap-4 p-4">
       <header className="flex items-center gap-3">
         <Link href="/neon-strike-2d" className="grid size-10 shrink-0 place-items-center rounded-2xl border border-slate-200 bg-white text-slate-500">
           ←
         </Link>
         <div>
-          <h1 className="text-xl font-black text-[#173366]">双人匹配</h1>
+          <h1 className="text-xl font-black text-[#173366]">联机大厅</h1>
           <p className="text-xs font-bold text-slate-400">霓虹突击 2D · 协作模式</p>
         </div>
       </header>
 
+      <p className="gb-lobby-network" data-connected={connected}>● 当前网络：{connected ? '已连接' : '连接中'}</p>
       {loading ? (
         // 必须先看 loading:user 初值就是 null,不判的话在 /api/auth/me 回来之前
         // 会先闪一屏「需要登录」—— 明明登着却让人去登录,是最容易被当成 bug 的表现
@@ -88,23 +87,13 @@ export default function LobbyPage() {
               现在没有其他人在线。让朋友也登录进来就能看到彼此。
             </p>
           ) : (
-            <>
-              <select
-                value={picked}
-                onChange={(e) => setPicked(e.target.value ? Number(e.target.value) : '')}
-                className="mt-3 min-h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 font-bold text-[#173366]"
-              >
-                <option value="">选择一个玩家…</option>
-                {online.map((u) => <option key={u.id} value={u.id}>{u.username}</option>)}
-              </select>
-              <button
-                onClick={() => picked && doInvite(Number(picked), 'neon-strike-2d')}
-                disabled={!picked}
-                className="mt-3 min-h-12 w-full rounded-2xl bg-gradient-to-b from-[#43d875] to-[#2cbe60] font-black text-white shadow-[0_4px_0_#22994b] disabled:opacity-40 disabled:shadow-none"
-              >
-                邀请他一起玩
-              </button>
-            </>
+            <ul className="gb-lobby-player-list">
+              {online.map((player) => <li key={player.id}>
+                <span className="gb-lobby-player-avatar" aria-hidden="true">{player.username.slice(0, 1)}</span>
+                <span><b>{player.username}</b><small>● 在线</small></span>
+                <button type="button" onClick={() => doInvite(player.id, 'neon-strike-2d')}>邀请</button>
+              </li>)}
+            </ul>
           )}
         </Panel>
       )}

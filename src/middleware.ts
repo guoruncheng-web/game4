@@ -22,8 +22,8 @@ export const config = {
   ],
 };
 
-/** 不需要登录也能打开的页面 */
-const PUBLIC_PATHS = new Set(['/', '/auth', '/offline', '/admin', '/umo', '/thirteen']);
+/** 未登录唯一可见页面；其余页面（包括首页、后台、离线页和所有游戏）统一要求有效会话。 */
+const PUBLIC_PATHS = new Set(['/auth']);
 const GAME_SLUGS = new Set(GAMES.map((game) => game.slug));
 
 export async function middleware(request: NextRequest) {
@@ -82,6 +82,6 @@ export async function middleware(request: NextRequest) {
   // 独立鉴权页记住原目标，成功后再带凭据返回。
   const target = request.nextUrl.clone();
   target.pathname = '/auth';
-  target.search = `?mode=register&next=${encodeURIComponent(pathname)}`;
+  target.search = `?mode=login&next=${encodeURIComponent(pathname)}`;
   return NextResponse.redirect(target);
 }

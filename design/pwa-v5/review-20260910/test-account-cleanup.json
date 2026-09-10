@@ -1,0 +1,7 @@
+{
+  "deleted": [
+    795928
+  ],
+  "scope": "Only this turn registered test account; pre-existing account 661662 retained",
+  "cascaded": "Only dependent rows owned by the deleted test account"
+}

@@ -70,7 +70,7 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
   }
 
   return (
-    <main className="min-h-dvh bg-[#eef9f4] text-[#203148]">
+    <main className="gb-admin">
       <header className="bg-[#0b2032] px-5 pb-8 pt-[calc(1.25rem+env(safe-area-inset-top))] text-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div>
@@ -84,7 +84,7 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
 
       <div className="mx-auto max-w-6xl space-y-7 px-4 py-6">
         {error && <div className="rounded-2xl bg-rose-50 p-3 text-sm font-bold text-rose-600">{error}</div>}
-        <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <section className="gb-admin-stats grid grid-cols-2 gap-3 md:grid-cols-4">
           <Stat icon={<Users />} label="用户" value={stats?.users} />
           <Stat icon={<UserX />} label="已封禁" value={stats?.suspended} />
           <Stat icon={<ShieldCheck />} label="好友关系" value={stats?.friendships} />
@@ -98,9 +98,9 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
           </div>
           <div className="space-y-2">
             {games.map((game) => (
-              <div key={game.slug} className="grid gap-3 rounded-2xl border border-slate-100 p-3 md:grid-cols-[1fr_100px] md:items-center">
+              <div key={game.slug} className="gb-admin-game-row grid gap-3 rounded-2xl border border-slate-100 p-3 md:grid-cols-[1fr_100px] md:items-center">
                 <div><p className="font-black">{game.title}</p><p className="text-xs font-semibold text-slate-400">/{game.slug} · {game.tagline}</p></div>
-                <button type="button" onClick={() => { void updateGame(game, { enabled: !game.enabled }); }} className={`min-h-10 rounded-xl text-sm font-black ${game.enabled ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                <button type="button" role="switch" aria-checked={game.enabled} aria-label={`${game.title}上架状态`} onClick={() => { void updateGame(game, { enabled: !game.enabled }); }} className={`gb-admin-game-toggle min-h-10 rounded-xl text-sm font-black ${game.enabled ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
                   {game.enabled ? '已上架' : '已下架'}
                 </button>
               </div>
@@ -117,7 +117,7 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
             </form>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[680px] text-left text-sm">
+            <table className="gb-admin-user-table w-full min-w-[680px] text-left text-sm">
               <thead className="text-xs text-slate-400"><tr><th className="pb-3">账号</th><th>身份</th><th>注册时间</th><th>最后登录</th><th className="text-right">操作</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {users.map((user) => (

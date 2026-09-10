@@ -1,0 +1,69 @@
+{
+  "checks": [
+    {
+      "scene": "login",
+      "width": 360,
+      "height": 800,
+      "scrollWidth": 360,
+      "inputs": [
+        {
+          "label": "UID 或用户名",
+          "width": 286
+        },
+        {
+          "label": "密码",
+          "width": 286
+        }
+      ]
+    },
+    {
+      "scene": "login",
+      "width": 393,
+      "height": 852,
+      "scrollWidth": 393,
+      "inputs": [
+        {
+          "label": "UID 或用户名",
+          "width": 319
+        },
+        {
+          "label": "密码",
+          "width": 319
+        }
+      ]
+    },
+    {
+      "scene": "login",
+      "width": 480,
+      "height": 900,
+      "scrollWidth": 480,
+      "inputs": [
+        {
+          "label": "UID 或用户名",
+          "width": 382
+        },
+        {
+          "label": "密码",
+          "width": 382
+        }
+      ]
+    },
+    {
+      "scene": "login",
+      "width": 852,
+      "height": 393,
+      "scrollWidth": 852,
+      "inputs": [
+        {
+          "label": "UID 或用户名",
+          "width": 382
+        },
+        {
+          "label": "密码",
+          "width": 382
+        }
+      ]
+    }
+  ],
+  "runtimeErrors": []
+}

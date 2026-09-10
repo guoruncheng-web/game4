@@ -1,33 +1,26 @@
 'use client';
 
 import Image from 'next/image';
+import { ClubBrand } from './ClubArt';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Check, Copy, KeyRound, LogOut, RefreshCw, ShieldAlert, X } from 'lucide-react';
-import { apiFetch } from '@/lib/api-client';
+import { ArrowLeft, KeyRound, LogOut, RefreshCw, ShieldAlert, X } from 'lucide-react';
+import { apiFetch, type ApiCredentials } from '@/lib/api-client';
 import Avatar from './Avatar';
+import Field from './AuthTextField';
 
 export type AuthMode = 'register' | 'login' | 'account';
 type User = { uid: number; username: string; avatar: string; avatarUrl?: string | null; isAdmin?: boolean } | null;
-/** 一键开号成功后拿到的明文凭据,只在这一次出现 */
-type Credentials = { uid: number; username: string; password: string };
 
-/**
- * 账号弹窗:一键注册 + 登录 + 改密码。
- *
- * 产品形态是"后端直接发一对账号密码,前端弹窗让用户自己记住"。
- * 因为没有邮箱也就没有找回流程,所以弹窗必须把"丢了就找不回来"说死,
- * 并且要求用户勾选确认之后才让关 —— 这一步不是仪式感,是这套设计唯一的安全网。
- * 也正因为没有找回,改密码是刚需:登录之后点用户名就能进。
- *
- * 登录连续失败几次后,后端会在响应里带 requireCaptcha,这时这里补出验证码输入框。
- */
+/** 注册分配 UID 后设置密码；登录兼容 UID 和旧用户名。 */
 export default function AuthDialog({
-  initialMode, user, onAuthed, onClose, onLogout, presentation = 'dialog',
+  initialMode, user, onAuthed, onClose, onLogout, onRegistered, initialSetup = false, presentation = 'dialog',
 }: {
   initialMode: AuthMode;
   user: User;
   onAuthed: (user: Exclude<User, null>, token: string) => void;
-  onClose: () => void;
+  onClose: (credentials?: ApiCredentials) => void;
+  onRegistered?: () => void;
+  initialSetup?: boolean;
   onLogout: () => void | Promise<void>;
   presentation?: 'dialog' | 'page';
 }) {
@@ -35,16 +28,15 @@ export default function AuthDialog({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
-  const [captchaKey, setCaptchaKey] = useState(() => Date.now());
+  // SSR 与客户端首帧必须使用相同 URL；接口自身返回 no-store。
+  const [captchaKey, setCaptchaKey] = useState(0);
   const [captcha, setCaptcha] = useState('');
   const [loginNeedsCaptcha, setLoginNeedsCaptcha] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [credentials, setCredentials] = useState<Credentials | null>(null);
-  const [saved, setSaved] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [firstSetup, setFirstSetup] = useState(initialSetup);
   const dialogRef = useRef<HTMLDivElement>(null);
   const page = presentation === 'page';
 
@@ -53,14 +45,14 @@ export default function AuthDialog({
     setCaptcha('');
   }, []);
 
-  /** 凭据还没确认保存时不许关,避免用户手滑把唯一一次看到密码的机会点掉 */
+  /** 新账号先设置自己的密码，不能被关闭/刷新流程绕过当前设置页。 */
   const requestClose = useCallback(() => {
-    if (credentials && !saved) {
-      setError('先把账号密码存好,勾上下面那一项再关');
+    if (firstSetup) {
+      setError('请先设置登录密码，并记住你的 UID');
       return;
     }
     onClose();
-  }, [credentials, saved, onClose]);
+  }, [firstSetup, onClose]);
 
   // Esc 关闭 + 打开时把焦点移进弹窗,别让键盘用户还停在背后的页面上
   useEffect(() => {
@@ -88,7 +80,9 @@ export default function AuthDialog({
         refreshCaptcha();
         return;
       }
-      setCredentials({ uid: data.uid, username: data.username, password: data.password });
+      setFirstSetup(true);
+      setMode('account');
+      onRegistered?.();
       onAuthed({
         uid: data.uid, username: data.username, avatar: data.avatar,
         avatarUrl: data.avatarUrl ?? null, isAdmin: data.isAdmin,
@@ -109,7 +103,9 @@ export default function AuthDialog({
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, captcha }),
+        body: JSON.stringify(/^\d{6}$/.test(username.trim())
+          ? { uid: username.trim(), password, captcha }
+          : { username: username.trim(), password, captcha }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -125,7 +121,7 @@ export default function AuthDialog({
       }, data.token);
       setLoginNeedsCaptcha(false);
       setPassword('');
-      onClose();
+      onClose({ uid: data.uid, token: data.token });
     } catch {
       setError('网络不太好,再试一次');
     } finally {
@@ -153,7 +149,14 @@ export default function AuthDialog({
         setError(data.error ?? '修改失败');
         return;
       }
-      if (user && data.token) onAuthed(user, data.token);
+      if (user && data.token) {
+        onAuthed(user, data.token);
+        if (firstSetup || page) {
+          setFirstSetup(false);
+          onClose({ uid: user.uid, token: data.token });
+          return;
+        }
+      }
       setNotice('密码改好了,其他设备上的登录状态已经失效');
       setNewPassword('');
       setConfirmPassword('');
@@ -164,65 +167,33 @@ export default function AuthDialog({
     }
   }
 
-  async function copyCredentials() {
-    if (!credentials) return;
-    const text = `UID ${credentials.uid}\n账号 ${credentials.username}\n密码 ${credentials.password}`;
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1800);
-    } catch {
-      setError('浏览器不让自动复制,请手动抄下来');
-    }
-  }
 
   return (
     <div
       role={page ? 'main' : 'dialog'}
       aria-modal={page ? undefined : 'true'}
-      aria-label="账号"
-      className={page ? `auth-form-page auth-mode-${mode}` : 'fixed inset-0 z-50 flex items-end justify-center bg-[#0b1a2b]/45 backdrop-blur-sm sm:items-center'}
+      aria-label={mode === 'login' ? '登录' : mode === 'register' ? '注册' : '账号设置'}
+      className={page ? `gb-auth-form-page gb-auth-mode-${mode} ${mode !== 'account' ? 'gb-auth-v2' : ''} ${mode === 'account' && firstSetup ? 'gb-auth-setup-v2' : ''}` : 'gb-auth-modal fixed inset-0 z-50 flex items-end justify-center bg-[#0b1a2b]/45 backdrop-blur-sm sm:items-center'}
       onClick={(event) => { if (!page && event.target === event.currentTarget) requestClose(); }}
     >
-      {page && (mode === 'register' || mode === 'login') && !credentials && (
-        <Image
-          src={mode === 'register'
-            ? '/assets/game-box/v3/game-box-auth-register-concept-v1.webp'
-            : '/assets/game-box/v3/game-box-auth-login-concept-v1.webp'}
-          alt=""
-          fill
-          priority
-          unoptimized
-          sizes="(max-width: 480px) 100vw, 480px"
-          className="auth-approved-register-layer"
-        />
-      )}
+      {page && (mode !== 'account' || firstSetup) && <nav className="gb-auth-v2-brand" aria-label="GAME BOX">{mode === 'register' && <button type="button" aria-label="返回登录" onClick={() => { setMode('login'); setError(''); }}><ArrowLeft size={22} /></button>}<span className="gb-auth-v2-mark" aria-hidden="true" /><b>GAME BOX</b></nav>}
+      {page && <header className={`gb-auth-hero ${mode !== 'account' ? 'gb-auth-reference-hero' : ''} ${firstSetup ? 'gb-auth-setup-hero' : ''}`} aria-label="GAME BOX · 一起玩，更好玩">{mode === 'account' && !firstSetup && <ClubBrand />}</header>}
       <div
         ref={dialogRef}
-        className={page ? 'auth-form-card' : 'w-full max-w-[440px] rounded-t-[2rem] border-4 border-white bg-[#fffdf7] p-5 shadow-[0_-10px_45px_rgba(23,51,102,0.25)] sm:rounded-[2rem]'}
+        className={page ? 'gb-auth-form-card' : 'gb-auth-form-card w-full max-w-[440px] rounded-t-[2rem] border-4 border-white bg-[#fffdf7] p-5 shadow-[0_-10px_45px_rgba(23,51,102,0.25)] sm:rounded-[2rem]'}
       >
-        {credentials ? (
-          <CredentialsCard
-            credentials={credentials}
-            copied={copied}
-            saved={saved}
-            error={error}
-            onCopy={copyCredentials}
-            onToggleSaved={() => { setSaved((v) => !v); setError(''); }}
-            onDone={requestClose}
-          />
-        ) : (
-          <>
-            <div className="auth-mode-header mb-4 flex items-center justify-between">
+        <>
+            <div className="gb-auth-title"><h1>{mode === 'login' ? (page ? '回来，一起玩。' : '欢迎回来') : mode === 'register' ? (page ? '你的新玩家身份。' : '免费创建账号') : firstSetup ? '欢迎，新玩家。' : '修改密码'}</h1><p>{mode === 'account' ? (firstSetup ? '完成两步，就可以进入 GAME BOX' : '妥善保管你的账号信息') : mode === 'login' ? '登录你的 GAME BOX 账号' : '免费创建账号，开启一起玩的时光'}</p></div>
+            {!page && <div className="gb-auth-mode-header mb-4 flex items-center justify-between">
               {mode === 'account' ? (
                 <p className="px-1 text-base font-black text-[#173366]">账号设置</p>
               ) : (
-                <div className="auth-tabs flex gap-1 rounded-2xl bg-slate-100 p-1">
+                <div className="gb-auth-tabs flex gap-1 rounded-2xl bg-slate-100 p-1">
                   <TabButton active={mode === 'register'} onClick={() => { setMode('register'); setError(''); }}>
                     一键注册
                   </TabButton>
                   <TabButton active={mode === 'login'} onClick={() => { setMode('login'); setError(''); }}>
-                    已有账号
+                    登录
                   </TabButton>
                 </div>
               )}
@@ -230,18 +201,16 @@ export default function AuthDialog({
                 type="button"
                 onClick={requestClose}
                 aria-label="关闭"
-                className={page ? 'auth-page-back' : 'grid size-9 place-items-center rounded-full text-slate-400 transition active:scale-90'}
+                className={page ? 'gb-auth-page-back' : 'grid size-9 place-items-center rounded-full text-slate-400 transition active:scale-90'}
               >
                 {page ? <ArrowLeft size={26} /> : <X size={20} />}
               </button>
-            </div>
+            </div>}
 
             {mode === 'register' && (
-              <div className="auth-register-panel space-y-3">
-                <p className="auth-register-intro text-sm font-semibold leading-relaxed text-slate-500">
-                  一键创建你的 GAME BOX 账号<br />
-                  立即开启精彩的游戏之旅！<br />
-                  <strong>账号信息只会显示这一次，请务必保存好！</strong>
+              <div className="gb-auth-register-panel space-y-3">
+                <p className="gb-auth-register-intro text-sm font-semibold leading-relaxed text-slate-500">
+                  <strong>系统自动分配专属 UID</strong>
                 </p>
                 <CaptchaField
                   value={captcha}
@@ -254,28 +223,31 @@ export default function AuthDialog({
                 <PrimaryButton
                   onClick={submitRegister}
                   disabled={loading || captcha.length < 4}
-                  label={loading ? '正在开号…' : '给我一个账号'}
+                  label={loading ? '正在开号…' : '创建账号'}
                 />
-                <div className="auth-register-warning" role="note">
+                {page && <><p className="gb-auth-v2-helper">创建后设置登录密码，请保存好你的 UID</p><div className="gb-auth-v2-switch">已有账号？<button type="button" className="gb-auth-mode-link" onClick={() => { setMode('login'); setError(''); }}>去登录</button></div></>}
+                <div className="gb-auth-register-warning" role="note">
                   <ShieldAlert aria-hidden="true" />
-                  <p>本平台不提供邮箱找回功能<br />请务必妥善保存你的账号信息！</p>
+                  <p>请保存账号密码，暂不支持找回</p>
                 </div>
               </div>
             )}
 
             {mode === 'login' && (
-              <div className="auth-login-panel space-y-3">
+              <div className="gb-auth-login-panel space-y-3">
                 <Field
                   value={username}
                   onChange={setUsername}
-                  placeholder="账号，形如 player-7k3m9x"
+                  placeholder="输入 UID 或用户名"
+                  visibleLabel={page ? "账号" : undefined}
                   autoComplete="username"
-                  label="账号"
+                  label="UID 或用户名"
                 />
                 <Field
                   value={password}
                   onChange={setPassword}
-                  placeholder="密码"
+                  placeholder="输入密码"
+                  visibleLabel={page ? "密码" : undefined}
                   type="password"
                   autoComplete="current-password"
                   label="密码"
@@ -296,13 +268,16 @@ export default function AuthDialog({
                   disabled={loading || !username || !password || (loginNeedsCaptcha && captcha.length < 4)}
                   label={loading ? '登录中…' : '登录'}
                 />
+                {page && <><div className="gb-auth-v2-switch">还没有账号？<button type="button" className="gb-auth-mode-link" onClick={() => { setMode('register'); setError(''); }}>创建账号</button></div><p className="gb-auth-v2-footer">好游戏，和朋友一起。</p></>}
               </div>
             )}
 
             {mode === 'account' && (
               <div className="space-y-3">
-                <div className="rounded-2xl border-2 border-slate-200 bg-white p-4">
-                  <p className="text-xs font-bold text-slate-400">当前账号</p>
+                {firstSetup && <ol className="gb-setup-progress" aria-label="账号设置进度"><li aria-current="step"><b>1</b><span>保存 UID</span></li><li><b>2</b><span>设置密码</span></li></ol>}
+                {firstSetup ? <section className="gb-setup-uid" aria-labelledby="gb-setup-uid-title"><div><span id="gb-setup-uid-title">你的登录 UID</span><small>以后使用这个号码登录</small></div><b>{user?.uid}</b><button type="button" onClick={() => { if (!navigator.clipboard) { setError('复制不可用，请长按 UID 保存'); return; } if (user) void navigator.clipboard.writeText(String(user.uid)).then(() => setNotice('UID 已复制')).catch(() => setError('复制失败，请长按 UID 保存')); }} aria-label="复制 UID">复制 UID</button></section> : <div className="rounded-2xl border-2 border-slate-200 bg-white p-4">
+                  <p className="text-xs font-bold text-slate-400">登录 UID · 请记住这个号码</p>
+                  <p className="gb-login-uid">{user?.uid}</p>
                   <div className="mt-2 flex items-center gap-3">
                     <Avatar
                       emoji={user?.avatar ?? ''}
@@ -314,15 +289,14 @@ export default function AuthDialog({
                       {user?.username}
                     </p>
                   </div>
-                </div>
-                <p className="px-1 font-mono text-xs font-bold text-emerald-600">UID {user?.uid}</p>
-                <div className="flex items-center gap-2 px-1 pt-1 text-sm font-black text-[#173366]">
+                </div>}
+
+                {!firstSetup && <div className="flex items-center gap-2 px-1 pt-1 text-sm font-black text-[#173366]">
                   <KeyRound size={16} className="text-emerald-500" />
                   修改密码
-                </div>
+                </div>}
                 <p className="px-1 text-xs font-semibold leading-relaxed text-slate-400">
-                  开号发的密码是一串随机字符，多半你也没背下来，所以这里不用填旧密码。
-                  改完之后其他设备上的登录状态会全部失效。
+                  {firstSetup ? '设置登录密码' : '修改后其他设备将退出登录，当前设备会保持登录。'}
                 </p>
                 <Field
                   value={newPassword}
@@ -331,6 +305,7 @@ export default function AuthDialog({
                   type="password"
                   autoComplete="new-password"
                   label="新密码"
+                  visibleLabel={firstSetup ? '新密码' : undefined}
                 />
                 <Field
                   value={confirmPassword}
@@ -339,6 +314,7 @@ export default function AuthDialog({
                   type="password"
                   autoComplete="new-password"
                   label="确认新密码"
+                  visibleLabel={firstSetup ? '确认新密码' : undefined}
                   onSubmit={submitPasswordChange}
                 />
                 {error && <ErrorLine text={error} />}
@@ -346,85 +322,20 @@ export default function AuthDialog({
                 <PrimaryButton
                   onClick={submitPasswordChange}
                   disabled={loading || newPassword.length < 8 || !confirmPassword}
-                  label={loading ? '提交中…' : '确认修改'}
+                  label={loading ? '提交中…' : firstSetup ? '设置密码并进入' : '确认修改并进入'}
                 />
-                <button
+                {!firstSetup && <button
                   type="button"
-                  onClick={() => { void onLogout(); }}
+                  onClick={async () => { await onLogout(); setMode('login'); setFirstSetup(false); setPassword(''); setNewPassword(''); setConfirmPassword(''); }}
                   className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white text-base font-bold text-slate-500 transition active:scale-[0.99]"
                 >
                   <LogOut size={18} />
                   退出登录
-                </button>
+                </button>}
               </div>
             )}
-          </>
-        )}
+        </>
       </div>
-    </div>
-  );
-}
-
-function CredentialsCard({
-  credentials, copied, saved, error, onCopy, onToggleSaved, onDone,
-}: {
-  credentials: Credentials;
-  copied: boolean;
-  saved: boolean;
-  error: string;
-  onCopy: () => void;
-  onToggleSaved: () => void;
-  onDone: () => void;
-}) {
-  return (
-    <div className="space-y-4">
-      <div className="flex items-start gap-2 rounded-2xl border-2 border-amber-200 bg-amber-50 p-3">
-        <ShieldAlert className="mt-0.5 shrink-0 text-amber-500" size={20} />
-        <p className="text-sm font-bold leading-relaxed text-amber-700">
-          账号开好了。请立刻截图或复制保存 —— 密码只显示这一次，
-          <span className="underline decoration-amber-400 decoration-2">没有找回功能，丢了账号就找不回来了。</span>
-        </p>
-      </div>
-
-      <dl className="space-y-2 rounded-2xl border-2 border-slate-200 bg-white p-4">
-        <div className="flex items-baseline gap-3">
-          <dt className="w-10 shrink-0 text-xs font-bold text-slate-400">UID</dt>
-          <dd className="select-all font-mono text-base font-bold text-emerald-700">{credentials.uid}</dd>
-        </div>
-        <div className="flex items-baseline gap-3">
-          <dt className="w-10 shrink-0 text-xs font-bold text-slate-400">账号</dt>
-          <dd className="select-all break-all font-mono text-base font-bold text-slate-800">{credentials.username}</dd>
-        </div>
-        <div className="flex items-baseline gap-3">
-          <dt className="w-10 shrink-0 text-xs font-bold text-slate-400">密码</dt>
-          <dd className="select-all break-all font-mono text-base font-bold text-slate-800">{credentials.password}</dd>
-        </div>
-      </dl>
-
-      <button
-        type="button"
-        onClick={onCopy}
-        className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-emerald-200 bg-emerald-50 text-base font-bold text-emerald-700 transition active:scale-[0.99]"
-      >
-        {copied ? <Check size={18} /> : <Copy size={18} />}
-        {copied ? '已复制到剪贴板' : '复制 UID、账号和密码'}
-      </button>
-
-      <label className="flex cursor-pointer items-center gap-2.5 px-1 text-sm font-bold text-slate-600">
-        <input type="checkbox" checked={saved} onChange={onToggleSaved} className="size-5 accent-emerald-500" />
-        我已经保存好了
-      </label>
-
-      {error && <ErrorLine text={error} />}
-
-      <button
-        type="button"
-        onClick={onDone}
-        disabled={!saved}
-        className="flex min-h-14 w-full items-center justify-center rounded-2xl bg-gradient-to-b from-[#43d875] to-[#2cbe60] text-lg font-black text-white shadow-[0_8px_0_#22994b] transition active:translate-y-1 active:shadow-[0_4px_0_#22994b] disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
-      >
-        开始玩
-      </button>
     </div>
   );
 }
@@ -439,16 +350,18 @@ function CaptchaField({
   onSubmit: () => void;
 }) {
   return (
-    <div className="auth-captcha-field">
-      <p className="auth-captcha-title">图形验证码</p>
-      <div className="auth-captcha-preview">
-        <div className="auth-captcha-image">
+    <div className="gb-auth-captcha-field">
+      <span className="gb-auth-field-icon gb-auth-icon-captcha" aria-hidden="true" />
+      <p className="gb-auth-captcha-title">图形验证码</p>
+      <div className="gb-auth-captcha-preview">
+        <div className="gb-auth-captcha-image">
           <Image
             key={captchaKey}
             src={`/api/auth/captcha?t=${captchaKey}`}
             alt=""
             width={168}
             height={56}
+            style={{ width: '100%', height: 'auto' }}
             unoptimized
             onLoad={(event) => { event.currentTarget.style.visibility = 'visible'; }}
             onError={(event) => { event.currentTarget.style.visibility = 'hidden'; }}
@@ -458,52 +371,27 @@ function CaptchaField({
           type="button"
           onClick={onRefresh}
           aria-label="刷新验证码"
-          className="auth-captcha-refresh"
+          className="gb-auth-captcha-refresh"
         >
           <RefreshCw aria-hidden="true" />
         </button>
       </div>
-      <label className="auth-captcha-input-label" htmlFor={`auth-captcha-${captchaKey}`}>请输入验证码</label>
+      <label className="gb-auth-captcha-input-label" htmlFor={`gb-auth-captcha-${captchaKey}`}>请输入验证码</label>
       <input
-        id={`auth-captcha-${captchaKey}`}
+        id={`gb-auth-captcha-${captchaKey}`}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => { if (event.key === 'Enter') onSubmit(); }}
-        placeholder=""
+        placeholder="输入图形验证码"
         maxLength={6}
         autoComplete="off"
         aria-label="图形验证码"
-        className="auth-captcha-input min-h-12 min-w-0 rounded-2xl border-2 border-slate-200 bg-white px-4 text-base font-bold uppercase tracking-[0.2em] text-slate-700 outline-none transition focus:border-emerald-400"
+        className="gb-auth-captcha-input min-h-12 min-w-0 rounded-2xl border-2 border-slate-200 bg-white px-4 text-base font-bold uppercase tracking-[0.2em] text-slate-700 outline-none transition focus:border-emerald-400"
       />
     </div>
   );
 }
 
-function Field({
-  value, onChange, placeholder, label, type = 'text', autoComplete, onSubmit,
-}: {
-  value: string;
-  onChange: (next: string) => void;
-  placeholder: string;
-  label: string;
-  type?: string;
-  autoComplete?: string;
-  onSubmit?: () => void;
-}) {
-  return (
-    <input
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-      onKeyDown={(event) => { if (event.key === 'Enter' && onSubmit) onSubmit(); }}
-      type={type}
-      placeholder={placeholder}
-      autoComplete={autoComplete}
-      aria-label={label}
-      maxLength={128}
-      className="auth-text-field min-h-12 w-full rounded-2xl border-2 border-slate-200 bg-white px-4 text-base font-semibold text-slate-700 outline-none transition focus:border-emerald-400"
-    />
-  );
-}
 
 function PrimaryButton({ onClick, disabled, label }: { onClick: () => void; disabled: boolean; label: string }) {
   return (
@@ -511,7 +399,7 @@ function PrimaryButton({ onClick, disabled, label }: { onClick: () => void; disa
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="auth-primary-button flex min-h-14 w-full items-center justify-center rounded-2xl bg-gradient-to-b from-[#43d875] to-[#2cbe60] text-lg font-black text-white shadow-[0_8px_0_#22994b] transition active:translate-y-1 active:shadow-[0_4px_0_#22994b] disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
+      className="gb-auth-primary-button flex min-h-14 w-full items-center justify-center rounded-2xl bg-gradient-to-b from-[#43d875] to-[#2cbe60] text-lg font-black text-white shadow-[0_8px_0_#22994b] transition active:translate-y-1 active:shadow-[0_4px_0_#22994b] disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
     >
       {label}
     </button>

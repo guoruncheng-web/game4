@@ -1,0 +1,22 @@
+{
+  "requests": [
+    {
+      "title": "PWA页面复核0910",
+      "visibility": "friends",
+      "requiresMicApproval": true
+    },
+    {
+      "title": "PWA页面复核0910",
+      "visibility": "friends",
+      "requiresMicApproval": true
+    }
+  ],
+  "result": {
+    "status": 200,
+    "id": "36d1ab61-e33c-40d6-abad-fcd8c148a54d",
+    "gameSlug": null,
+    "title": "PWA页面复核0910",
+    "members": 1,
+    "maxSpeakers": 8
+  }
+}

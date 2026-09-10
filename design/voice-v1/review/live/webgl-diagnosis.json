@@ -1,0 +1,9 @@
+{
+  "result": {
+    "webgl": false,
+    "text": ""
+  },
+  "errors": [
+    "Error: THREE.WebGLRenderer: Error creating WebGL context.\n    at new WebGLRenderer (http://localhost:3000/_next/static/chunks/node_modules_three_build_three_module_03rsyo6.js:10985:31)\n    at new Stage (http://localhost:3000/_next/static/chunks/src_games_neon-strike_07uczv-._.js:1444:25)\n    at startGame (http://localhost:3000/_next/static/chunks/src_games_neon-strike_07uczv-._.js:337:19)\n    at ThreeCanvas.useEffect (http://localhost:3000/_next/static/chunks/src_components_ThreeCanvas_tsx_0a2vrm7._.js:26:39)"
+  ]
+}

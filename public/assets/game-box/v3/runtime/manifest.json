@@ -1,0 +1,242 @@
+{
+  "brand-logo": {
+    "file": "brand-logo.png",
+    "size": [
+      426,
+      277
+    ],
+    "group": "shared-ui",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-ui-atlas-v3.png"
+  },
+  "player-hud": {
+    "file": "player-hud.png",
+    "size": [
+      287,
+      165
+    ],
+    "group": "shared-ui",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-ui-atlas-v3.png"
+  },
+  "currency-hud": {
+    "file": "currency-hud.png",
+    "size": [
+      336,
+      111
+    ],
+    "group": "shared-ui",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-ui-atlas-v3.png"
+  },
+  "sound-button": {
+    "file": "sound-button.png",
+    "size": [
+      157,
+      136
+    ],
+    "group": "shared-ui",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-ui-atlas-v3.png"
+  },
+  "adventure-portal": {
+    "file": "adventure-portal.png",
+    "size": [
+      439,
+      465
+    ],
+    "group": "shared-ui",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-ui-atlas-v3.png"
+  },
+  "cube-mascot": {
+    "file": "cube-mascot.png",
+    "size": [
+      248,
+      276
+    ],
+    "group": "shared-ui",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-ui-atlas-v3.png"
+  },
+  "coming-soon-sign": {
+    "file": "coming-soon-sign.png",
+    "size": [
+      260,
+      228
+    ],
+    "group": "shared-ui",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-ui-atlas-v3.png"
+  },
+  "wood-plaque": {
+    "file": "wood-plaque.png",
+    "size": [
+      362,
+      209
+    ],
+    "group": "shared-ui",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-ui-atlas-v3.png"
+  },
+  "controller-dock": {
+    "file": "controller-dock.png",
+    "size": [
+      568,
+      251
+    ],
+    "group": "shared-ui",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-ui-atlas-v3.png"
+  },
+  "nav-games-active": {
+    "file": "nav-games-active.png",
+    "size": [
+      237,
+      197
+    ],
+    "group": "shared-ui",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-ui-atlas-v3.png"
+  },
+  "nav-messages": {
+    "file": "nav-messages.png",
+    "size": [
+      223,
+      171
+    ],
+    "group": "shared-ui",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-ui-atlas-v3.png"
+  },
+  "nav-profile": {
+    "file": "nav-profile.png",
+    "size": [
+      215,
+      174
+    ],
+    "group": "shared-ui",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-ui-atlas-v3.png"
+  },
+  "world-star-runner": {
+    "file": "world-star-runner.png",
+    "size": [
+      419,
+      495
+    ],
+    "group": "world-entrance",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-worlds-atlas-v3.png"
+  },
+  "world-fruit-slasher": {
+    "file": "world-fruit-slasher.png",
+    "size": [
+      421,
+      528
+    ],
+    "group": "world-entrance",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-worlds-atlas-v3.png"
+  },
+  "world-eight-ball": {
+    "file": "world-eight-ball.png",
+    "size": [
+      418,
+      499
+    ],
+    "group": "world-entrance",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-worlds-atlas-v3.png"
+  },
+  "world-triple-pile": {
+    "file": "world-triple-pile.png",
+    "size": [
+      416,
+      513
+    ],
+    "group": "world-entrance",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-worlds-atlas-v3.png"
+  },
+  "world-fish-hunter": {
+    "file": "world-fish-hunter.png",
+    "size": [
+      423,
+      474
+    ],
+    "group": "world-entrance",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-worlds-atlas-v3.png"
+  },
+  "world-thirteen": {
+    "file": "world-thirteen.png",
+    "size": [
+      417,
+      479
+    ],
+    "group": "world-entrance",
+    "purpose": "GAME BOX v3 PWA container visual reconstruction",
+    "source": "game-box-worlds-atlas-v3.png"
+  },
+  "player-hud-empty": {
+    "file": "player-hud-empty.png",
+    "size": [
+      512,
+      282
+    ],
+    "group": "dynamic-hud-frame",
+    "purpose": "Empty backing for React-rendered live player and currency values",
+    "source": "game-box-dynamic-hud-atlas-v3.png"
+  },
+  "currency-hud-empty": {
+    "file": "currency-hud-empty.png",
+    "size": [
+      595,
+      190
+    ],
+    "group": "dynamic-hud-frame",
+    "purpose": "Empty backing for React-rendered live player and currency values",
+    "source": "game-box-dynamic-hud-atlas-v3.png"
+  },
+  "currency-star": {
+    "file": "currency-star.png",
+    "size": [
+      212,
+      221
+    ],
+    "group": "dynamic-hud-frame",
+    "purpose": "Empty backing for React-rendered live player and currency values",
+    "source": "game-box-dynamic-hud-atlas-v3.png"
+  },
+  "currency-diamond": {
+    "file": "currency-diamond.png",
+    "size": [
+      227,
+      217
+    ],
+    "group": "dynamic-hud-frame",
+    "purpose": "Empty backing for React-rendered live player and currency values",
+    "source": "game-box-dynamic-hud-atlas-v3.png"
+  },
+  "unread-badge": {
+    "file": "unread-badge.png",
+    "size": [
+      160,
+      158
+    ],
+    "group": "dynamic-hud-frame",
+    "purpose": "Empty backing for React-rendered live player and currency values",
+    "source": "game-box-dynamic-hud-atlas-v3.png"
+  },
+  "star-road": {
+    "file": "star-road.png",
+    "size": [
+      558,
+      1442
+    ],
+    "group": "world-navigation",
+    "purpose": "Winding visual connector behind GAME BOX v3 world entrances",
+    "source": "game-box-star-road-v3.png"
+  }
+}

@@ -10,20 +10,18 @@ export const metadata = { title: '离线 · GAME BOX' };
  */
 export default function OfflinePage() {
   return (
-    <main className="game-box-bg grid min-h-dvh place-items-center px-6 text-center text-[#23304a]">
-      <div>
-        <div className="mx-auto grid size-20 place-items-center rounded-3xl bg-gradient-to-br from-lime-300 to-emerald-500 text-4xl shadow-[0_10px_28px_rgba(50,201,107,0.3)]">
-          🎮
-        </div>
+    <main className="gb-system-page">
+      <div className="gb-system-card">
+        <div className="gb-state-art gb-state-art--offline" aria-hidden="true" />
         <h1 className="mt-6 text-2xl font-black text-[#173366]">当前没有网络</h1>
         <p className="mt-2 text-sm font-medium text-slate-500">
-          这一页还没缓存过。已经玩过的游戏素材留在本地,离线也能直接开。
+          请联网后重试。连接恢复后即可验证登录状态，继续游戏。
         </p>
         <Link
           href="/"
           className="mt-7 inline-flex min-h-12 items-center justify-center rounded-2xl bg-gradient-to-b from-[#43d875] to-[#2cbe60] px-7 text-base font-black text-white shadow-[0_6px_0_#22994b] transition active:translate-y-0.5 active:shadow-[0_3px_0_#22994b]"
         >
-          回游戏盒子首页
+          重新连接
         </Link>
       </div>
     </main>

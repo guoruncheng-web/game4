@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import GameLoading from '@/components/GameLoading';
 import Link from 'next/link';
 import { getGame } from '@/games/registry';
 
@@ -8,7 +9,7 @@ const meta = getGame('triple-pile')!;
 
 const ThreeCanvas = dynamic(() => import('@/components/ThreeCanvas'), {
   ssr: false,
-  loading: () => <div className="grid h-dvh place-items-center bg-[#1a120c] text-amber-200">正在烧这一锅…</div>,
+  loading: () => <GameLoading />,
 });
 
 /**

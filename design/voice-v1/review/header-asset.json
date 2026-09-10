@@ -1,0 +1,9 @@
+{
+  "file": "public/assets/game-box/v5/voice-create-header-v2.webp",
+  "purpose": "创建房间页的独立无文字头图；标题、Logo、表单由DOM渲染",
+  "reference": "design/voice-v1/01-core-pages.png, screen 03",
+  "source": "/home/gary/.codex/generated_images/01a089ad-1534-7c92-a4ae-67287d48989b/exec-1e3b171d-0126-48ee-9477-9005d399bb8a.png",
+  "method": "built-in imagegen edit",
+  "prompt": "Use case: precise-object-edit. Input is the approved three-screen GAME BOX UI, an edit target. Extract ONLY the background artwork of screen 03 (rightmost create-room screen) from x944..1385 y67..289 into a standalone wide 2:1 header asset. Preserve the EXACT pastel cloud scenery, green cube mascot with headphones at lower right, yellow star and arcade building from that header; preserve their relative scale and placement. Remove all overlaid UI: statusbar time/wifi/battery, back button, title 创建房间, GAME BOX wordmark and subtitle. Reconstruct only the small areas revealed by that removal using the surrounding clouds. Do NOT redesign, do not introduce new buildings or characters, do not move or shrink the mascot. Output rectangular artwork edge to edge, no phone frame, no white content panel, no text, no UI, no buttons. This is a precision asset extraction for reproducing this approved screen, not a new illustration.",
+  "limitation": "Generative extraction; not a pixel-identical crop. Visual parity not approved."
+}

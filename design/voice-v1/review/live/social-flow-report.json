@@ -1,0 +1,50 @@
+[
+  {
+    "scene": "23-search-result"
+  },
+  {
+    "scene": "24-friend-request"
+  },
+  {
+    "scene": "25-chat-sent"
+  },
+  {
+    "scene": "26-messages-with-friend"
+  },
+  {
+    "scene": "27-chat-reply"
+  },
+  {
+    "test": "friend-accept-and-two-way-chat",
+    "passed": true
+  },
+  {
+    "scene": "28-friend-invited"
+  },
+  {
+    "scene": "29-room-invitation"
+  },
+  {
+    "scene": "30-awaiting-mic"
+  },
+  {
+    "scene": "31-mic-approval"
+  },
+  {
+    "scene": "32-mic-approved"
+  },
+  {
+    "test": "invite-join-mic-approval",
+    "passed": true
+  },
+  {
+    "scene": "33-member-actions"
+  },
+  {
+    "scene": "34-staff-muted"
+  },
+  {
+    "test": "staff-mute",
+    "passed": true
+  }
+]

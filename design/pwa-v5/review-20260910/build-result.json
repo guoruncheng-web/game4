@@ -1,0 +1,17 @@
+{
+  "lint": {
+    "command": "pnpm lint",
+    "exitCode": 0
+  },
+  "build": {
+    "command": "pnpm build",
+    "exitCode": 0,
+    "next": "16.3.0"
+  },
+  "diffCheck": {
+    "command": "git diff --check",
+    "exitCode": 0
+  },
+  "warning": "Existing middleware convention deprecated in favour of proxy",
+  "sourceManifest": "source-manifest.json"
+}

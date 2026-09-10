@@ -1,0 +1,70 @@
+[
+  {
+    "scene": "35-room-network-lost",
+    "path": "/voice/5510298d-e470-48d6-9418-364ba58c9bb3",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "test": "network-recovery",
+    "passed": true
+  },
+  {
+    "scene": "09-management",
+    "path": "/voice/5510298d-e470-48d6-9418-364ba58c9bb3",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "36-close-room-confirm",
+    "path": "/voice/5510298d-e470-48d6-9418-364ba58c9bb3",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "test": "owner-close-room",
+    "passed": true
+  },
+  {
+    "scene": "37-room-closed",
+    "path": "/voice/5510298d-e470-48d6-9418-364ba58c9bb3",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "27-chat-reply",
+    "path": "/",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "19-admin-no-access",
+    "path": "/admin",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "20-offline-page",
+    "path": "/offline",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "38-fish-lobby",
+    "path": "/fish-hunter/lobby",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "39-coop-lobby",
+    "path": "/neon-strike-2d/lobby",
+    "width": 393,
+    "scrollWidth": 393
+  },
+  {
+    "scene": "03-profile",
+    "path": "/",
+    "width": 393,
+    "scrollWidth": 393
+  }
+]
