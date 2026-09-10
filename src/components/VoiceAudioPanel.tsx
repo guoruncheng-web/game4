@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { voiceRequest, type VoiceRoom } from '@/lib/voice-room';
 import { INITIAL_RTC_STATE, VoiceRtcSession, type RtcGrant } from '@/lib/voice/rtc-session';
 
-type Props = { room: VoiceRoom | null; roomId: string; uid?: number; healthy: boolean; microphoneBlocked: boolean };
+type Props = { compact?: boolean; room: VoiceRoom | null; roomId: string; uid?: number; healthy: boolean; microphoneBlocked: boolean };
 
-export default function VoiceAudioPanel({ room, roomId, uid, healthy, microphoneBlocked }: Props) {
+export default function VoiceAudioPanel({ compact = false, room, roomId, uid, healthy, microphoneBlocked }: Props) {
   const session = useRef<VoiceRtcSession | null>(null);
   const [state, setState] = useState(INITIAL_RTC_STATE);
   const requested = useRef(false);
@@ -51,7 +51,7 @@ export default function VoiceAudioPanel({ room, roomId, uid, healthy, microphone
   const connected = state.connection === 'connected';
   const connecting = state.connection === 'connecting' || state.connection === 'reconnecting';
   const label = { idle: '语音未连接', connecting: '正在连接语音', connected: '语音已连接', reconnecting: '语音重连中', error: '语音连接失败' }[state.connection];
-  return <section className="voice-audio-panel" aria-label="房间语音">
+  return <section className={`voice-audio-panel ${compact ? 'is-compact' : ''}`} aria-label="房间语音">
     <div className="voice-audio-status" role="status"><b>{label}</b><span>{state.microphone === 'on' ? '麦克风已开启' : state.microphone === 'starting' ? '正在开启麦克风…' : '麦克风已关闭'}</span></div>
     <div className="voice-audio-controls">
       {!connected && <button type="button" disabled={!active || connecting} onClick={() => { requested.current = true; void session.current?.connect(); }}>{connecting ? '连接中…' : state.connection === 'error' ? '重连语音' : '加入语音'}</button>}

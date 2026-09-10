@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ArrowLeft, MoreHorizontal, Plus, Gamepad2, Mic, MicOff, Send, Users } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
@@ -112,41 +113,38 @@ export default function VoiceRoomPage({ roomId }: { roomId: string }) {
   const manages = me?.role === 'owner' || me?.role === 'moderator';
   const pending = room.members.filter((member) => member.micRequestedAt);
   const micStatus = me?.mutedByStaff ? '已被管理员禁麦' : me?.micSeat != null ? `已在 ${me.micSeat} 号麦位` : me?.micRequestedAt ? '等待上麦审批' : '当前未上麦';
-  const seats = Array.from({ length: Math.min(room.maxSpeakers, 8) }, (_, index) => room.members.find((member) => member.micSeat === index + 1) ?? null);
+  const seats = Array.from({ length: room.maxSpeakers }, (_, index) => room.members.find((member) => member.micSeat === index + 1) ?? null);
 
-  return <main className="voice-room-page voice-room-v2">
+  return <main className="voice-room-page voice-room-v2 voice-room-starry">
     <div className="voice-room-shell">
       <header className="voice-room-header">
-        <button type="button" aria-label="返回" onClick={() => setLeaveOpen(true)}>‹</button>
-        <div><b>{room.title}</b><small>{room.visibility === 'friends' ? '好友房' : '私密房'}{room.roomCode ? ` · ${room.roomCode}` : ''}</small></div>
-        <button type="button" aria-label="房间操作" onClick={() => manages ? setSheet('manage') : setLeaveOpen(true)}>•••</button>
+        <button type="button" aria-label="返回" onClick={() => setLeaveOpen(true)}><ArrowLeft size={19} /></button>
+        <div className="voice-room-title"><b>{room.title}</b><small>连麦聊 · {room.roomCode ?? (room.visibility === 'friends' ? '好友房' : '私密房')}</small></div>
+        <button type="button" className="voice-header-invite" aria-label="邀请好友" onClick={() => setSheet('invite')}><Plus size={22} /></button>
+        <div className="voice-header-members" aria-label={`${room.members.length} 人在线`}>{room.members.slice(0, 3).map(member => <Avatar key={member.uid} emoji={member.avatar} url={member.avatarUrl} />)}<small>{room.members.length}</small></div>
+        <button type="button" aria-label="房间操作" onClick={() => manages ? setSheet('manage') : setLeaveOpen(true)}><MoreHorizontal size={23} /></button>
       </header>
-      <div className="voice-room-status" aria-label="房间状态"><span><i aria-hidden="true" />{room.members.length}/{room.maxMembers} 人在线</span><span className={`voice-connection ${connectionLost ? 'is-lost' : ''}`}><i aria-hidden="true" />{connectionLost ? '房间连接中断' : '房间已连接'}</span></div>
+      <div className="voice-room-status" aria-label="房间状态"><span><Users size={12} />{room.members.length} 人在线</span><span className={`voice-connection ${connectionLost ? 'is-lost' : ''}`}><i aria-hidden="true" />{connectionLost ? '房间连接中断' : '一起聊，慢慢熟悉'}</span></div>
       {connectionLost && <div className="voice-error" role="alert"><span>连接中断，正在尝试恢复</span><button type="button" onClick={() => void refresh()}>重新连接</button></div>}
-
-      <VoiceAudioPanel room={room} roomId={roomId} uid={credentials?.uid} healthy={!connectionLost && !leaving} microphoneBlocked={releasingMic} />
 
       {room.gameSlug && <button type="button" onClick={() => setSheet('games')} className="voice-game-banner"><span className="voice-game-thumbnail" style={cardStyle(room.gameSlug)} /><span><b>{voiceGameTitle(room.gameSlug)}</b><small>和房间好友一起玩</small></span><em>查看游戏 ›</em></button>}
 
       <section className="voice-stage" aria-label="语聊麦位">
-        <div className="voice-stage-heading"><span><small>VOICE LOUNGE</small><h2>一起聊</h2></span><b>{room.members.filter((member) => member.micSeat != null).length}/{room.maxSpeakers} 麦位</b>{manages && <button type="button" aria-label="管理房间麦位" onClick={() => setSheet('manage')}><span className="voice-stage-settings-icon" aria-hidden="true" /></button>}</div>
         <div className="voice-seat-grid">
-          {seats.map((member, index) => <button key={index} type="button" className={`voice-seat ${member ? 'is-occupied' : ''}`} onClick={() => { if (member && manages && member.uid !== me?.uid && member.role !== 'owner' && (me?.role === 'owner' || member.role === 'member')) { setSelected(member); setSheet('manage'); } }} disabled={!member}>
-            <span>{member ? <Avatar emoji={member.avatar} url={member.avatarUrl} /> : <i className="voice-seat-empty-icon" aria-hidden="true" />}{member?.mutedByStaff && <em>禁麦</em>}{member?.role === 'owner' && <strong>房主</strong>}</span>
-            <b>{member?.username ?? `${index + 1}号麦位`}</b>
-            {member?.mutedByStaff && <small>已禁麦</small>}
+          {seats.map((member, index) => <button key={index} type="button" aria-label={member ? `${index + 1}号麦位 ${member.username}${member.mutedByStaff ? ' 已禁麦' : ''}` : `${index + 1}号空麦位，申请上麦`} className={`voice-seat ${index < 2 ? 'is-featured' : ''} ${member ? 'is-occupied' : ''}`} onClick={() => {
+            if (!member) { if (me?.micSeat == null && !me?.micRequestedAt) void updateMic('request'); return; }
+            if (manages && member.uid !== me?.uid && member.role !== 'owner' && (me?.role === 'owner' || member.role === 'member')) { setSelected(member); setSheet('manage'); }
+          }} disabled={!member && (busy || me?.mutedByStaff || me?.micSeat != null || !!me?.micRequestedAt)}>
+            <span className="voice-seat-portrait">{member ? <Avatar emoji={member.avatar} url={member.avatarUrl} /> : <Mic size={24} strokeWidth={1.3} />}{member?.mutedByStaff && <em><MicOff size={12} />禁麦</em>}</span>
+            <b>{member?.role === 'owner' && <i className="voice-role-owner">房</i>}{member?.role === 'moderator' && <i className="voice-role-moderator">管</i>}{member?.username ?? `${index + 1}号麦位`}</b>
           </button>)}
         </div>
-        <div className="voice-stage-members"><span>{room.members.slice(0, 5).map((member) => <Avatar key={member.uid} emoji={member.avatar} url={member.avatarUrl} />)}</span><b>{room.members.length} 位成员</b><button type="button" onClick={() => setSheet('invite')}><i aria-hidden="true">＋</i>邀请好友</button></div>
-        {room.maxSpeakers > 8 && <p className="voice-more-seats">还有 {room.maxSpeakers - 8} 个麦位，可在成员列表中查看</p>}
       </section>
 
-      <button type="button" className="voice-game-list-entry" aria-haspopup="dialog" onClick={() => setSheet('games')}><ClubIcon name="games" /><span><b>一起玩游戏</b><small>打开游戏列表，选一个喜欢的</small></span><em>游戏列表 ›</em></button>
-
       <section className="voice-chat-panel">
-        <div className="voice-stage-title"><span><small>ROOM CHAT</small><h2>房间聊天</h2></span><b>{messages.length} 条消息</b></div>
+        <h2 className="sr-only">房间聊天</h2>
         <div className="voice-message-list" aria-live="polite">
-          {messages.length === 0 && <div className="voice-message-empty"><span aria-hidden="true">•••</span><b>从一句问候开始</b><small>聊聊今天想玩什么吧</small></div>}
+          {messages.length === 0 && <div className="voice-message-empty"><b>欢迎来到 {room.title}</b><small>发条消息打个招呼，或加入语音一起聊聊。</small></div>}
           {messages.map((message) => <div key={message.id} className={`voice-message ${message.sender.uid === me?.uid ? 'is-mine' : ''}`}>
             <Avatar emoji={message.sender.avatar} url={message.sender.avatarUrl} />
             <span><small>{message.sender.username}</small><b>{message.content}</b></span>
@@ -157,8 +155,13 @@ export default function VoiceRoomPage({ roomId }: { roomId: string }) {
 
       {error && <div className="voice-room-toast" role="status">{error}<button type="button" onClick={() => setError('')} aria-label="关闭">×</button></div>}
       <div className="voice-room-dock">
-        <div className="voice-room-actions"><span>{micStatus}</span>{me?.micSeat != null ? <button type="button" className="voice-mic-main is-active" aria-label="离开麦位" onClick={() => void updateMic('release')} disabled={busy}><ClubIcon name="voice" />下麦</button> : me?.micRequestedAt ? <button type="button" className="voice-mic-main is-pending" aria-label="取消上麦申请" onClick={() => void updateMic('release')} disabled={busy}><ClubIcon name="voice" />取消申请</button> : <button type="button" className="voice-mic-main" aria-label="申请上麦" onClick={() => void updateMic('request')} disabled={busy || me?.mutedByStaff}><ClubIcon name="voice" />申请上麦</button>}<button type="button" className="voice-invite-main" aria-label="邀请好友" onClick={() => setSheet('invite')}>邀请好友</button>{manages && pending.length > 0 && <button type="button" className="voice-requests-main" onClick={() => setSheet('requests')}>审批 <i>{pending.length}</i></button>}</div>
-        <form className="voice-composer" onSubmit={sendMessage}><input aria-label="房间消息" value={draft} maxLength={500} onChange={(event) => setDraft(event.target.value)} placeholder="发一条房间消息…" /><button type="submit" disabled={busy || !draft.trim()} aria-label="发送房间消息">发送</button></form>
+        <div className="voice-dock-compose-row">
+          <form className="voice-composer" onSubmit={sendMessage}><input aria-label="房间消息" value={draft} maxLength={500} onChange={(event) => setDraft(event.target.value)} placeholder="说点什么…" /><button type="submit" disabled={busy || !draft.trim()} aria-label="发送房间消息"><Send size={18} /></button></form>
+          <button type="button" className="voice-game-list-entry" aria-label="打开游戏列表" aria-haspopup="dialog" onClick={() => setSheet('games')}><Gamepad2 size={24} /></button>
+          <button type="button" className="voice-dock-more" aria-label="邀请好友" onClick={() => setSheet('invite')}><Plus size={26} /></button>
+        </div>
+        <div className="voice-room-actions"><span className="sr-only">{micStatus}</span>{me?.micSeat != null ? <button type="button" className="voice-mic-main is-active" aria-label="离开麦位" onClick={() => void updateMic('release')} disabled={busy}>下麦</button> : me?.micRequestedAt ? <button type="button" className="voice-mic-main is-pending" aria-label="取消上麦申请" onClick={() => void updateMic('release')} disabled={busy}>取消申请</button> : <button type="button" className="voice-mic-main" aria-label="申请上麦" onClick={() => void updateMic('request')} disabled={busy || me?.mutedByStaff}>申请上麦</button>}{manages && pending.length > 0 && <button type="button" className="voice-requests-main" onClick={() => setSheet('requests')}>审批 {pending.length}</button>}</div>
+        <VoiceAudioPanel compact room={room} roomId={roomId} uid={credentials?.uid} healthy={!connectionLost && !leaving} microphoneBlocked={releasingMic} />
       </div>
 
       {sheet === 'games' && <VoiceGameSheet onClose={() => setSheet(null)} />}

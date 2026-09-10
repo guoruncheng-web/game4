@@ -83,3 +83,108 @@
   .voice-room-v2 .voice-room-status { margin-bottom: 20px; }
   .voice-room-v2 .voice-room-shell { padding-bottom: 145px; }
 }
+
+/* 2026-09-10：按用户星空房间参考重排；麦位、头像、人数仍由服务端数据决定。 */
+html:has(.voice-room-starry) { background: #292b4b; }
+.voice-room-starry { color: #fff; background: #292b4b; }
+.voice-room-starry .voice-room-shell {
+  --room-glass: #24213f80;
+  position: relative; isolation: isolate; height: 100dvh; min-height: 560px;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 16px calc(128px + env(safe-area-inset-bottom, 0px));
+  background: #343454 url('/assets/game-box/voice-starry/night-room.webp') center / cover no-repeat;
+}
+.voice-room-starry .voice-room-shell::before { position: absolute; z-index: -1; inset: 0; content: ''; background: linear-gradient(#16193515, #25213d10 45%, #27223f50); pointer-events: none; }
+.voice-room-starry .voice-room-header { display: flex; flex: 0 0 auto; gap: 5px; min-height: 44px; }
+.voice-room-starry .voice-room-header > button { display: grid; width: 30px; height: 44px; flex: 0 0 30px; padding: 0; place-items: center; color: #fff; background: transparent; border: 0; }
+.voice-room-starry .voice-room-header .voice-room-title { min-width: 0; flex: 1; padding: 6px 0; }
+.voice-room-starry .voice-room-title b { display: block; overflow: hidden; font-size: 14px; line-height: 20px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.voice-room-starry .voice-room-header small { display: block; color: #c0bed4; font-size: 10px; line-height: 18px; }
+.voice-room-starry .voice-room-header .voice-header-invite { width: 29px; height: 29px; flex-basis: 29px; border-radius: 50%; color: #1c3453; background: #32d19a; }
+.voice-room-starry .voice-header-members { display: flex; align-items: center; margin-left: 8px; }
+.voice-room-starry .voice-header-members > *:not(small) { width: 24px; height: 24px; margin-left: -5px; border: 1px solid #ece2db; border-radius: 50%; object-fit: cover; font-size: 16px; background: #645674; }
+.voice-room-starry .voice-header-members small { display: grid; width: 24px; height: 26px; place-items: center; border-radius: 50%; background: var(--room-glass); }
+.voice-room-starry .voice-room-status { flex: 0 0 auto; gap: 8px; margin: 4px 0 0; color: #d9d4e9; font-size: 10px; }
+.voice-room-starry .voice-room-status > span { display: inline-flex; align-items: center; gap: 4px; padding: 5px 9px; border: 0; border-radius: 20px; background: var(--room-glass); color: inherit; }
+.voice-room-starry .voice-connection > i { background: #72deb6; }
+.voice-room-starry .voice-stage { flex: 0 0 auto; padding: 22px 0 10px; }
+.voice-room-starry .voice-seat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 9px; }
+.voice-room-starry .voice-seat { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0; border: 0; color: #fff; opacity: 1; background: none; }
+.voice-room-starry .voice-seat.is-featured { grid-column: span 2; margin-bottom: 2px; }
+.voice-room-starry .voice-seat > .voice-seat-portrait { position: relative; display: grid; width: clamp(48px, 15vw, 68px); height: auto; aspect-ratio: 1; place-items: center; overflow: visible; border: 1px solid #c1b1ea65; border-radius: 50%; color: #d2c5e9; background: #9d86c329; box-shadow: inset 0 0 22px #ded0ff12; }
+.voice-room-starry .voice-seat.is-featured > .voice-seat-portrait { width: clamp(80px, 23vw, 104px); }
+.voice-room-starry .voice-seat.is-occupied > .voice-seat-portrait { border: 2px solid #f1dcac; background: #655a7b; box-shadow: 0 0 0 3px #aa8bcc40, 0 0 17px #eed19645; }
+.voice-room-starry .voice-seat.is-occupied > .voice-seat-portrait::before { position: absolute; inset: -6px; border: 1px solid #cbb7f28c; border-radius: 42% 58% 48% 52%; transform: rotate(-20deg); content: ''; pointer-events: none; }
+.voice-room-starry .voice-seat.is-occupied > .voice-seat-portrait::after { position: absolute; right: -4px; bottom: 3px; content: '✦'; color: #fff2be; font-size: 18px; text-shadow: 0 0 8px #edccec; pointer-events: none; }
+.voice-room-starry .voice-seat-portrait > img, .voice-room-starry .voice-seat-portrait > span { width: 100%; height: 100%; display: grid; place-items: center; border-radius: 50%; object-fit: cover; font-size: 34px; }
+.voice-room-starry .voice-seat.is-featured .voice-seat-portrait > span { font-size: 46px; }
+.voice-room-starry .voice-seat b { max-width: 100%; color: #f8f4ff; font-size: 12px; font-weight: 400; line-height: 18px; }
+.voice-room-starry .voice-seat.is-featured b { font-size: 14px; }
+.voice-room-starry .voice-seat b i { display: inline-block; margin-right: 4px; padding: 0 3px; border-radius: 3px; color: white; font-size: 10px; font-style: normal; background: #f8567b; }
+.voice-room-starry .voice-seat b .voice-role-moderator { background: #599feb; }
+.voice-room-starry .voice-seat-portrait em { display: inline-flex; gap: 2px; align-items: center; z-index: 1; padding: 2px 4px; color: white; background: #9a4c74; }
+.voice-room-starry .voice-chat-panel { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 90px; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.voice-room-starry .voice-message-list { display: flex; flex-direction: column; justify-content: flex-start; gap: 8px; min-height: 0; max-height: none; flex: 1; padding: 18px 0 0; overflow-y: auto; scrollbar-width: none; mask-image: linear-gradient(transparent, black 12px); }
+.voice-room-starry .voice-message-list > :first-child { margin-top: auto; }
+.voice-room-starry .voice-message-empty { display: grid; justify-items: start; gap: 5px; margin-right: 26px; padding: 13px 14px; border-radius: 12px; color: #efca91; background: var(--room-glass); text-align: left; }
+.voice-room-starry .voice-message-empty b { font-size: 13px; font-weight: 500; }
+.voice-room-starry .voice-message-empty small { color: #d6c5d4; font-size: 11px; line-height: 1.6; }
+.voice-room-starry .voice-message { display: flex; flex: 0 0 auto; align-items: flex-start; gap: 7px; width: fit-content; max-width: 94%; padding: 9px 11px; border: 1px solid #dfd5f140; border-radius: 9px; background: #211d394d; }
+.voice-room-starry .voice-message > img, .voice-room-starry .voice-message > span:first-child { width: 23px; height: 23px; flex: 0 0 23px; border-radius: 50%; }
+.voice-room-starry .voice-message > span:last-child { display: grid; gap: 3px; min-width: 0; }
+.voice-room-starry .voice-message small { color: #cec1e5; font-size: 10px; }
+.voice-room-starry .voice-message b, .voice-room-starry .voice-message.is-mine b { padding: 0; border: 0; border-radius: 0; color: #fff; background: none; font-size: 13px; font-weight: 400; line-height: 1.6; overflow-wrap: anywhere; }
+.voice-room-starry .voice-message.is-mine { align-self: flex-start; border-color: #8ad9d784; background: #24213865; }
+.voice-room-starry .voice-room-dock { display: grid; grid-template-columns: auto 1fr; gap: 6px; padding: 7px 16px calc(9px + env(safe-area-inset-bottom, 0px)); border: 0; border-radius: 0; background: linear-gradient(transparent, #27244380 24%); backdrop-filter: blur(8px); }
+.voice-room-starry .voice-dock-compose-row { display: flex; grid-column: 1 / -1; gap: 10px; align-items: center; }
+.voice-room-starry .voice-composer { display: flex; flex: 1; min-width: 0; min-height: 42px; gap: 0; border: 0; border-radius: 25px; background: var(--room-glass); }
+.voice-room-starry .voice-composer input { min-height: 42px; width: 100%; padding: 0 14px; border: 0; border-radius: 25px; color: #fff; background: transparent; font-size: 14px; }
+.voice-room-starry .voice-composer input::placeholder { color: #c6bed7; }
+.voice-room-starry .voice-composer button { display: grid; min-width: 38px; min-height: 42px; padding: 0; place-items: center; color: #e8ddfa; background: none; }
+.voice-room-starry .voice-composer button:disabled { opacity: .35; }
+.voice-room-starry .voice-game-list-entry, .voice-room-starry .voice-dock-more { display: grid; width: 42px; height: 42px; min-height: 42px; flex: 0 0 42px; place-items: center; margin: 0; padding: 0; border: 0; border-radius: 50%; color: #f5eaff; background: var(--room-glass); }
+.voice-room-starry .voice-game-list-entry { color: #ffe0a1; }
+.voice-room-starry .voice-room-actions { width: auto; min-height: 32px; padding: 0; align-items: center; background: none; }
+.voice-room-starry .voice-room-actions > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.voice-room-starry .voice-room-actions .voice-mic-main, .voice-room-starry .voice-requests-main { min-height: 32px; padding: 0 9px; border: 1px solid #d4bfeb45; border-radius: 18px; color: #ddd1ec; background: #3f345959; font-size: 10px; }
+.voice-room-starry .voice-audio-panel.is-compact { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 3px; margin: 0; padding: 0; border: 0; border-radius: 0; color: #ded6ed; background: none; }
+.voice-room-starry .voice-audio-panel.is-compact .voice-audio-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.voice-room-starry .voice-audio-panel.is-compact > small { display: none; }
+.voice-room-starry .voice-audio-controls { display: flex; flex-wrap: wrap; gap: 4px; }
+.voice-room-starry .voice-audio-controls button { min-height: 32px; padding: 0 9px; border: 0; border-radius: 18px; color: #eee8fa; background: #66507c85; font-size: 10px; }
+.voice-room-starry .voice-audio-controls button:disabled { opacity: .5; }
+.voice-room-starry .voice-audio-panel p { margin: 0; font-size: 10px; color: #ffdab6; }
+.voice-room-starry .voice-audio-speakers { width: 100%; }
+.voice-room-starry .voice-game-banner { flex: 0 0 auto; min-height: 44px; padding: 7px 10px; color: #fff; background: var(--room-glass); }
+.voice-room-starry .voice-game-banner b, .voice-room-starry .voice-game-banner small { color: #eee3f6; }
+.voice-room-starry .voice-room-toast { bottom: calc(125px + env(safe-area-inset-bottom)); color: #fff; background: #44344ce8; }
+.voice-room-starry .voice-action-sheet, .voice-room-starry .voice-confirm { color: #242532; }
+@media (max-width: 360px) {
+  .voice-room-starry .voice-header-members { display: none; }
+  .voice-room-starry .voice-seat-grid { gap: 15px 6px; }
+  .voice-room-starry .voice-room-shell { padding-inline: 12px; }
+}
+@media (max-height: 700px) {
+  .voice-room-starry .voice-stage { padding-top: 14px; }
+  .voice-room-starry .voice-seat-grid { gap: 10px 8px; }
+  .voice-room-starry .voice-seat.is-featured > .voice-seat-portrait { width: 72px; }
+  .voice-room-starry .voice-seat > .voice-seat-portrait { width: 48px; }
+}
+@media (max-height: 520px) and (min-aspect-ratio: 1/1) {
+  .voice-room-starry .voice-room-shell { height: auto; min-height: 100dvh; }
+  .voice-room-starry .voice-chat-panel { min-height: 160px; }
+}
+.voice-room-starry .voice-room-title { text-align: left; }
+.voice-room-starry .voice-seat { min-height: 0; }
+.voice-room-starry .voice-seat:nth-last-child(2):nth-child(7) { grid-column: 2; }
+.voice-room-starry .voice-seat.is-occupied > .voice-seat-portrait::before { z-index: 2; inset: -10px; border: 0; border-radius: 0; transform: none; background: url('/assets/game-box/voice-starry/moon-frame.webp') center / contain no-repeat; }
+.voice-room-starry .voice-seat.is-featured.is-occupied > .voice-seat-portrait::before { inset: -14px; }
+.voice-room-starry .voice-seat.is-occupied > .voice-seat-portrait::after { display: none; }
+.voice-room-starry .voice-seat.is-occupied > .voice-seat-portrait { border-color: transparent; box-shadow: 0 0 16px #dab9df2a; }
+.voice-room-starry .voice-message.is-mine { flex-direction: row; text-align: left; }
+.voice-room-starry .voice-room-actions { grid-column: 1; grid-row: 2; }
+.voice-room-starry .voice-audio-panel.is-compact { order: 0; grid-column: 2; grid-row: 2; }
+.voice-room-starry .voice-stage { max-height: 52dvh; overflow-y: auto; scrollbar-width: thin; }
+.voice-room-starry .voice-audio-controls { margin: 0; }
+.voice-room-starry .voice-game-list-entry { order: 0; }
+.voice-room-starry .voice-audio-controls button[aria-pressed="true"] { color: #173c35; background: #8ce3c0; }
+.voice-room-starry .voice-audio-panel [role="alert"] { color: #ffddb0; }

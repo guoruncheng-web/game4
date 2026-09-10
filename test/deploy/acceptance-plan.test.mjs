@@ -64,3 +64,8 @@ test('shared page styles retain PWA and RTC checks without game-rule suites',()=
  assert.ok(p.deploy && p.thirteen_pwa && p.umo_pwa && p.voice);
  assert.equal(p.thirteen,false);
 });
+
+test('room-only artwork follows voice acceptance scope',()=>{
+ const p=classifyPaths(['public/assets/game-box/voice-starry/night-room.webp','src/app/voice-reference.css','src/components/VoiceRoomPage.tsx']);
+ assert.ok(p.deploy && p.voice);assert.equal(p.thirteen,false);assert.equal(p.thirteen_pwa,false);assert.equal(p.umo_pwa,false);
+});

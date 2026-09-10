@@ -5,3 +5,5 @@
 本地 lint、生产构建、10 项部署范围测试、actionlint 通过。Chrome 393×852、顶部安全区 0/59px 验证：header.y 均为 0，头像内容 y 为 8/67px，没有根容器重复预留。语聊、消息、我的标签根容器均从 y=0 开始。证据位于 evidence/top-inset。测试为未登录布局检查，截图不代表真实 iOS 状态栏或鉴权验收；安装后的 iOS 系统绘制仍需真机确认，旧安装保留旧状态栏配置时可能需要重新添加主屏幕。
 
 缓存 v86。共享样式选择基础鉴权、Thirteen/UMO PWA 音频离线与 RTC 验收；游戏权威规则长测不在本次 CSS 影响范围内。生产结果以本次 Actions 为准。
+
+顶部修复生产提交 52b69ff9f3b97d4f9779c12e020451f1f219ce6b，Actions 34491260325 全部所选检查成功：https://github.com/guoruncheng-web/game4/actions/runs/34491260325 。

@@ -52,7 +52,8 @@ export function classify({frontendPaths,backendPaths,readFrontend,forceFull=fals
    const strip=s=>s.replace(/const VERSION = 'v\d+';/,"const VERSION = 'VERSION';");
    if(strip(readFrontend(p,true))===strip(readFrontend(p,false)))mark('cache-version-only');
    else mark('service-worker-behavior','thirteen_pwa','umo_pwa','voice');
-  } else if(/^src\/(components\/Voice|lib\/voice|app\/voice)|^test\/voice\//.test(p))mark('voice:'+p,'voice');
+  } else if(/^public\/assets\/game-box\/voice-starry\//.test(p))mark('voice-art:'+p,'voice');
+  else if(/^src\/(components\/Voice|lib\/voice|app\/voice)|^test\/voice\//.test(p))mark('voice:'+p,'voice');
   else if(/^public\/thirteen\/|^src\/(app\/thirteen\/|components\/Thirteen)/.test(p))mark('thirteen:'+p,'thirteen','thirteen_pwa');
   else if(/^public\/umo\/|^src\/(app\/umo\/|components\/Umo)/.test(p))mark('umo:'+p,'umo_pwa');
   else if(p==='deploy/backend-revision.txt')plan.reasons.push('backend-pin:classify-actual-backend-diff');

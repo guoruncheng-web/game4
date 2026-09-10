@@ -1,0 +1,154 @@
+{
+  "environment": "Visual fixture API; Chrome CDP safe-area emulation; not real RTC or iOS system status bar",
+  "results": [
+    {
+      "width": 393,
+      "height": 852,
+      "path": "/voice/visual-fixture",
+      "seats": 8,
+      "overflow": false,
+      "dock": {
+        "x": 0,
+        "y": 722,
+        "width": 393,
+        "height": 130,
+        "top": 722,
+        "right": 393,
+        "bottom": 852,
+        "left": 0
+      },
+      "stage": {
+        "x": 16,
+        "y": 156,
+        "width": 361,
+        "height": 372.2734375,
+        "top": 156,
+        "right": 377,
+        "bottom": 528.2734375,
+        "left": 16
+      },
+      "chat": {
+        "x": 16,
+        "y": 528.2734375,
+        "width": 361,
+        "height": 161.7265625,
+        "top": 528.2734375,
+        "right": 377,
+        "bottom": 690,
+        "left": 16
+      }
+    },
+    {
+      "width": 320,
+      "height": 640,
+      "path": "/voice/visual-fixture",
+      "seats": 8,
+      "overflow": false,
+      "dock": {
+        "x": 0,
+        "y": 510,
+        "width": 320,
+        "height": 130,
+        "top": 510,
+        "right": 320,
+        "bottom": 640,
+        "left": 0
+      },
+      "stage": {
+        "x": 12,
+        "y": 97,
+        "width": 296,
+        "height": 323,
+        "top": 97,
+        "right": 308,
+        "bottom": 420,
+        "left": 12
+      },
+      "chat": {
+        "x": 12,
+        "y": 420,
+        "width": 296,
+        "height": 90,
+        "top": 420,
+        "right": 308,
+        "bottom": 510,
+        "left": 12
+      }
+    },
+    {
+      "messageSent": true
+    },
+    {
+      "released": true,
+      "empty": 1
+    },
+    {
+      "gamesDialog": true
+    },
+    {
+      "inviteDialog": true
+    },
+    [
+      {
+        "class": "voice-dock-compose-row",
+        "rect": {
+          "x": 16,
+          "y": 517,
+          "width": 288,
+          "height": 42,
+          "top": 517,
+          "right": 304,
+          "bottom": 559,
+          "left": 16
+        },
+        "style": {
+          "order": "0",
+          "margin": "0px",
+          "padding": "0px",
+          "minHeight": "auto",
+          "gridRow": "auto"
+        }
+      },
+      {
+        "class": "voice-room-actions",
+        "rect": {
+          "x": 16,
+          "y": 565,
+          "width": 60,
+          "height": 32,
+          "top": 565,
+          "right": 76,
+          "bottom": 597,
+          "left": 16
+        },
+        "style": {
+          "order": "0",
+          "margin": "0px",
+          "padding": "0px",
+          "minHeight": "32px",
+          "gridRow": "2"
+        }
+      },
+      {
+        "class": "voice-audio-panel is-compact",
+        "rect": {
+          "x": 82,
+          "y": 565,
+          "width": 222,
+          "height": 32,
+          "top": 565,
+          "right": 304,
+          "bottom": 597,
+          "left": 82
+        },
+        "style": {
+          "order": "0",
+          "margin": "0px",
+          "padding": "0px",
+          "minHeight": "auto",
+          "gridRow": "2"
+        }
+      }
+    ]
+  ]
+}
