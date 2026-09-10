@@ -16,4 +16,4 @@ jobs:
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H 47.86.46.212 >> ~/.ssh/known_hosts 2>/dev/null
-          ssh -o ConnectTimeout=10 deploy@47.86.46.212 'date -u; uptime; df -Pk /srv/gameai; free -m; ps -eo pid,ppid,etime,pcpu,pmem,comm --sort=-pcpu | head -20; cat /srv/gameai/.backend/frontend.current; ls -l /srv/gameai/.releases/821bf7db4cf264f0d63175724b255f5fa0bbd430/.next/BUILD_ID /srv/gameai/.releases/821bf7db4cf264f0d63175724b255f5fa0bbd430/.next/build-manifest.json 2>/dev/null || true'
+          ssh -o ConnectTimeout=10 deploy@47.86.46.212 'ps -eo pid,ppid,etime,args | grep -E "nest-release.sh|next build|next/dist/build|pnpm build" | grep -v grep; cat /srv/gameai/.backend/frontend.current'
