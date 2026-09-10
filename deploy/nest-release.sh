@@ -16,7 +16,8 @@ test -f "$front/package.json"
 if [ ! -d "$front/node_modules" ]; then cp -a --reflink=auto "$root/node_modules" "$front/node_modules"; fi
 cd "$front"
 CI=true pnpm install --frozen-lockfile
-BACKEND_GATEWAY_URL=http://127.0.0.1:7011 CI=true pnpm build
+# Bound candidate builds before any production service or data mutation.
+BACKEND_GATEWAY_URL=http://127.0.0.1:7011 CI=true timeout --signal=TERM --kill-after=30s 10m pnpm build
 node "$back/deploy/prepare-env.mjs" "$root" "$back_sha"
 (cd "$back" && node --env-file="$root/.backend/.env" scripts/db/init.mjs)
 rsync -a --exclude=.backend --exclude=.releases --exclude=.state --exclude=node_modules --exclude=.next --exclude=.env.local --exclude=.git "$root/" "$backup/source/"
