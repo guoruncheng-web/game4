@@ -62,6 +62,15 @@ jobs:
           ssh deploy@47.86.46.212 "mkdir -p /srv/gameai/.releases/$GITHUB_SHA /srv/gameai/.backend/releases/$BACKEND_SHA"
           rsync -az --exclude=.git --exclude=node_modules --exclude=.next --exclude=.env.local frontend-source/ "deploy@47.86.46.212:/srv/gameai/.releases/$GITHUB_SHA/"
           rsync -az --exclude=.git --exclude=.env --exclude=evidence backend-source/ "deploy@47.86.46.212:/srv/gameai/.backend/releases/$BACKEND_SHA/"
+      - name: Provision production Agora configuration
+        env:
+          BACKEND_SHA: ${{ steps.revision.outputs.backend }}
+          AGORA_APP_ID: ${{ secrets.AGORA_APP_ID }}
+          AGORA_APP_CERTIFICATE: ${{ secrets.AGORA_APP_CERTIFICATE }}
+        run: |
+          [[ "$AGORA_APP_ID" =~ ^[0-9a-fA-F]{32}$ ]]
+          [[ "$AGORA_APP_CERTIFICATE" =~ ^[0-9a-fA-F]{32}$ ]]
+          printf '%s\n%s\n' "$AGORA_APP_ID" "$AGORA_APP_CERTIFICATE" | ssh deploy@47.86.46.212 "/opt/node24/bin/node /srv/gameai/.backend/releases/$BACKEND_SHA/deploy/provision-agora-env.mjs /srv/gameai"
       - name: Build candidate and switch services with rollback
         id: switch
         env:
