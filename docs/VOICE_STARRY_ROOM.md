@@ -23,3 +23,5 @@
 说话声波 `vfx.voice.speaking`（`docs/voice-speaking-vfx.json`，校验通过）：每 200ms 采样已授权本地发布音轨或已订阅远端音轨的 `getVolumeLevel()`，>0.06 视为说话并保留 700ms；徽标位于麦位头像右下角，仅 transform 动画，`prefers-reduced-motion` 下静止；关麦、下麦、失去麦位、断线或卸载即清除。其他成员依据各自收到的远端音轨看到同一标识。
 
 本地验收（fixture 网关 17220 + 生产构建 3342，无真实 RTC）：lint、生产构建、22 项前端单测（含声波采样两项）通过；393×852 与 320×640 无横向溢出，麦克风图标与输入框中心差 0px；点 3 号空麦位请求体为 `{action:'request',seat:3}` 并落在 3 号；空白处弹窗“继续上麦”保留、“确认下麦”释放；未在麦时点击空白不弹窗；减少动态效果下声波动画为 none；浏览器错误 0。截图与 `interaction.json` 在 `evidence/voice-controls/`（声波徽标为注入的纯视觉探针）。真实双端声波可见性由后端 `rtc-browser-test.mjs` 新增检查在公网验收。
+
+首次发布 ce22439（Actions 34554174915）公网 RTC 前 4 项通过（自动收听不采集、点 3 号位落 3 号、双端真实音频），在“听众看到说话者声波”超时，自动回滚至 v88。原因：验收脚本中听众页从未产生用户手势，headless Chrome 的 AudioContext 保持 suspended，远端 `getVolumeLevel()` 恒为 0（本机同参数 headless 实测：创建 suspended、无手势 resume 挂起、点击后 running）。旧脚本曾点击“播放声音”恰好提供了手势。修复：后端验收脚本进房后点击房间标题（非控件区，不触发下麦），并在失败时记录 AudioContext 状态与非 2xx 接口；前端在播放被拦截时，房间内任意一次触碰即恢复声音。听众页当次出现一次 “Unauthorized” 提示，来源待新增的接口失败记录确认。失败证据：evidence/voice-controls/production-failed-ce22439/。

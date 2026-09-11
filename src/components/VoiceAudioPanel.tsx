@@ -52,6 +52,13 @@ export default function VoiceAudioPanel({ compact = false, onSpeakersChange, onH
 
   useEffect(() => { onSpeakersChange(state.speakers); }, [state.speakers, onSpeakersChange]);
   useEffect(() => { if (state.error) onHint(state.error); }, [state.error, onHint]);
+  // 浏览器拦截自动播放时，房间内任意一次触碰都恢复声音，不必精确点中恢复图标。
+  useEffect(() => {
+    if (!state.playbackBlocked) return;
+    const resume = () => session.current?.resumePlayback();
+    window.addEventListener('pointerdown', resume);
+    return () => window.removeEventListener('pointerdown', resume);
+  }, [state.playbackBlocked]);
 
   const connecting = state.connection === 'connecting' || state.connection === 'reconnecting';
   const label = { idle: '语音未连接', connecting: '正在连接语音', connected: '语音已连接', reconnecting: '语音重连中', error: '语音连接失败' }[state.connection];
