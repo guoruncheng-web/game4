@@ -18,7 +18,7 @@
  * 装个桌面图标就替用户吃掉这么多流量是不礼貌的。
  */
 
-const VERSION = 'v90';
+const VERSION = 'v91';
 const SHELL_CACHE = `game-box-shell-${VERSION}`;
 const STATIC_CACHE = `game-box-static-${VERSION}`;
 const ASSET_CACHE = `game-box-assets-${VERSION}`;
@@ -31,11 +31,103 @@ const PRECACHE = ['/offline', '/icons/icon-192.png', '/icons/icon-512.png'];
 const ASSET_DIRS = ['/neon-strike/', '/neon-strike-2d/', '/fruit-slasher/', '/eight-ball/', '/triple-pile/', '/fish-hunter/', '/ludo/', '/umo/', '/thirteen/', '/assets/', '/icons/', '/concepts/'];
 const ASSET_EXT = /\.(js|json|css|wasm|png|jpe?g|webp|avif|gif|svg|glb|gltf|bin|ktx2|hdr|wav|mp3|m4a|aac|ogg|ttf|woff2?)$/i;
 
+/** 外壳预缓存清单:构建后由 tools/pwa/build-precache-manifest.mjs 生成(Next 产物 + 页面引用的界面图) */
+const PRECACHE_MANIFEST = '/pwa-precache.json';
+/** 预缓存完成标记,按版本区分;首页据此判断"环境已准备好" */
+const PREPARED_MARKER = `/__gb-prepared-${VERSION}`;
+const PRECACHE_CONCURRENCY = 6;
+
+let progress = { phase: 'idle', done: 0, total: 0, bytes: 0, totalBytes: 0, failed: 0 };
+let running = null;
+let lastReport = 0;
+
+/** 进度发给所有窗口(包括尚未受控的首次访问页),150ms 节流 */
+async function report(force) {
+  const now = Date.now();
+  if (!force && now - lastReport < 150) return;
+  lastReport = now;
+  const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+  for (const client of windows) client.postMessage({ type: 'gb-precache', version: VERSION, ...progress });
+}
+
+async function prepared() {
+  return Boolean(await caches.match(PREPARED_MARKER));
+}
+
+/*
+ * 预缓存外壳需要的全部资源并逐项汇报进度。
+ * 单个文件失败只记数不中断:宁可少缓存一张图,也不能让新版本永远装不上。
+ * 带哈希的 _next/static 文件内容永不变,直接复用旧版本缓存里的同一份,更新时只下真正变了的 chunk。
+ */
+async function precacheAll() {
+  if (await prepared()) {
+    progress = { ...progress, phase: 'done' };
+    await report(true);
+    return;
+  }
+  progress = { phase: 'running', done: 0, total: 0, bytes: 0, totalBytes: 0, failed: 0 };
+  await report(true);
+  let files = [];
+  try {
+    const response = await fetch(PRECACHE_MANIFEST, { cache: 'no-store' });
+    if (response.ok) files = (await response.json()).files ?? [];
+  } catch { /* 清单拿不到就只写完成标记,外壳仍按运行时策略边用边缓存 */ }
+  progress.total = files.length;
+  progress.totalBytes = files.reduce((sum, file) => sum + (file.size || 0), 0);
+  await report(true);
+  const staticCache = await caches.open(STATIC_CACHE);
+  const assetCache = await caches.open(ASSET_CACHE);
+  let next = 0;
+  const worker = async () => {
+    while (next < files.length) {
+      const file = files[next++];
+      const hashed = file.url.startsWith('/_next/static/');
+      const cache = hashed ? staticCache : assetCache;
+      try {
+        if (!(await cache.match(file.url))) {
+          const reused = hashed ? await caches.match(file.url) : undefined;
+          const response = reused ?? await fetch(file.url, { cache: 'no-cache' });
+          if (response.ok && response.status === 200) await cache.put(file.url, response);
+          else progress.failed += 1;
+        }
+      } catch {
+        progress.failed += 1;
+      }
+      progress.done += 1;
+      progress.bytes += file.size || 0;
+      void report(false);
+    }
+  };
+  await Promise.all(Array.from({ length: PRECACHE_CONCURRENCY }, worker));
+  const shell = await caches.open(SHELL_CACHE);
+  // 首页 HTML 也存一份:准备完后断网从桌面图标打开仍能进首页。导航依旧 network-first,联网时总拿最新。
+  try {
+    const home = await fetch('/', { cache: 'no-cache', credentials: 'same-origin' });
+    if (home.ok && !home.redirected) await shell.put('/', home);
+  } catch { /* 拿不到就等下次在线打开首页时由 networkFirst 补上 */ }
+  await shell.put(PREPARED_MARKER, new Response(JSON.stringify({ failed: progress.failed, at: Date.now() }), { headers: { 'content-type': 'application/json' } }));
+  progress.phase = 'done';
+  await report(true);
+}
+
+/** 首页轮询会重复发起,合并成同一轮 */
+function precacheOnce() {
+  running ??= precacheAll().finally(() => { running = null; });
+  return running;
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(SHELL_CACHE);
     // 单个资源 404 不该让整次安装失败,逐个来
     await Promise.all(PRECACHE.map((url) => cache.add(url).catch(() => {})));
+    /*
+     * 已有旧版本在跑(即"更新"):先把新版本外壳全部下好再进入 waiting,
+     * 用户点"立即刷新"时资源都已在本地,不再对着空白页等网络。
+     * 首次安装保持原来的快速激活,由首页的"准备环境中"在激活后发起预缓存(见 message),
+     * 这样直接打开游戏页(含公网验收)的首次接管时序不受影响。
+     */
+    if (self.registration.active) await precacheOnce();
   })());
   /*
    * 这里**故意不调 skipWaiting()**。装好之后就老实停在 waiting,等页面上的用户
@@ -57,9 +149,34 @@ self.addEventListener('activate', (event) => {
   })());
 });
 
-/** 页面在更新提示里点了"立即刷新"时发过来 */
 self.addEventListener('message', (event) => {
-  if (event.data === 'skip-waiting') self.skipWaiting();
+  /** 页面在更新提示里点了"立即刷新"时发过来 */
+  if (event.data === 'skip-waiting') {
+    self.skipWaiting();
+    return;
+  }
+  const type = event.data && event.data.type;
+  /** 首页"准备环境中"请已激活的 SW 预缓存外壳 */
+  if (type === 'gb-precache-start') {
+    event.waitUntil(precacheOnce());
+    return;
+  }
+  /** 已是新代码的页面准备完毕:只有它一个窗口时才接管,避免还开着的旧页面拿不到旧 chunk */
+  if (type === 'gb-activate-if-alone') {
+    event.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+      if (windows.length <= 1) return self.skipWaiting();
+      return undefined;
+    }));
+    return;
+  }
+  /** 查询版本与准备状态;带 MessageChannel 时回到端口,否则回给发送方 */
+  if (type === 'gb-status') {
+    event.waitUntil(prepared().then((ready) => {
+      const reply = { type: 'gb-status', version: VERSION, ...progress, ready, phase: ready ? 'done' : progress.phase };
+      const target = (event.ports && event.ports[0]) || event.source;
+      if (target) target.postMessage(reply);
+    }));
+  }
 });
 
 function isAsset(url) {

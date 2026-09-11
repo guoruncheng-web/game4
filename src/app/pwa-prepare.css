@@ -1,0 +1,39 @@
+/*
+ * “准备环境中”(批准概念 PWA-PREPARE-31104，见 design/pwa-prepare/README.md)。
+ * 默认隐藏；<html class="gb-preparing"> 时全屏显示，gb-prepare-update 时显示版本切换文案。
+ */
+.gb-prepare { display: none; }
+html.gb-preparing { overflow: hidden; }
+html.gb-preparing .gb-prepare { position: fixed; z-index: 1000; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; color: #8a4a6c; background: #fbe6f2; font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; opacity: 1; transition: opacity .4s ease; }
+html.gb-prepare-leaving .gb-prepare { opacity: 0; pointer-events: none; }
+.gb-prepare-art { position: absolute; inset: 0 0 auto; height: calc(100% - 200px); background: #e3c4f5 url('/assets/game-box/prepare/prepare-castle-v1.webp') center 36% / cover no-repeat; }
+.gb-prepare-art::after { position: absolute; inset: auto 0 0; height: 45%; content: ''; background: linear-gradient(transparent, #fbe6f2); }
+.gb-prepare-panel { position: relative; width: min(100%, 480px); margin: 0 auto; padding: 0 28px calc(34px + env(safe-area-inset-bottom, 0px)); text-align: center; }
+.gb-prepare-title { margin: 0; color: #fff; font-size: 34px; font-weight: 900; letter-spacing: 2px; line-height: 1.2; -webkit-text-stroke: 6px #ff5d8f; paint-order: stroke fill; text-shadow: 0 4px 0 #d8427a, 0 8px 18px #ff4f8a55; }
+.gb-prepare-sub { margin: 10px 0 0; font-size: 14px; font-weight: 600; line-height: 1.6; }
+.gb-prepare-bar { position: relative; height: 30px; margin: 22px 2px 0; padding: 4px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 3px #ffb3cb, 0 6px 0 #f08bb0, 0 10px 20px #d0668f40; }
+.gb-prepare-fill { position: relative; min-width: 22px; max-width: 100%; height: 100%; border-radius: 14px; background: linear-gradient(#ff9dbd, #ff5a8a); box-shadow: inset 0 -4px 0 #e0457a; transition: width .3s ease; }
+.gb-prepare-fill::after { position: absolute; top: 4px; right: 10px; left: 10px; height: 6px; border-radius: 4px; content: ''; background: #ffffff8c; }
+.gb-prepare-badge { position: absolute; top: 50%; right: 0; display: grid; width: 44px; height: 44px; place-items: center; border-radius: 50%; color: #ff4f86; background: #fff; box-shadow: 0 0 0 3px #ffb3cb, 0 4px 0 #f08bb0; font-size: 13px; font-weight: 900; transform: translate(50%, -50%); }
+.gb-prepare-meta { min-height: 20px; margin: 14px 0 0; color: #a0587c; font-size: 13px; font-weight: 700; }
+.gb-prepare-skip { min-height: 40px; margin-top: 14px; padding: 0 22px; border: 0; border-radius: 22px; color: #ff4f86; background: #ffffffd9; box-shadow: 0 0 0 2px #ffc4d6; font-size: 14px; font-weight: 800; cursor: pointer; }
+.gb-prepare-skip:focus-visible { outline: 3px solid #845fe2; outline-offset: 3px; }
+.gb-prepare-update { display: none; }
+html.gb-prepare-update .gb-prepare-first { display: none; }
+html.gb-prepare-update span.gb-prepare-update { display: inline; }
+html.gb-prepare-update p.gb-prepare-update { display: block; }
+html.gb-prepare-update .gb-prepare-fill { width: 100% !important; }
+html.gb-prepare-update .gb-prepare-badge, html.gb-prepare-update .gb-prepare-meta, html.gb-prepare-update .gb-prepare-skip { visibility: hidden; }
+@media (max-height: 640px) {
+  .gb-prepare-art { height: calc(100% - 170px); }
+  .gb-prepare-title { font-size: 28px; }
+  .gb-prepare-sub { font-size: 13px; }
+}
+/* 宽屏(电脑打开)：插画保持手机比例居中，左右渐隐到底色，避免 cover 放大后只剩城堡中段 */
+@media (min-width: 600px) {
+  html.gb-preparing .gb-prepare { background: linear-gradient(#d9c2f5, #fbe6f2 70%); }
+  .gb-prepare-art { left: 50%; width: min(100%, 560px); transform: translateX(-50%); -webkit-mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(to right, transparent, #000 14%, #000 86%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html.gb-preparing .gb-prepare, .gb-prepare-fill { transition: none; }
+}

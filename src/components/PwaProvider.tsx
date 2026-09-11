@@ -3,6 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { Download, RefreshCw, Share, SquarePlus, X } from 'lucide-react';
+import { PREPARED_KEY } from '@/lib/pwa-version';
 
 /**
  * PWA 的客户端部分:注册 Service Worker、引导安装到桌面、提示版本更新。
@@ -26,6 +27,24 @@ function standalone() {
   return window.matchMedia('(display-mode: standalone)').matches
     // iOS 至今不支持 display-mode 媒体查询,只能读 Safari 自己的这个非标准字段
     || (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
+}
+
+/** 首页正在显示“准备环境中”时由它负责接管，不再重复弹更新横幅 */
+function preparing() {
+  return document.documentElement.classList.contains('gb-preparing');
+}
+
+/** 问一下等待中的新 SW 是哪个版本；旧 SW 不认识这条消息，超时返回 null */
+function askVersion(worker: ServiceWorker) {
+  return new Promise<string | null>((resolve) => {
+    const channel = new MessageChannel();
+    const timer = window.setTimeout(() => resolve(null), 800);
+    channel.port1.onmessage = (event: MessageEvent<{ version?: unknown }>) => {
+      window.clearTimeout(timer);
+      resolve(typeof event.data?.version === 'string' ? event.data.version : null);
+    };
+    worker.postMessage({ type: 'gb-status' }, [channel.port2]);
+  });
 }
 
 function snoozed() {
@@ -84,15 +103,18 @@ export default function PwaProvider() {
     void navigator.serviceWorker.register('/sw.js').then((registration) => {
       if (disposed) return;
       // 已经有新版本装好在等着接管(上次访问时下载的)
-      if (registration.waiting && navigator.serviceWorker.controller) setWaiting(registration.waiting);
+      if (registration.waiting && navigator.serviceWorker.controller && !preparing()) setWaiting(registration.waiting);
       registration.addEventListener('updatefound', () => {
         const next = registration.installing;
         if (!next) return;
         next.addEventListener('statechange', () => {
-          // controller 为空说明这是首次安装,不是更新,不用打扰用户
-          if (next.state === 'installed' && navigator.serviceWorker.controller) setWaiting(next);
+          // controller 为空说明这是首次安装,不是更新,不用打扰用户。
+          // 新 SW 只有在 install 里把外壳资源全部下好后才会到 installed,此时点刷新是秒切。
+          if (next.state === 'installed' && navigator.serviceWorker.controller && !preparing()) setWaiting(next);
         });
       });
+      // 已被接管(例如准备页让新版本直接生效)就不必再提示刷新
+      navigator.serviceWorker.addEventListener('controllerchange', () => setWaiting(null));
 
       /*
        * 主动去问有没有新版本。
@@ -162,8 +184,15 @@ export default function PwaProvider() {
     if (outcome === 'dismissed') dismiss();
   }, [install, dismiss]);
 
-  const refresh = useCallback(() => {
+  const refresh = useCallback(async () => {
     if (!waiting) return;
+    const worker = waiting;
+    setWaiting(null);
+    // 新版本在 install 阶段已把外壳下好:先记住它的版本,刷新后首页不再重复准备;
+    // 切换期间显示“正在切换新版本”,而不是让人对着旧页面干等。
+    const version = await askVersion(worker);
+    try { if (version) localStorage.setItem(PREPARED_KEY, version); } catch { /* 记不住就在首页再准备一次 */ }
+    document.documentElement.classList.add('gb-preparing', 'gb-prepare-update');
     // 新 SW 接管的那一刻再刷新,直接 reload 会拿到旧版本继续服务
     let done = false;
     const reload = () => {
@@ -175,8 +204,7 @@ export default function PwaProvider() {
     // 兜底:controllerchange 万一没来(SW 卡住、或它其实早就接管过了),
     // 也不能让用户点了按钮之后干等着 —— 2 秒后照样刷新
     window.setTimeout(reload, 2000);
-    waiting.postMessage('skip-waiting');
-    setWaiting(null);
+    worker.postMessage('skip-waiting');
   }, [waiting]);
 
   // 游戏页是全屏画布,底部弹任何东西都会挡住操作区,只在首页引导
@@ -195,7 +223,7 @@ export default function PwaProvider() {
           <p className="flex-1 text-sm font-bold">有新版本可用</p>
           <button
             type="button"
-            onClick={refresh}
+            onClick={() => void refresh()}
             className="rounded-xl bg-white/15 px-3 py-1.5 text-sm font-black transition active:scale-95"
           >
             立即刷新

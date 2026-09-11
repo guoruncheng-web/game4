@@ -1,0 +1,135 @@
+[
+  {
+    "name": "1-home",
+    "tab": "gb-app gb-tab-games ",
+    "hero": {
+      "top": 0,
+      "h": 147,
+      "pt": "67px",
+      "bg": "url(\"http://localhost:3342/assets/game-box/v5/cloud-header.webp\")",
+      "bgSize": "cover"
+    },
+    "after": {
+      "content": "\"\"",
+      "inset": "59px 0px 0px",
+      "bg": "url(\"http://localhost:3342/assets/game-box/v5/pwa-main-refer"
+    },
+    "html": "url(\"http://localhost:3342/assets/game-box/v5/cloud-header.webp\")",
+    "firstContentTop": 67,
+    "scrollY": 0
+  },
+  {
+    "name": "2-messages",
+    "tab": "gb-app gb-tab-messages ",
+    "hero": {
+      "top": 0,
+      "h": 98.71875,
+      "pt": "0px",
+      "bg": "url(\"http://localhost:3342/assets/game-box/v5/pwa-main-reference-atlas.png\")",
+      "bgSize": "351.675% 1019.05%"
+    },
+    "after": {
+      "content": "none",
+      "inset": "auto",
+      "bg": "none"
+    },
+    "html": "url(\"http://localhost:3342/assets/game-box/v5/cloud-header.webp\")",
+    "firstContentTop": 0,
+    "scrollY": 0
+  },
+  {
+    "name": "3-voice",
+    "tab": "gb-app gb-tab-voice ",
+    "hero": {
+      "top": 0,
+      "h": 0,
+      "pt": "87px",
+      "bg": "url(\"http://localhost:3342/assets/game-box/v5/voice-hero.webp\")",
+      "bgSize": "auto 100%"
+    },
+    "after": {
+      "content": "none",
+      "inset": "auto",
+      "bg": "none"
+    },
+    "html": "url(\"http://localhost:3342/assets/game-box/v5/cloud-header.webp\")",
+    "firstContentTop": 0,
+    "scrollY": 0
+  },
+  {
+    "name": "4-profile",
+    "tab": "gb-app gb-tab-profile ",
+    "hero": {
+      "top": 0,
+      "h": 0,
+      "pt": "87px",
+      "bg": "url(\"http://localhost:3342/assets/game-box/v5/cloud-header.webp\")",
+      "bgSize": "auto 100%"
+    },
+    "after": {
+      "content": "none",
+      "inset": "auto",
+      "bg": "none"
+    },
+    "html": "url(\"http://localhost:3342/assets/game-box/v5/cloud-header.webp\")",
+    "firstContentTop": 0,
+    "scrollY": 0
+  },
+  {
+    "name": "5-home-again",
+    "tab": "gb-app gb-tab-games ",
+    "hero": {
+      "top": 0,
+      "h": 147,
+      "pt": "67px",
+      "bg": "url(\"http://localhost:3342/assets/game-box/v5/cloud-header.webp\")",
+      "bgSize": "cover"
+    },
+    "after": {
+      "content": "\"\"",
+      "inset": "59px 0px 0px",
+      "bg": "url(\"http://localhost:3342/assets/game-box/v5/pwa-main-refer"
+    },
+    "html": "url(\"http://localhost:3342/assets/game-box/v5/cloud-header.webp\")",
+    "firstContentTop": 67,
+    "scrollY": 0
+  },
+  {
+    "name": "6-messages-again",
+    "tab": "gb-app gb-tab-messages ",
+    "hero": {
+      "top": 0,
+      "h": 98.71875,
+      "pt": "0px",
+      "bg": "url(\"http://localhost:3342/assets/game-box/v5/pwa-main-reference-atlas.png\")",
+      "bgSize": "351.675% 1019.05%"
+    },
+    "after": {
+      "content": "none",
+      "inset": "auto",
+      "bg": "none"
+    },
+    "html": "url(\"http://localhost:3342/assets/game-box/v5/cloud-header.webp\")",
+    "firstContentTop": 0,
+    "scrollY": 0
+  },
+  {
+    "name": "7-home-again2",
+    "tab": "gb-app gb-tab-games ",
+    "hero": {
+      "top": 0,
+      "h": 147,
+      "pt": "67px",
+      "bg": "url(\"http://localhost:3342/assets/game-box/v5/cloud-header.webp\")",
+      "bgSize": "cover"
+    },
+    "after": {
+      "content": "\"\"",
+      "inset": "59px 0px 0px",
+      "bg": "url(\"http://localhost:3342/assets/game-box/v5/pwa-main-refer"
+    },
+    "html": "url(\"http://localhost:3342/assets/game-box/v5/cloud-header.webp\")",
+    "firstContentTop": 67,
+    "scrollY": 0
+  }
+]

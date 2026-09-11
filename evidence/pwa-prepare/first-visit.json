@@ -1,0 +1,59 @@
+{
+  "firstVisit": {
+    "firstSeenPreparing": 133,
+    "endedMs": 2264,
+    "samples": 16,
+    "percents": [
+      null,
+      "0",
+      "100"
+    ],
+    "lastMeta": "已准备 17.9 / 17.9 MB",
+    "skipShown": false,
+    "stillPreparing": false
+  },
+  "afterPrepare": {
+    "prepared": "v91",
+    "controlled": true,
+    "caches": {
+      "game-box-shell-v91": 5,
+      "game-box-static-v91": 68,
+      "game-box-assets-v91": 20
+    },
+    "marker": true,
+    "home": true,
+    "art": true
+  },
+  "reload": {
+    "preparing": false,
+    "update": false,
+    "percent": "0",
+    "meta": "正在连接…",
+    "skip": false,
+    "app": true
+  },
+  "offline": {
+    "preparing": false,
+    "update": false,
+    "percent": "0",
+    "meta": "正在连接…",
+    "skip": false,
+    "app": true,
+    "title": "GAME BOX · 游戏盒子",
+    "offlinePage": false
+  },
+  "messages": {
+    "paddingTop": "59px",
+    "height": 157.71875
+  },
+  "errors1": [],
+  "nonHome": {
+    "preparing": false,
+    "update": false,
+    "percent": "0",
+    "meta": "正在连接…",
+    "skip": false,
+    "app": false
+  },
+  "passed": true
+}

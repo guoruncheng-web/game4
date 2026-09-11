@@ -20,6 +20,8 @@
 
 # production
 /build
+# 构建后生成的 PWA 预缓存清单(tools/pwa/build-precache-manifest.mjs)
+/public/pwa-precache.json
 
 # local generation and review artifacts
 /tmp/

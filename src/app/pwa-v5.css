@@ -522,3 +522,18 @@ body:has(.gb-conversation-open, .gb-profile-editor-page, .gb-profile-password-pa
 html:has(.gb-app) {
   background: #fff5f7 url('/assets/game-box/v5/cloud-header.webp') right top / auto calc(84px + env(safe-area-inset-top, 0px)) no-repeat;
 }
+
+/* 2026-09-11：首页右侧插画改为渐隐融入云朵头图，去掉状态栏下方与 52% 处的硬切矩形边。 */
+.gb-tab-games .gb-hero::after {
+  clip-path: none;
+  -webkit-mask-image: linear-gradient(to right, transparent 46%, #000 64%), linear-gradient(to bottom, transparent, #000 24px);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent 46%, #000 64%), linear-gradient(to bottom, transparent, #000 24px);
+  mask-composite: intersect;
+}
+/* 消息页头图带“消息”标题，必须避让状态栏；安全区用图集顶部同色填满，下方图集位置不变。 */
+.gb-tab-messages .gb-hero {
+  box-sizing: content-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  background: url('/assets/game-box/v5/pwa-main-reference-atlas.png') 92.680608% 3.73057% / 351.674641% 1019.047619% no-repeat content-box, linear-gradient(#f6ecf2, #f6ecf2) border-box;
+}

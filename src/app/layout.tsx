@@ -3,12 +3,15 @@ import localFont from "next/font/local";
 import AuthProvider from "@/components/AuthProvider";
 import CoopProvider from "@/components/CoopProvider";
 import PwaProvider from "@/components/PwaProvider";
+import PwaPrepare from "@/components/PwaPrepare";
 import FriendRequestBanner from "@/components/FriendRequestBanner";
+import { PREPARE_BOOT_SCRIPT } from "@/lib/pwa-version";
 import "./globals.css";
 import "./pwa-v5.css";
 import "./voice-layout.css";
 import "./voice-reference.css";
 import "./auth-v2.css";
+import "./pwa-prepare.css";
 
 const geistSans = localFont({
   src: "./fonts/Geist.woff2",
@@ -60,8 +63,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="zh-CN"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      // 首屏脚本会在水合前给 <html> 加 gb-preparing,属预期差异
+      suppressHydrationWarning
     >
+      <head>
+        {/* 首次进入首页:HTML 一到就显示“准备环境中”,不等 JS;开发模式不注册 SW,也就不准备 */}
+        {process.env.NODE_ENV === "production" && <script dangerouslySetInnerHTML={{ __html: PREPARE_BOOT_SCRIPT }} />}
+      </head>
       <body className="min-h-full flex flex-col">
+        <PwaPrepare />
         {/* 登录状态全站一份:头部按钮和首页卡片都要看它,各自 fetch 会互相打架 */}
         <AuthProvider>
           {/* 联机连接挂在全站:邀请必须在任何页面都能收到,包括首页 */}
