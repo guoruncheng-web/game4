@@ -1,15 +1,17 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { Mic, MicOff, Volume2, LoaderCircle } from 'lucide-react';
 import { voiceRequest, type VoiceRoom } from '@/lib/voice-room';
 import { INITIAL_RTC_STATE, VoiceRtcSession, type RtcGrant } from '@/lib/voice/rtc-session';
 
-type Props = { compact?: boolean; room: VoiceRoom | null; roomId: string; uid?: number; healthy: boolean; microphoneBlocked: boolean };
+type Props = { onSpeakersChange: (speakers: number[]) => void; onHint: (message: string) => void; compact?: boolean; room: VoiceRoom | null; roomId: string; uid?: number; healthy: boolean; microphoneBlocked: boolean };
 
-export default function VoiceAudioPanel({ compact = false, room, roomId, uid, healthy, microphoneBlocked }: Props) {
+/** 进房自动以听众身份连接；输入框左侧只保留麦克风开关图标。 */
+export default function VoiceAudioPanel({ compact = false, onSpeakersChange, onHint, room, roomId, uid, healthy, microphoneBlocked }: Props) {
   const session = useRef<VoiceRtcSession | null>(null);
   const [state, setState] = useState(INITIAL_RTC_STATE);
-  const requested = useRef(false);
+  const requested = useRef(true);
   const authority = useRef({ active: false, publish: false, speakers: [] as number[] });
   const active = !!uid && healthy && room?.state !== 'closed' && room?.me?.status === 'active' && room.me.uid === uid;
   const publish = active && !microphoneBlocked && room?.me?.micSeat != null && !room.me.mutedByStaff;
@@ -48,21 +50,26 @@ export default function VoiceAudioPanel({ compact = false, room, roomId, uid, he
     if (active && requested.current) void session.current?.connect();
   }, [active, publish, speakers, uid, roomId]);
 
-  const connected = state.connection === 'connected';
+  useEffect(() => { onSpeakersChange(state.speakers); }, [state.speakers, onSpeakersChange]);
+  useEffect(() => { if (state.error) onHint(state.error); }, [state.error, onHint]);
+
   const connecting = state.connection === 'connecting' || state.connection === 'reconnecting';
   const label = { idle: '语音未连接', connecting: '正在连接语音', connected: '语音已连接', reconnecting: '语音重连中', error: '语音连接失败' }[state.connection];
+  async function toggleMicrophone() {
+    const rtc = session.current;
+    if (!rtc) return;
+    requested.current = true;
+    rtc.resumePlayback();
+    if (state.microphone !== 'off') { rtc.mute(); return; }
+    if (!publish) { onHint(room?.me?.mutedByStaff ? '你已被管理员禁麦' : room?.me?.micRequestedAt ? '上麦申请等待房主或管理员批准' : '请先点击一个空麦位上麦'); return; }
+    if (state.connection !== 'connected') await rtc.connect();
+    await rtc.enableMicrophone();
+  }
   return <section className={`voice-audio-panel ${compact ? 'is-compact' : ''}`} aria-label="房间语音">
-    <div className="voice-audio-status" role="status"><b>{label}</b><span>{state.microphone === 'on' ? '麦克风已开启' : state.microphone === 'starting' ? '正在开启麦克风…' : '麦克风已关闭'}</span></div>
+    <div className="voice-audio-status sr-only" role="status"><b>{label}</b><span>{state.microphone === 'on' ? '麦克风已开启' : state.microphone === 'starting' ? '正在开启麦克风…' : '麦克风已关闭'}</span></div>
     <div className="voice-audio-controls">
-      {!connected && <button type="button" disabled={!active || connecting} onClick={() => { requested.current = true; void session.current?.connect(); }}>{connecting ? '连接中…' : state.connection === 'error' ? '重连语音' : '加入语音'}</button>}
-      {connected && <>
-        <button type="button" disabled={!publish && state.microphone === 'off'} aria-pressed={state.microphone !== 'off'} onClick={() => state.microphone === 'off' ? void session.current?.enableMicrophone() : session.current?.mute()}>{state.microphone === 'off' ? '开启麦克风' : state.microphone === 'starting' ? '取消开启' : '关闭麦克风'}</button>
-        <button type="button" onClick={() => session.current?.resumePlayback()}>播放声音</button>
-      </>}
-      {(connected || connecting) && <button type="button" onClick={() => { requested.current = false; session.current?.disconnect(); }}>断开语音</button>}
+      <button type="button" className="voice-microphone-toggle" data-publish={publish ? 'allowed' : 'denied'} disabled={!active || connecting} aria-label={state.microphone === 'off' ? '开启麦克风' : state.microphone === 'starting' ? '取消开启麦克风' : '关闭麦克风'} aria-pressed={state.microphone !== 'off'} title={label} onClick={() => void toggleMicrophone()}>{connecting ? <LoaderCircle size={22} aria-hidden="true" /> : state.microphone === 'off' ? <MicOff size={22} aria-hidden="true" /> : <Mic size={22} aria-hidden="true" />}</button>
+      {state.playbackBlocked && <button type="button" className="voice-playback-retry" aria-label="恢复房间声音" onClick={() => session.current?.resumePlayback()}><Volume2 size={20} aria-hidden="true" /></button>}
     </div>
-    <small>{connected ? publish ? '开启麦克风后，房间成员才能听到你。听不到声音时可点“播放声音”。' : '正在收听房间语音，上麦获批后可开启麦克风。' : '加入后可收听；开启麦克风需要你的授权。'}</small>
-    {state.speakers.length > 0 && <p className="voice-audio-speakers">正在说话：{state.speakers.map(id => room?.members.find(m => m.uid === id)?.username ?? '房间成员').join('、')}</p>}
-    {(state.error || state.playbackBlocked) && <p role="alert">{state.error || '浏览器暂停了声音播放，请点击“播放声音”。'}</p>}
   </section>;
 }

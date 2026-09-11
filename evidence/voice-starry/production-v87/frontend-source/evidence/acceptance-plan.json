@@ -1,0 +1,39 @@
+{
+  "deploy": true,
+  "thirteen": false,
+  "thirteen_pwa": false,
+  "umo_pwa": false,
+  "voice": true,
+  "reasons": [
+    "deployment-planner:.github/workflows/deploy.yml",
+    "deployment-planner:deploy/acceptance-plan.mjs",
+    "voice-art:public/assets/game-box/voice-starry/moon-frame.webp",
+    "voice-art:public/assets/game-box/voice-starry/night-room.webp",
+    "cache-version-only",
+    "voice:src/app/voice-reference.css",
+    "voice:src/app/voice/[roomId]/layout.tsx",
+    "voice:src/components/VoiceAudioPanel.tsx",
+    "voice:src/components/VoiceRoomPage.tsx",
+    "deployment-planner:test/deploy/acceptance-plan.test.mjs"
+  ],
+  "baselineFront": "52b69ff9f3b97d4f9779c12e020451f1f219ce6b",
+  "baselineBack": "dd3a27da774a8e171da98532a1a6d33ef2294cb9",
+  "frontendPaths": [
+    ".github/workflows/deploy.yml",
+    "deploy/acceptance-plan.mjs",
+    "docs/PWA_TOP_INSET.md",
+    "docs/VOICE_STARRY_ROOM.md",
+    "evidence/voice-starry/layout.json",
+    "evidence/voice-starry/room-320.png",
+    "evidence/voice-starry/room-393.png",
+    "public/assets/game-box/voice-starry/moon-frame.webp",
+    "public/assets/game-box/voice-starry/night-room.webp",
+    "public/sw.js",
+    "src/app/voice-reference.css",
+    "src/app/voice/[roomId]/layout.tsx",
+    "src/components/VoiceAudioPanel.tsx",
+    "src/components/VoiceRoomPage.tsx",
+    "test/deploy/acceptance-plan.test.mjs"
+  ],
+  "backendPaths": []
+}

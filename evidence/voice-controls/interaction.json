@@ -1,0 +1,80 @@
+{
+  "environment": "Local fixture gateway 17220 + production Next build; Chrome CDP; fixture returns 503 for rtc-token so no real RTC; speaking badges injected for visual-only check",
+  "results": {
+    "initial": {
+      "toggle": {
+        "x": 16,
+        "y": 767,
+        "width": 42,
+        "height": 42,
+        "top": 767,
+        "right": 58,
+        "bottom": 809,
+        "left": 16
+      },
+      "composer": {
+        "x": 66,
+        "y": 767,
+        "width": 211,
+        "height": 42,
+        "top": 767,
+        "right": 277,
+        "bottom": 809,
+        "left": 66
+      },
+      "centerDelta": 0,
+      "toggleLeftOfInput": true,
+      "textButtons": [],
+      "requestsPill": "待审批 1",
+      "overflow": false
+    },
+    "offSeatHint": "请先点击一个空麦位上麦×",
+    "tapSeat": {
+      "seat": 3,
+      "request": {
+        "action": "request",
+        "seat": 3
+      }
+    },
+    "seatDom": "voice-seat  is-occupied",
+    "dialogTitle": "确认下麦？",
+    "gridGapNoDialog": true,
+    "released": null,
+    "dialogWhenOffSeat": false,
+    "requestsSheet": "上麦申请 · 1",
+    "badges": [
+      {
+        "w": 24,
+        "h": 24,
+        "right": 3,
+        "bottom": 3,
+        "z": "3",
+        "anim": "voice-speaking-wave"
+      },
+      {
+        "w": 20,
+        "h": 20,
+        "right": -2,
+        "bottom": -2,
+        "z": "3",
+        "anim": "voice-speaking-wave"
+      },
+      {
+        "w": 20,
+        "h": 20,
+        "right": -1,
+        "bottom": -1,
+        "z": "3",
+        "anim": "voice-speaking-wave"
+      }
+    ],
+    "reducedMotion": "none",
+    "narrow": {
+      "overflow": false,
+      "composerWidth": 138,
+      "centerDelta": 0
+    },
+    "browserErrors": [],
+    "passed": true
+  }
+}

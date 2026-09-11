@@ -17,7 +17,7 @@ function fixture({ getGrant, getTrack } = {}) {
   const sdk = {on(){},off(){},createClient:()=>client,createMicrophoneAudioTrack:async()=>{calls.push('capture');return getTrack ? getTrack() : track;}};
   const session = new VoiceRtcSession(200001,getGrant ?? (async()=>grant),async()=>sdk,s=>states.push(s));
   session.setAuthority(true,true,[200001,200002]);
-  return {session,events,calls,states,track,remote,grant};
+  return {session,events,calls,states,track,remote,grant,client};
 }
 test('joining listens without capturing; microphone needs explicit action',async()=>{
  const f=fixture(); try { await f.session.connect(); assert.ok(f.calls.includes('audience'));assert.ok(!f.calls.includes('capture'));
@@ -57,6 +57,19 @@ test('subscriber token cannot enable microphone despite stale UI permission',asy
 test('microphone denial leaves listening available and an explicit retry can succeed',async()=>{
  let attempt=0;const f=fixture({getTrack:()=>{if(attempt++===0)throw Object.assign(Error('denied'),{code:'PERMISSION_DENIED'});return f.track;}});
  try{await f.session.connect();await f.session.enableMicrophone();assert.equal(f.states.at(-1).connection,'connected');assert.equal(f.states.at(-1).microphone,'off');assert.match(f.states.at(-1).error,/权限/);await f.session.enableMicrophone();assert.equal(f.states.at(-1).microphone,'on');}finally{f.session.dispose();}
+});
+test('speaking badge follows sampled remote level only for authorized speakers',async()=>{
+ const sleep=ms=>new Promise(r=>setTimeout(r,ms));const f=fixture();let remoteLevel=0.3;f.remote.audioTrack.getVolumeLevel=()=>remoteLevel;
+ f.client.remoteUsers.push({uid:300003,audioTrack:{getVolumeLevel:()=>0.9,play(){},stop(){}}});
+ try{await f.session.connect();await sleep(450);assert.deepEqual(f.states.at(-1).speakers,[200002]);
+ remoteLevel=0;await sleep(1100);assert.deepEqual(f.states.at(-1).speakers,[]);
+ remoteLevel=0.3;await sleep(450);f.session.setAuthority(true,true,[200001]);assert.deepEqual(f.states.at(-1).speakers,[]);}finally{f.session.dispose();}
+});
+test('own speaking badge requires a published microphone and clears on mute',async()=>{
+ const sleep=ms=>new Promise(r=>setTimeout(r,ms));const f=fixture();f.track.getVolumeLevel=()=>0.5;
+ try{await f.session.connect();await sleep(450);assert.ok(!f.states.at(-1).speakers.includes(200001));
+ await f.session.enableMicrophone();await sleep(450);assert.ok(f.states.at(-1).speakers.includes(200001));
+ f.session.mute();assert.ok(!f.states.at(-1).speakers.includes(200001));}finally{f.session.dispose();}
 });
 test('SDK reconnect stops recording and requires a fresh user action after recovery',async()=>{
  const f=fixture();try{await f.session.connect();await f.session.enableMicrophone();f.events.get('connection-state-change')('RECONNECTING');assert.ok(f.calls.includes('close'));assert.ok(f.calls.includes('leave'));await f.session.connect();await tick();assert.equal(f.states.at(-1).connection,'connected');assert.equal(f.states.at(-1).microphone,'off');}finally{f.session.dispose();}

@@ -188,3 +188,26 @@ html:has(.voice-room-starry) { background: #292b4b; }
 .voice-room-starry .voice-game-list-entry { order: 0; }
 .voice-room-starry .voice-audio-controls button[aria-pressed="true"] { color: #173c35; background: #8ce3c0; }
 .voice-room-starry .voice-audio-panel [role="alert"] { color: #ffddb0; }
+
+/* 2026-09-10：点击麦位上麦、输入框左侧麦克风图标、说话声波（vfx.voice.speaking）。 */
+.voice-room-starry .voice-dock-compose-row { gap: 8px; }
+.voice-room-starry .voice-dock-compose-row .voice-audio-panel.is-compact { flex: 0 0 auto; align-self: center; }
+.voice-room-starry .voice-dock-compose-row .voice-audio-controls { flex-wrap: nowrap; align-items: center; gap: 6px; }
+.voice-room-starry .voice-audio-controls .voice-microphone-toggle, .voice-room-starry .voice-audio-controls .voice-playback-retry { display: grid; width: 42px; height: 42px; min-height: 42px; flex: 0 0 42px; padding: 0; place-items: center; border: 0; border-radius: 50%; color: #f5eaff; background: var(--room-glass); }
+.voice-room-starry .voice-audio-controls .voice-microphone-toggle[aria-pressed="true"] { color: #173c35; background: #8ce3c0; box-shadow: 0 0 0 3px #8ce3c033; }
+.voice-room-starry .voice-audio-controls .voice-microphone-toggle[data-publish="denied"][aria-pressed="false"] { color: #b9aecb; }
+.voice-room-starry .voice-audio-controls .voice-playback-retry { color: #ffe0a1; }
+.voice-room-starry .voice-microphone-toggle .lucide-loader-circle { animation: voice-mic-spin 1s linear infinite; }
+@keyframes voice-mic-spin { to { transform: rotate(360deg); } }
+.voice-room-starry .voice-requests-pill { margin-left: auto; min-height: 26px; padding: 0 10px; border: 1px solid #f1dcac80; border-radius: 13px; color: #ffe8b8; background: #3f345999; font-size: 11px; }
+.voice-room-starry .voice-seat-portrait > .voice-speaking-badge { position: absolute; right: -3px; bottom: -3px; z-index: 3; display: flex; width: 20px; height: 20px; align-items: center; justify-content: center; gap: 2px; border-radius: 50%; background: #8ce3c0; box-shadow: 0 0 0 2px #272443b3; font-size: 0; pointer-events: none; }
+.voice-room-starry .voice-seat.is-featured .voice-seat-portrait > .voice-speaking-badge { right: 1px; bottom: 1px; width: 24px; height: 24px; }
+.voice-room-starry .voice-speaking-badge i { display: block; width: 2px; height: 10px; border-radius: 1px; background: #173c35; transform: scaleY(.4); animation: voice-speaking-wave 600ms ease-in-out infinite; }
+.voice-room-starry .voice-speaking-badge i:nth-child(2) { height: 12px; animation-delay: -200ms; }
+.voice-room-starry .voice-speaking-badge i:nth-child(3) { animation-delay: -400ms; }
+@keyframes voice-speaking-wave { 0%, 100% { transform: scaleY(.4); } 50% { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .voice-room-starry .voice-speaking-badge i { animation: none; transform: scaleY(.7); }
+  .voice-room-starry .voice-speaking-badge i:nth-child(2) { transform: none; }
+  .voice-room-starry .voice-microphone-toggle .lucide-loader-circle { animation: none; }
+}

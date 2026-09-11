@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "id": "vfx.voice.speaking",
+  "name": "麦位说话声波",
+  "status": "draft",
+  "gameplayMeaning": "该成员正在通过获准的麦克风发声",
+  "trigger": "200ms getVolumeLevel sampling of the authorized local published track or subscribed remote track; level > 0.06, held 700ms",
+  "owner": "VoiceRoomPage / VoiceRtcSession",
+  "targetLayer": "ui",
+  "timing": {
+    "totalMs": 600,
+    "anticipationMs": 0,
+    "activeMs": 600,
+    "decayMs": 0,
+    "impactMs": 0
+  },
+  "implementation": {
+    "route": "graphics",
+    "pool": false,
+    "maxConcurrentInstances": 32,
+    "cleanupRule": "Remove badge on mute, unpublish, lost membership, disconnect, silence or unmount; remove SDK listeners and clear silence watchdog on disconnect.",
+    "platform": "DOM/CSS badge at the seat portrait bottom-right; transform-only scaleY bars; no Cocos assets or scene mutation"
+  },
+  "budgets": {
+    "maxParticles": 0,
+    "maxTransparentLayers": 2,
+    "maxScreenCoveragePct": 4,
+    "maxTextureBytes": 0,
+    "targetFrameTimeDeltaMs": 0.5
+  },
+  "variants": {
+    "full": "Three small vertical waveform bars scale inside a 20px badge, no flashing",
+    "low": "Same small DOM badge, no particles or textures",
+    "reducedMotion": "Static waveform bars while speaking",
+    "reducedFlash": "No opacity or luminance animation",
+    "colorIndependentCue": "Waveform silhouette and accessible speaking label"
+  },
+  "validation": {
+    "viewports": [
+      "393x852",
+      "320x640"
+    ],
+    "states": [
+      "single",
+      "rapid-repeat",
+      "max-overlap",
+      "pause-resume",
+      "scene-exit",
+      "low",
+      "reduced-motion",
+      "reduced-flash"
+    ],
+    "worstCase": "32 authorized speakers, 96 tiny transform-only bars; minimum physical device performance remains unverified",
+    "evidencePath": "evidence/voice-controls/"
+  }
+}

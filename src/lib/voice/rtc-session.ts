@@ -10,11 +10,18 @@ export type RtcState = {
   error: string; playbackBlocked: boolean; speakers: number[];
 };
 export const INITIAL_RTC_STATE: RtcState = { connection: 'idle', microphone: 'off', error: '', playbackBlocked: false, speakers: [] };
+/** 说话检测：每 200ms 采样实际音轨电平，停顿后保留 700ms，避免字间闪烁。 */
+const SPEAKING_SAMPLE_MS = 200;
+const SPEAKING_HOLD_MS = 700;
+const SPEAKING_LEVEL = 0.06;
+function level(track: { getVolumeLevel?: () => number } | null | undefined) {
+  try { return track?.getVolumeLevel?.() ?? 0; } catch { return 0; }
+}
 type Sdk = Pick<IAgoraRTC, 'createClient' | 'createMicrophoneAudioTrack' | 'on' | 'off'>;
 type Connection = {
   client: IAgoraRTCClient | null; sdk: Sdk | null; grant: RtcGrant | null;
   track: IMicrophoneAudioTrack | null; micGeneration: number;
-  work: Promise<void>; autoplay?: () => void; timer?: ReturnType<typeof setTimeout>;
+  work: Promise<void>; autoplay?: () => void; timer?: ReturnType<typeof setTimeout>; meter?: ReturnType<typeof setInterval>;
 };
 
 function errorText(error: unknown): string {
@@ -33,6 +40,7 @@ export class VoiceRtcSession {
   private allowed = false;
   private publishAllowed = false;
   private audible = new Set<number>();
+  private loud = new Map<number, number>();
   private state: RtcState = { ...INITIAL_RTC_STATE };
 
   constructor(
@@ -59,7 +67,7 @@ export class VoiceRtcSession {
       if (!this.audible.has(Number(remote.uid))) remote.audioTrack?.stop();
       else if (remote.audioTrack && !remote.audioTrack.isPlaying) this.play(c!, remote);
     }
-    this.emit({ speakers: this.state.speakers.filter(uid => uid === this.uid ? this.state.microphone === 'on' : this.audible.has(uid)) });
+    this.refreshSpeakers();
   }
 
   async connect() {
@@ -88,10 +96,8 @@ export class VoiceRtcSession {
       client.on('user-unpublished', remote => { remote.audioTrack?.stop(); });
       client.on('user-left', remote => {
         remote.audioTrack?.stop();
-        if (this.live(c)) this.emit({ speakers: this.state.speakers.filter(uid => uid !== Number(remote.uid)) });
-      });
-      client.on('volume-indicator', volumes => {
-        if (this.live(c)) this.emit({ speakers: volumes.filter(v => v.level > 10 && (Number(v.uid) === this.uid ? this.state.microphone === 'on' : this.audible.has(Number(v.uid)))).map(v => Number(v.uid)) });
+        this.loud.delete(Number(remote.uid));
+        if (this.live(c)) this.refreshSpeakers();
       });
       client.on('token-privilege-will-expire', () => { void this.renew(c); });
       client.on('token-privilege-did-expire', () => { if (this.live(c)) this.fail('语音凭证已到期，请重新连接'); });
@@ -115,7 +121,7 @@ export class VoiceRtcSession {
       if (!this.live(c)) return;
       await client.join(grant.appId, grant.channel, grant.token, grant.uid);
       if (!this.live(c)) { await client.leave().catch(() => undefined); return; }
-      client.enableAudioVolumeIndicator();
+      c.meter = setInterval(() => this.sample(c), SPEAKING_SAMPLE_MS);
       this.emit({ connection: 'connected' });
       this.scheduleRenew(c);
     } catch (error) { if (this.live(c)) this.fail(errorText(error)); }
@@ -188,7 +194,27 @@ export class VoiceRtcSession {
         await c.client.setClientRole('audience').catch(() => undefined);
       });
     }
+    this.loud.delete(this.uid);
     this.emit({ microphone: 'off', speakers: this.state.speakers.filter(uid => uid !== this.uid) });
+  }
+  /** 只统计已授权的发声者：本人须已发布麦克风，远端须仍在权威麦位上。 */
+  private sample(c: Connection) {
+    if (!this.live(c)) return;
+    const now = Date.now();
+    if (this.state.microphone === 'on' && level(c.track) > SPEAKING_LEVEL) this.loud.set(this.uid, now);
+    for (const remote of c.client?.remoteUsers ?? []) {
+      const uid = Number(remote.uid);
+      if (this.audible.has(uid) && level(remote.audioTrack) > SPEAKING_LEVEL) this.loud.set(uid, now);
+    }
+    this.refreshSpeakers(now);
+  }
+  private refreshSpeakers(now = Date.now()) {
+    for (const [uid, at] of this.loud) {
+      const allowed = uid === this.uid ? this.state.microphone === 'on' : this.audible.has(uid);
+      if (!allowed || now - at > SPEAKING_HOLD_MS) this.loud.delete(uid);
+    }
+    const speakers = [...this.loud.keys()].sort((a, b) => a - b);
+    if (speakers.join(',') !== this.state.speakers.join(',')) this.emit({ speakers });
   }
   private play(c: Connection, remote: IAgoraRTCRemoteUser) {
     if (!this.live(c) || !this.audible.has(Number(remote.uid))) return;
@@ -206,13 +232,14 @@ export class VoiceRtcSession {
     const c = this.current;
     this.current = null;
     if (c) {
-      clearTimeout(c.timer); c.micGeneration++;
+      clearTimeout(c.timer); clearInterval(c.meter); c.micGeneration++;
       if (c.autoplay) c.sdk?.off('autoplay-failed', c.autoplay);
       c.track?.removeAllListeners(); c.track?.stop(); c.track?.close(); c.track = null;
       for (const remote of c.client?.remoteUsers ?? []) remote.audioTrack?.stop();
       c.client?.removeAllListeners();
       void c.client?.leave().catch(() => undefined);
     }
+    this.loud.clear();
     this.emit({ ...INITIAL_RTC_STATE });
   }
   dispose() { this.disposed = true; this.disconnect(); }
