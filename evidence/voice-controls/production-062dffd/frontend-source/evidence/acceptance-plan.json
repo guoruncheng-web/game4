@@ -1,0 +1,51 @@
+{
+  "deploy": true,
+  "thirteen": false,
+  "thirteen_pwa": false,
+  "umo_pwa": false,
+  "voice": true,
+  "reasons": [
+    "deployment-planner:.github/workflows/deploy.yml",
+    "backend-pin:classify-actual-backend-diff",
+    "cache-version-only",
+    "voice:src/app/voice-reference.css",
+    "voice:src/components/VoiceAudioPanel.tsx",
+    "voice:src/components/VoiceRoomPage.tsx",
+    "voice:src/lib/voice/rtc-session.ts",
+    "voice:test/voice/rtc-session.test.mjs",
+    "voice-backend:tools/sim/voice/rtc-browser-test.mjs"
+  ],
+  "baselineFront": "445c0fcdf19e86c368ec799ffe663b05d89f3de7",
+  "baselineBack": "dbf3b365c1b839ed81affbdc2cba166df5f52f63",
+  "frontendPaths": [
+    ".github/workflows/deploy.yml",
+    "deploy/backend-revision.txt",
+    "docs/VOICE_STARRY_ROOM.md",
+    "docs/voice-speaking-vfx.json",
+    "evidence/top-inset/metadata-local-v88.json",
+    "evidence/voice-controls/01-off-seat-393.png",
+    "evidence/voice-controls/02-lower-mic-confirm-393.png",
+    "evidence/voice-controls/03-on-seat-speaking-badges-393.png",
+    "evidence/voice-controls/04-on-seat-320.png",
+    "evidence/voice-controls/interaction.json",
+    "evidence/voice-controls/production-failed-ce22439/backend-source/evidence/public-smoke.json",
+    "evidence/voice-controls/production-failed-ce22439/backend-source/evidence/public-voice-rtc/failure-0.png",
+    "evidence/voice-controls/production-failed-ce22439/backend-source/evidence/public-voice-rtc/failure-1.png",
+    "evidence/voice-controls/production-failed-ce22439/backend-source/evidence/public-voice-rtc/result.json",
+    "evidence/voice-controls/production-failed-ce22439/frontend-source/evidence/acceptance-plan.json",
+    "evidence/voice-starry/production-v87/backend-source/evidence/public-smoke.json",
+    "evidence/voice-starry/production-v87/backend-source/evidence/public-voice-rtc/result.json",
+    "evidence/voice-starry/production-v87/backend-source/evidence/public-voice-rtc/room-0.png",
+    "evidence/voice-starry/production-v87/backend-source/evidence/public-voice-rtc/room-1.png",
+    "evidence/voice-starry/production-v87/frontend-source/evidence/acceptance-plan.json",
+    "public/sw.js",
+    "src/app/voice-reference.css",
+    "src/components/VoiceAudioPanel.tsx",
+    "src/components/VoiceRoomPage.tsx",
+    "src/lib/voice/rtc-session.ts",
+    "test/voice/rtc-session.test.mjs"
+  ],
+  "backendPaths": [
+    "tools/sim/voice/rtc-browser-test.mjs"
+  ]
+}
