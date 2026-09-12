@@ -19,6 +19,8 @@ const eslintConfig = defineConfig([
     "public/umo/game/**",
     // Thirteen 的 Creator release 同样在游戏源仓独立验收。
     "public/thirteen/game/**",
+    // Thirteen Social 的 Creator release 同样在游戏源仓（games/thirteen-social）独立验收。
+    "public/thirteen-social/game/**",
   ]),
 ]);
 

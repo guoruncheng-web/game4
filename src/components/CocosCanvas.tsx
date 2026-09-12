@@ -8,7 +8,7 @@ import { withGameCredentials } from '@/lib/api-client';
 type Props = {
   src: string;
   title: string;
-  gameId?: 'umo' | 'thirteen';
+  gameId?: 'umo' | 'thirteen' | 'thirteen-social';
   readyOnLoad?: boolean;
   backdropClassName?: string;
   loadingText?: string;

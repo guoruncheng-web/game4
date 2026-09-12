@@ -89,6 +89,13 @@ export const GAMES: GameMeta[] = [
     controls: '点按选牌 · 提示 / 过牌 / 出牌 · 横屏游玩',
     accent: 'text-amber-300',
   },
+  {
+    slug: 'thirteen-social',
+    title: 'Thirteen Social',
+    tagline: '语聊房内的十三张牌局 · 目前仅本地演示席位展示',
+    controls: '点按选牌 · 提示 / 过牌 / 出牌 · 竖屏游玩',
+    accent: 'text-cyan-300',
+  },
 ];
 
 export function getGame(slug: string): GameMeta | undefined {

@@ -2,7 +2,7 @@
  * PWA 缓存版本。必须与 public/sw.js 的 VERSION、部署验收里的 PWA_CACHE_VERSION 保持一致，
  * test/pwa/pwa-version.test.mjs 会校验三处。
  */
-export const PWA_VERSION = 'v91';
+export const PWA_VERSION = 'v92';
 
 /** 已完成“准备环境中”的版本；与 PWA_VERSION 不同时首页会重新准备。 */
 export const PREPARED_KEY = 'game-box-prepared-version';
