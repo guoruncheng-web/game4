@@ -1,0 +1,107 @@
+[
+  {
+    "name": "room-info-header-panel",
+    "source": "popup-candidates/p06-manage_91602.png",
+    "box_px": [
+      28,
+      166,
+      750,
+      298
+    ],
+    "size_px": [
+      722,
+      132
+    ],
+    "note": "房间信息头部面板(图标+名称+ID+在线状态)"
+  },
+  {
+    "name": "room-icon-square",
+    "source": "popup-candidates/p06-manage_91602.png",
+    "box_px": [
+      30,
+      168,
+      120,
+      300
+    ],
+    "size_px": [
+      90,
+      132
+    ],
+    "note": "房间头像方形圆角框"
+  },
+  {
+    "name": "settings-row-icon-fox",
+    "source": "popup-candidates/p06-manage_91602.png",
+    "box_px": [
+      38,
+      1134,
+      102,
+      1200
+    ],
+    "size_px": [
+      64,
+      66
+    ],
+    "note": "设置行图标(圆形,如关联游戏)"
+  },
+  {
+    "name": "settings-row-icon-warning",
+    "source": "popup-candidates/p06-manage_91602.png",
+    "box_px": [
+      38,
+      1234,
+      102,
+      1300
+    ],
+    "size_px": [
+      64,
+      66
+    ],
+    "note": "设置行图标(警示态,如可见性)"
+  },
+  {
+    "name": "settings-row-icon-alert",
+    "source": "popup-candidates/p06-manage_91602.png",
+    "box_px": [
+      38,
+      1334,
+      102,
+      1400
+    ],
+    "size_px": [
+      64,
+      66
+    ],
+    "note": "设置行图标(强调态,如上麦申请)"
+  },
+  {
+    "name": "settings-row-bubble-bg",
+    "source": "popup-candidates/p06-manage_91602.png",
+    "box_px": [
+      138,
+      1132,
+      704,
+      1202
+    ],
+    "size_px": [
+      566,
+      70
+    ],
+    "note": "设置行背景(气泡形,含右侧计数小圆角)"
+  },
+  {
+    "name": "notif-count-pill",
+    "source": "popup-candidates/p06-manage_91602.png",
+    "box_px": [
+      646,
+      1120,
+      698,
+      1148
+    ],
+    "size_px": [
+      52,
+      28
+    ],
+    "note": "行右上角小计数气泡"
+  }
+]

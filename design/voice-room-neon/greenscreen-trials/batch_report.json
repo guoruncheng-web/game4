@@ -1,0 +1,176 @@
+[
+  {
+    "slot": "row.bubble.bg",
+    "status": "ok",
+    "secs": 60.4,
+    "results": [
+      {
+        "size": "1280x640",
+        "transparent_pct": 60.5,
+        "semi_pct": 2.2,
+        "opaque_pct": 37.3,
+        "transparent_nonzero_rgb": 0,
+        "residual_green_px": 0,
+        "touches_edge": false,
+        "seed": "99201",
+        "status": "ok"
+      },
+      {
+        "size": "1280x640",
+        "transparent_pct": 54.4,
+        "semi_pct": 0.7,
+        "opaque_pct": 44.9,
+        "transparent_nonzero_rgb": 0,
+        "residual_green_px": 0,
+        "touches_edge": false,
+        "seed": "99202",
+        "status": "ok"
+      }
+    ]
+  },
+  {
+    "slot": "panel.corner.ornament",
+    "status": "ok",
+    "secs": 34.9,
+    "results": [
+      {
+        "size": "1024x1024",
+        "transparent_pct": 85.1,
+        "semi_pct": 3.3,
+        "opaque_pct": 11.7,
+        "transparent_nonzero_rgb": 0,
+        "residual_green_px": 0,
+        "touches_edge": true,
+        "seed": "99301",
+        "status": "ok"
+      },
+      {
+        "size": "1024x1024",
+        "transparent_pct": 90.4,
+        "semi_pct": 1.9,
+        "opaque_pct": 7.7,
+        "transparent_nonzero_rgb": 0,
+        "residual_green_px": 0,
+        "touches_edge": false,
+        "seed": "99302",
+        "status": "ok"
+      }
+    ]
+  },
+  {
+    "slot": "panel.header.room-info",
+    "status": "ok",
+    "secs": 41.9,
+    "results": [
+      {
+        "size": "1280x512",
+        "transparent_pct": 58.8,
+        "semi_pct": 2.0,
+        "opaque_pct": 39.2,
+        "transparent_nonzero_rgb": 0,
+        "residual_green_px": 0,
+        "touches_edge": false,
+        "seed": "98301",
+        "status": "ok"
+      },
+      {
+        "size": "1280x512",
+        "transparent_pct": 43.2,
+        "semi_pct": 2.2,
+        "opaque_pct": 54.5,
+        "transparent_nonzero_rgb": 0,
+        "residual_green_px": 0,
+        "touches_edge": false,
+        "seed": "98302",
+        "status": "ok"
+      }
+    ]
+  },
+  {
+    "slot": "decor.stage-light",
+    "status": "ok",
+    "secs": 35.2,
+    "results": [
+      {
+        "size": "1280x512",
+        "transparent_pct": 78.9,
+        "semi_pct": 4.5,
+        "opaque_pct": 16.6,
+        "transparent_nonzero_rgb": 0,
+        "residual_green_px": 0,
+        "touches_edge": false,
+        "seed": "98501",
+        "status": "ok"
+      },
+      {
+        "size": "1280x512",
+        "transparent_pct": 80.9,
+        "semi_pct": 4.7,
+        "opaque_pct": 14.4,
+        "transparent_nonzero_rgb": 0,
+        "residual_green_px": 0,
+        "touches_edge": false,
+        "seed": "98502",
+        "status": "ok"
+      }
+    ]
+  },
+  {
+    "slot": "card.game.frame",
+    "status": "ok",
+    "secs": 35.4,
+    "results": [
+      {
+        "size": "768x1024",
+        "transparent_pct": 53.5,
+        "semi_pct": 1.7,
+        "opaque_pct": 44.8,
+        "transparent_nonzero_rgb": 0,
+        "residual_green_px": 0,
+        "touches_edge": false,
+        "seed": "98601",
+        "status": "ok"
+      },
+      {
+        "size": "768x1024",
+        "transparent_pct": 37.7,
+        "semi_pct": 2.8,
+        "opaque_pct": 59.4,
+        "transparent_nonzero_rgb": 0,
+        "residual_green_px": 0,
+        "touches_edge": false,
+        "seed": "98602",
+        "status": "ok"
+      }
+    ]
+  },
+  {
+    "slot": "illustration.leave-room",
+    "status": "ok",
+    "secs": 36.8,
+    "results": [
+      {
+        "size": "1024x1024",
+        "transparent_pct": 65.6,
+        "semi_pct": 2.6,
+        "opaque_pct": 31.7,
+        "transparent_nonzero_rgb": 0,
+        "residual_green_px": 0,
+        "touches_edge": false,
+        "seed": "98901",
+        "status": "ok"
+      },
+      {
+        "size": "1024x1024",
+        "transparent_pct": 64.2,
+        "semi_pct": 0.3,
+        "opaque_pct": 35.5,
+        "transparent_nonzero_rgb": 0,
+        "residual_green_px": 0,
+        "touches_edge": false,
+        "seed": "98902",
+        "status": "ok"
+      }
+    ]
+  }
+]

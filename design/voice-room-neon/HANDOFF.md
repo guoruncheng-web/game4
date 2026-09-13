@@ -15,7 +15,40 @@
 - **“乙 · 霓虹派对”方向已否决（历史）**：用户看过选定的 75002 后反馈“整体氛围不够，要换风格方向”，该方向及原批准记录已标 superseded，详见 `README.md` 历史记录一节。中途还试过“方向 D · 糖果嘉年华”（`main-room-candy-v1_81001/81002`），用户改口要求“以现在线上的房间主题的风格再优化”，最终定为“星空主题”。
 - **主界面星空方向已定稿**：以 `wireframe-8seats-v2.png` 定布局、线上截图 `01-room.png` 取风格，共跑 4 轮（81001–84002）；`82001/82002` 照搬了线上“2 大+4 小”旧布局未过 8 麦位 2×4 验收；`83001/83002` 布局过关但皇冠位置错、空位样式不统一；以 `83001` 为基准精修出 `84001/84002`，`84001` 房主徽章/空位样式基本到位，用户确认“可以”，唯房主金冠与说话声波环重叠冲突，计划在切图阶段从 `84002`/`75002` 单独复用皇冠切图并独立定位，不依赖概念图位置示意。完整结论见 `README.md`。
 - **8 张弹窗已按星空风格重出并完成选优**：`popup-candidates/` 下 91201–91902 共 16 张（每类 2 个 seed），已逐一审阅并选出每类最优版本，落选原因（顶栏文字重叠、按钮图标破损、色调偏离、空麦位样式不一致等）记入 `README.md`。
-- **当前恢复点：还原流程第 2 步（NumPy 按元素边界切组件）**，素材源为已选定的 `main-room-starry-v3_84001.png` + 8 张星空弹窗（91201/91302/91402/91501/91602/91702/91802/91902）；`84001` 与 `84002`、`75002` 需同时保留供皇冠单独切图。
+- **⚠️ 矩形裁切路线已作废（2026-09-11，用户否决）**。原步骤 2「从概念图上按元素边界裁切组件」已实际执行过一轮（`cutouts/` 下 main-room 24 个 + popup-confirm 4 个 + popup-requests 4 个 + popup-games 8 个 + popup-invite 7 个 + popup-member 5 个 + popup-manage 7 个 + popup-members-list 6 个），用户看过后判定"切效果太差了"，**该路线停止，产物只保留作位置/尺寸参考，不得作为生产素材使用**。失败原因有两条，第二条是根本性的：
+  1. 靠肉眼从缩放过的坐标网格图上估坐标不可靠——一轮内连续切歪 6 次（lv 徽章、开玩按钮、播放三角、热门角标、复制/分享按钮、房间头像方框），每个都要来回试 2–3 轮。文档里"用 NumPy 按元素边界切"指的是连通区/边缘检测算法定界，不是人眼读数。
+  2. 即使坐标完全精确，矩形裁切也拿不到干净素材：概念图里按钮、头像框、胶囊的外发光、半透明和渐变都与星空背景深度融合，裁出来必然带一块背景，边缘还会切断外发光或切进相邻元素（如 `member-row-bubble-bg` 把右侧状态胶囊和"听众"文字一并切入）。
+- **现行路线：方案 B —— 绿幕重画（用户 2026-09-11 指定）**。放弃从概念图裁切，改为用 Qwen-Image-Edit 参照概念稿样式，把每个组件**单独画在纯绿幕背景上**，直接得到可抠透明的干净素材；原步骤 3（去字补底板放大 2 倍）与之合并，不再需要先精确裁切。
+  - 执行顺序：先拿 2–3 个代表性组件做试样（建议：金色按钮、金色花丝头像框、空麦位暗环+发光麦克风），验证模型能否复刻住金色花丝质感与配色；试样通过后再批量出全部组件，随后进入步骤 4 的绿幕抠透明（清零全透明像素 RGB、标九宫格边距）。
+  - **生产清单见 `ASSET_SLOTS.md`**：65 个参考 tile 已按"一个语义槽位一份素材"归并为 **32 个槽位**（同族不同宽度的胶囊合并为一份九宫格底板；头像只出框不出内容；文字一律 DOM 渲染）。试样先跑其中 3 个：`button.capsule.gold`、`seat.frame.occupied`、`seat.frame.empty`。
+  - `cutouts/*/manifest.json` 的 `box_px` 仍可用来确定各槽位的目标宽高比与页面内相对尺寸。
+  - ~~阻塞：云端 ComfyUI 全部接口 503~~ → 用户已于 2026-09-11 重启，实例恢复正常。
+
+- **素材生产已完成（2026-09-12）**：**30 个槽位全部产出合格素材**，共 57 个 RGBA PNG 在
+  `greenscreen-assets/`（每槽位 2 个 seed）。全部素材绿色溢色残留与全透明像素 RGB 均为 0，
+  质量指标见 `greenscreen-trials/batch_report.json`，验收总览图 `greenscreen-trials/final-sheet.png`。
+  槽位清单、废弃记录与交付状态见 `ASSET_SLOTS.md`。
+  - 生产过程中的两次返工：`row.bubble.bg` 首轮出图偏蓝偏暗无质感，改 prompt（强调深紫玻璃质感 +
+    细描边 + 顶部高光 + 尖角要小）后通过；`panel.corner.ornament` 首轮触边，加大画布后仍形态跑偏，
+    最终废弃。
+  - **已废弃 2 个槽位（Owner 同意）**：`panel.corner.ornament`（与 `panel.frame.ornate` 自带的
+    四角纹样冗余）、`decor.stage-light`（其参考 tile 本身切坏了导致出图带文字；该光晕本就属背景层）。
+    配置在 `slots.py` 中整段注释保留，未删除。
+  - 质感偏弱但可用、Owner 未要求返工：`card.game.hot-tag`、`panel.header.room-info`；
+    `button.tile.neutral` / `warning` 出图接近正方形（参考稿约 1.6:1），二者是九宫格拉伸件，
+    比例由 CSS 控制，不影响使用。
+  - **⚠ 云端实例稳定性（2026-09-11 实测，已两次踩到）**：该 ComfyUI 实例在连续生成约 50 张图
+    （25 个槽位 × 2 seed）之后会挂掉，全部接口返回 HTTP 503，且不会自行恢复，必须由用户在云主机
+    控制台手动重启。表现是批量脚本后段连续报 urllib/SSL 读取异常——**这不是脚本 bug，也不是
+    生成质量问题**，先 `GET /system_stats` 确认是不是 503 再判断。
+    建议后续分批跑（每批 5–8 个槽位，之间留间隔），不要一口气排 25 个以上。
+    首轮 1–24 个槽位正常，第 25 个之后开始失败；重启后再次尝试 6 个槽位时实例已再次 503。
+
+- **换肤落点已调研完毕，见 `RESKIN_PLAN.md`**：槽位→className 映射、必须成对删除的 CSS 边框
+  （否则与贴图描边叠成双边框）、公网 RTC 验收禁区清单、以及三处"不是纯换图"的改动
+  （删 `.is-featured` 改 2×4 等大、`seat.nametag` 从裸文字加底板、弹窗配色从浅底整体翻暗底）。
+  其中已确认：**麦位数量本来就是 8，改 2×4 布局不涉及后端、协议与容量**。
+  - 绿幕建议用纯绿 #00FF00 + 去溢色；金色描边与绿幕不冲突，但如出现绿色溢色需在抠图后核对边缘。
 
 ## 工作约定（任何虚拟机上的会话都适用）
 
@@ -29,7 +62,11 @@
 
 ## 云端生成
 
-- ComfyUI：`https://by47y6ehljlr7fqf-80.container.x-gpu.com/`（RTX 4090）。**一次最多排 2–4 张**，并发 22 张时实例崩溃过（用户已重启）。提交前 GET `/system_stats`。
+- ComfyUI：`https://8w4bwh62z5nmmykf-80.container.x-gpu.com/`（RTX 4090 D，2026-09-12 起的新实例；
+  旧实例 `by47y6ehljlr7fqf-80` 已挂掉废弃）。**一次最多排 2–4 张**，并发 22 张时实例崩溃过。
+  提交前 GET `/system_stats`。**换实例时**：新地址就是 SSH 主机名换个端口后缀，
+  形如 `https://<ssh-host-id>-80.container.x-gpu.com`；三个脚本已支持 `COMFY_URL` 环境变量覆盖，
+  也可直接改脚本里的默认值。换实例后先用 `/object_info/UNETLoader` 确认模型还在。
 - 脚本（共享盘）：`<工作室根>/.tmp/comfy/`（Mac：`/Users/mac/projects/cocos-game-studio/.tmp/comfy/`）
   - `comfy_qwen_edit.py <out_dir> <prefix> <prompt> <W> <H> <seeds,> <ref1,ref2,…>`：Qwen-Image-Edit-2511 + Lightning 4 步，带参考图。
   - `comfy_qwen_t2i.py <out_dir> <prefix> <prompt> <W> <H> <seeds,>`：Qwen-Image 2512 + Lightning 4 步，纯文字（中文渲染好）。
@@ -50,4 +87,7 @@
 ## 现状
 
 - 线上：frontend `2de205c`（PWA v91，含“准备环境中”与顶部修复），Actions 34566337098 成功。
-- 候选仓库 `release-candidates/pwa-rtc-voice`（分支 `feat/voice-rtc-20260910` 跟踪 `origin/main`）：本目录与 `evidence/voice-room-redesign/before/` 尚未提交。
+- 候选仓库 `release-candidates/pwa-rtc-voice`（分支 `feat/voice-rtc-20260910` 跟踪 `origin/main`）：
+  概念图与现状截图已于 2026-09-11 提交（`f820005` / `c545c92`）；此后新增的
+  `cutouts/`、`greenscreen-assets/`、`greenscreen-trials/`、`ASSET_SLOTS.md`、`RESKIN_PLAN.md`
+  **尚未提交**。推送仍须由用户在 Mac 上执行。

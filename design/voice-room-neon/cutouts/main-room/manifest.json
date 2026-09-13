@@ -1,0 +1,362 @@
+[
+  {
+    "name": "topbar-room-icon-bubble",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      18,
+      108,
+      118,
+      192
+    ],
+    "size_px": [
+      100,
+      84
+    ],
+    "note": "顶栏左侧圆形房间图标气泡"
+  },
+  {
+    "name": "topbar-room-name-plate",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      110,
+      112,
+      320,
+      188
+    ],
+    "size_px": [
+      210,
+      76
+    ],
+    "note": "顶栏房名牌胶囊(不含图标)"
+  },
+  {
+    "name": "topbar-online-capsule",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      445,
+      116,
+      652,
+      184
+    ],
+    "size_px": [
+      207,
+      68
+    ],
+    "note": "在线人数胶囊(含2个mini头像位)"
+  },
+  {
+    "name": "topbar-settings-button",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      652,
+      104,
+      756,
+      198
+    ],
+    "size_px": [
+      104,
+      94
+    ],
+    "note": "设置齿轮圆按钮"
+  },
+  {
+    "name": "topbar-pending-capsule",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      572,
+      206,
+      756,
+      274
+    ],
+    "size_px": [
+      184,
+      68
+    ],
+    "note": "待审批胶囊"
+  },
+  {
+    "name": "seat-frame-occupied-speaking",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      0,
+      316,
+      216,
+      512
+    ],
+    "size_px": [
+      216,
+      196
+    ],
+    "note": "有人麦位框(说话中,含金色声波光晕)"
+  },
+  {
+    "name": "seat-frame-occupied-plain",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      208,
+      328,
+      384,
+      502
+    ],
+    "size_px": [
+      176,
+      174
+    ],
+    "note": "有人麦位框(未说话,基础态)"
+  },
+  {
+    "name": "seat-frame-occupied-with-moon",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      392,
+      296,
+      568,
+      502
+    ],
+    "size_px": [
+      176,
+      206
+    ],
+    "note": "有人麦位框(顶部带月牙挂饰)"
+  },
+  {
+    "name": "seat-frame-occupied-with-badge",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      574,
+      328,
+      754,
+      502
+    ],
+    "size_px": [
+      180,
+      174
+    ],
+    "note": "有人麦位框(右上角圆形徽章位)"
+  },
+  {
+    "name": "seat-badge-corner",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      694,
+      328,
+      754,
+      386
+    ],
+    "size_px": [
+      60,
+      58
+    ],
+    "note": "麦位右上角圆形徽章(单独)"
+  },
+  {
+    "name": "moon-crescent-accent",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      452,
+      296,
+      512,
+      330
+    ],
+    "size_px": [
+      60,
+      34
+    ],
+    "note": "麦位顶部月牙挂饰(单独)"
+  },
+  {
+    "name": "seat-empty-frame",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      392,
+      586,
+      568,
+      756
+    ],
+    "size_px": [
+      176,
+      170
+    ],
+    "note": "空麦位(暗环+发光麦克风+点击上麦)"
+  },
+  {
+    "name": "seat-empty-frame-2",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      574,
+      586,
+      754,
+      756
+    ],
+    "size_px": [
+      180,
+      170
+    ],
+    "note": "空麦位第二个(用于核对样式一致性)"
+  },
+  {
+    "name": "name-lv-tag-row1",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      30,
+      504,
+      186,
+      550
+    ],
+    "size_px": [
+      156,
+      46
+    ],
+    "note": "麦位名牌/Lv 标签胶囊(行1样例)"
+  },
+  {
+    "name": "name-lv-tag-row2",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      390,
+      754,
+      570,
+      800
+    ],
+    "size_px": [
+      180,
+      46
+    ],
+    "note": "麦位名牌/Lv 标签胶囊(行2样例)"
+  },
+  {
+    "name": "chat-avatar-emoji",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      36,
+      858,
+      104,
+      924
+    ],
+    "size_px": [
+      68,
+      66
+    ],
+    "note": "聊天头像圆(emoji 风格样例)"
+  },
+  {
+    "name": "chat-avatar-photo",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      36,
+      1058,
+      104,
+      1124
+    ],
+    "size_px": [
+      68,
+      66
+    ],
+    "note": "聊天头像圆(写实照片风格样例)"
+  },
+  {
+    "name": "chat-bubble-plain",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      112,
+      858,
+      584,
+      924
+    ],
+    "size_px": [
+      472,
+      66
+    ],
+    "note": "聊天气泡(基础态,含展开箭头)"
+  },
+  {
+    "name": "chat-badge-pill",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      34,
+      1016,
+      108,
+      1046
+    ],
+    "size_px": [
+      74,
+      30
+    ],
+    "note": "聊天区身份小标签胶囊(如房主/管理)"
+  },
+  {
+    "name": "bottombar-mic-button",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      18,
+      1546,
+      104,
+      1630
+    ],
+    "size_px": [
+      86,
+      84
+    ],
+    "note": "底栏麦克风圆按钮"
+  },
+  {
+    "name": "bottombar-input-field",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      110,
+      1550,
+      546,
+      1628
+    ],
+    "size_px": [
+      436,
+      78
+    ],
+    "note": "底栏输入框"
+  },
+  {
+    "name": "bottombar-icon-button-1",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      552,
+      1550,
+      632,
+      1628
+    ],
+    "size_px": [
+      80,
+      78
+    ],
+    "note": "底栏功能圆按钮(游戏)"
+  },
+  {
+    "name": "bottombar-icon-button-2",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      644,
+      1550,
+      752,
+      1628
+    ],
+    "size_px": [
+      108,
+      78
+    ],
+    "note": "底栏功能圆按钮(礼物/更多)"
+  },
+  {
+    "name": "stage-light-glow-wide",
+    "source": "../../main-room-candidates/main-room-starry-v3_84001.png",
+    "box_px": [
+      0,
+      760,
+      768,
+      838
+    ],
+    "size_px": [
+      768,
+      78
+    ],
+    "note": "麦位区下方舞台金色光晕(宽幅装饰)"
+  }
+]

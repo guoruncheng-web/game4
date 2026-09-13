@@ -1,0 +1,122 @@
+[
+  {
+    "name": "search-bar-frame",
+    "source": "popup-candidates/p02-games_91201.png",
+    "box_px": [
+      32,
+      40,
+      654,
+      110
+    ],
+    "size_px": [
+      622,
+      70
+    ],
+    "note": "顶部搜索框(空态描边胶囊)"
+  },
+  {
+    "name": "close-x-button",
+    "source": "popup-candidates/p02-games_91201.png",
+    "box_px": [
+      646,
+      40,
+      734,
+      112
+    ],
+    "size_px": [
+      88,
+      72
+    ],
+    "note": "关闭 X 圆按钮"
+  },
+  {
+    "name": "panel-corner-ornament-tl",
+    "source": "popup-candidates/p02-games_91201.png",
+    "box_px": [
+      36,
+      338,
+      122,
+      424
+    ],
+    "size_px": [
+      86,
+      86
+    ],
+    "note": "面板左上角雕花装饰(单独,四角可镜像复用)"
+  },
+  {
+    "name": "game-card-frame",
+    "source": "popup-candidates/p02-games_91201.png",
+    "box_px": [
+      298,
+      543,
+      464,
+      784
+    ],
+    "size_px": [
+      166,
+      241
+    ],
+    "note": "游戏卡完整模板(UMO 样例:边框+图标位+麦克风态按钮)"
+  },
+  {
+    "name": "game-card-icon-mask",
+    "source": "popup-candidates/p02-games_91201.png",
+    "box_px": [
+      312,
+      556,
+      450,
+      700
+    ],
+    "size_px": [
+      138,
+      144
+    ],
+    "note": "游戏卡图标区域(圆角矩形遮罩范围参考)"
+  },
+  {
+    "name": "hot-tag-ribbon",
+    "source": "popup-candidates/p02-games_91201.png",
+    "box_px": [
+      498,
+      594,
+      534,
+      632
+    ],
+    "size_px": [
+      45,
+      38
+    ],
+    "note": "游戏卡左上角'热/荐'角标"
+  },
+  {
+    "name": "mic-pill-button",
+    "source": "popup-candidates/p02-games_91201.png",
+    "box_px": [
+      148,
+      800,
+      260,
+      840
+    ],
+    "size_px": [
+      88,
+      38
+    ],
+    "note": "麦克风态'开玩'按钮(蓝色胶囊)"
+  },
+  {
+    "name": "play-triangle-button",
+    "source": "popup-candidates/p02-games_91201.png",
+    "box_px": [
+      545,
+      798,
+      615,
+      842
+    ],
+    "size_px": [
+      74,
+      36
+    ],
+    "note": "播放三角'开玩'按钮(黄色圆按钮)"
+  }
+]

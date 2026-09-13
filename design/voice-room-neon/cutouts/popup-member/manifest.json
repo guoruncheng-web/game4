@@ -1,0 +1,77 @@
+[
+  {
+    "name": "avatar-photo-frame",
+    "source": "popup-candidates/p05-member_91501.png",
+    "box_px": [
+      134,
+      836,
+      308,
+      1010
+    ],
+    "size_px": [
+      174,
+      174
+    ],
+    "note": "成员头像相框(金色雕花圆框,写实照片)"
+  },
+  {
+    "name": "badge-role-pill",
+    "source": "popup-candidates/p05-member_91501.png",
+    "box_px": [
+      422,
+      898,
+      622,
+      952
+    ],
+    "size_px": [
+      200,
+      54
+    ],
+    "note": "身份徽章胶囊(如'成员/管理/房主')"
+  },
+  {
+    "name": "icon-button-neutral",
+    "source": "popup-candidates/p05-member_91501.png",
+    "box_px": [
+      136,
+      1020,
+      380,
+      1172
+    ],
+    "size_px": [
+      244,
+      152
+    ],
+    "note": "功能按钮模板(中性态,图标+文字,2x2 网格用)"
+  },
+  {
+    "name": "icon-button-warning",
+    "source": "popup-candidates/p05-member_91501.png",
+    "box_px": [
+      136,
+      1178,
+      380,
+      1332
+    ],
+    "size_px": [
+      244,
+      154
+    ],
+    "note": "功能按钮模板(警示态,红色描边+图标)"
+  },
+  {
+    "name": "button-full-width-red",
+    "source": "popup-candidates/p05-member_91501.png",
+    "box_px": [
+      140,
+      1368,
+      638,
+      1452
+    ],
+    "size_px": [
+      498,
+      84
+    ],
+    "note": "全宽红色按钮(如'移出房间')"
+  }
+]

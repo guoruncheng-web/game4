@@ -1,0 +1,62 @@
+[
+  {
+    "name": "panel-frame-full",
+    "source": "popup-candidates/p09-confirm_91902.png",
+    "box_px": [
+      116,
+      533,
+      650,
+      1042
+    ],
+    "size_px": [
+      534,
+      509
+    ],
+    "note": "确认弹窗完整面板(含金色雕花边框,供切九宫格底板参考)"
+  },
+  {
+    "name": "illustration-fox-door",
+    "source": "popup-candidates/p09-confirm_91902.png",
+    "box_px": [
+      266,
+      648,
+      502,
+      848
+    ],
+    "size_px": [
+      236,
+      200
+    ],
+    "note": "狐狸开门插画(整弹窗专属插画,独立切图)"
+  },
+  {
+    "name": "button-primary-outline",
+    "source": "popup-candidates/p09-confirm_91902.png",
+    "box_px": [
+      166,
+      962,
+      392,
+      1032
+    ],
+    "size_px": [
+      226,
+      70
+    ],
+    "note": "次要按钮(金色描边,如'再聊一会')"
+  },
+  {
+    "name": "button-destructive",
+    "source": "popup-candidates/p09-confirm_91902.png",
+    "box_px": [
+      404,
+      962,
+      610,
+      1032
+    ],
+    "size_px": [
+      206,
+      70
+    ],
+    "note": "主要/危险按钮(红色,如'确认离开')"
+  }
+]

@@ -1,0 +1,107 @@
+[
+  {
+    "name": "button-copy-gold",
+    "source": "popup-candidates/p03-invite_91302.png",
+    "box_px": [
+      383,
+      768,
+      510,
+      828
+    ],
+    "size_px": [
+      127,
+      56
+    ],
+    "note": "复制房间码按钮(金色胶囊)"
+  },
+  {
+    "name": "button-share-gold",
+    "source": "popup-candidates/p03-invite_91302.png",
+    "box_px": [
+      520,
+      768,
+      672,
+      828
+    ],
+    "size_px": [
+      152,
+      56
+    ],
+    "note": "分享房间按钮(金色胶囊,略宽)"
+  },
+  {
+    "name": "invite-avatar-circle",
+    "source": "popup-candidates/p03-invite_91302.png",
+    "box_px": [
+      116,
+      860,
+      188,
+      930
+    ],
+    "size_px": [
+      72,
+      70
+    ],
+    "note": "联系人头像圆(写实照片,无雕花边框)"
+  },
+  {
+    "name": "invite-row-bubble-bg",
+    "source": "popup-candidates/p03-invite_91302.png",
+    "box_px": [
+      194,
+      866,
+      524,
+      924
+    ],
+    "size_px": [
+      330,
+      58
+    ],
+    "note": "联系人信息行背景(昵称+状态点+文案)"
+  },
+  {
+    "name": "invite-button-gold",
+    "source": "popup-candidates/p03-invite_91302.png",
+    "box_px": [
+      540,
+      860,
+      668,
+      930
+    ],
+    "size_px": [
+      128,
+      70
+    ],
+    "note": "邀请按钮(可邀请态,金色)"
+  },
+  {
+    "name": "invite-button-red",
+    "source": "popup-candidates/p03-invite_91302.png",
+    "box_px": [
+      540,
+      1148,
+      668,
+      1218
+    ],
+    "size_px": [
+      128,
+      70
+    ],
+    "note": "邀请按钮(离线/另一状态态,红色)"
+  },
+  {
+    "name": "invite-button-already",
+    "source": "popup-candidates/p03-invite_91302.png",
+    "box_px": [
+      540,
+      1348,
+      668,
+      1418
+    ],
+    "size_px": [
+      128,
+      70
+    ],
+    "note": "已邀请按钮(禁用态,心形图标)"
+  }
+]

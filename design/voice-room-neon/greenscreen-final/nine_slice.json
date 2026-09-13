@@ -1,0 +1,378 @@
+[
+  {
+    "slot": "avatar-circle-plain",
+    "source": "avatar-circle-plain_97401.png",
+    "size": [
+      77,
+      76
+    ],
+    "type": "SIMPLE"
+  },
+  {
+    "slot": "avatar-frame-ornate",
+    "source": "avatar-frame-ornate_96601.png",
+    "size": [
+      173,
+      174
+    ],
+    "type": "SIMPLE"
+  },
+  {
+    "slot": "badge-heart",
+    "source": "badge-heart_98001.png",
+    "size": [
+      45,
+      40
+    ],
+    "type": "SIMPLE"
+  },
+  {
+    "slot": "badge-lv",
+    "source": "badge-lv_97901.png",
+    "size": [
+      36,
+      48
+    ],
+    "type": "SIMPLE"
+  },
+  {
+    "slot": "button-capsule-disabled",
+    "source": "button-capsule-disabled_96801.png",
+    "size": [
+      151,
+      70
+    ],
+    "type": "SLICED",
+    "slice_px": {
+      "top": 22,
+      "right": 26,
+      "bottom": 22,
+      "left": 26
+    },
+    "css": "border-image: url('button-capsule-disabled.png') 22 26 22 26 fill stretch; border-style: solid; border-width: 22px 26px 22px 26px;"
+  },
+  {
+    "slot": "button-capsule-gold",
+    "source": "button-capsule-gold_95101.png",
+    "size": [
+      140,
+      70
+    ],
+    "type": "SLICED",
+    "slice_px": {
+      "top": 27,
+      "right": 29,
+      "bottom": 26,
+      "left": 29
+    },
+    "css": "border-image: url('button-capsule-gold.png') 27 29 26 29 fill stretch; border-style: solid; border-width: 27px 29px 26px 29px;"
+  },
+  {
+    "slot": "button-capsule-red",
+    "source": "button-capsule-red_96701.png",
+    "size": [
+      179,
+      70
+    ],
+    "type": "SLICED",
+    "slice_px": {
+      "top": 22,
+      "right": 25,
+      "bottom": 21,
+      "left": 26
+    },
+    "css": "border-image: url('button-capsule-red.png') 22 25 21 26 fill stretch; border-style: solid; border-width: 22px 25px 21px 26px;"
+  },
+  {
+    "slot": "button-icon-round",
+    "source": "button-icon-round_96901.png",
+    "size": [
+      78,
+      78
+    ],
+    "type": "SIMPLE"
+  },
+  {
+    "slot": "button-play-small",
+    "source": "button-play-small_98801.png",
+    "size": [
+      75,
+      36
+    ],
+    "type": "SIMPLE"
+  },
+  {
+    "slot": "button-tile-neutral",
+    "source": "button-tile-neutral_97001.png",
+    "size": [
+      153,
+      152
+    ],
+    "type": "SLICED",
+    "slice_px": {
+      "top": 18,
+      "right": 18,
+      "bottom": 18,
+      "left": 20
+    },
+    "css": "border-image: url('button-tile-neutral.png') 18 18 18 20 fill stretch; border-style: solid; border-width: 18px 18px 18px 20px;"
+  },
+  {
+    "slot": "button-tile-warning",
+    "source": "button-tile-warning_97101.png",
+    "size": [
+      157,
+      154
+    ],
+    "type": "SLICED",
+    "slice_px": {
+      "top": 24,
+      "right": 23,
+      "bottom": 23,
+      "left": 23
+    },
+    "css": "border-image: url('button-tile-warning.png') 24 23 23 23 fill stretch; border-style: solid; border-width: 24px 23px 23px 23px;"
+  },
+  {
+    "slot": "card-game-frame",
+    "source": "card-game-frame_98601.png",
+    "size": [
+      158,
+      241
+    ],
+    "type": "SLICED",
+    "slice_px": {
+      "top": 21,
+      "right": 18,
+      "bottom": 22,
+      "left": 18
+    },
+    "css": "border-image: url('card-game-frame.png') 21 18 22 18 fill stretch; border-style: solid; border-width: 21px 18px 22px 18px;"
+  },
+  {
+    "slot": "card-game-hot-tag",
+    "source": "card-game-hot-tag_98701.png",
+    "size": [
+      38,
+      38
+    ],
+    "type": "SIMPLE"
+  },
+  {
+    "slot": "icon-chevron",
+    "source": "icon-chevron_98401.png",
+    "size": [
+      24,
+      32
+    ],
+    "type": "SIMPLE"
+  },
+  {
+    "slot": "illustration-leave-room",
+    "source": "illustration-leave-room_98901.png",
+    "size": [
+      211,
+      200
+    ],
+    "type": "SIMPLE"
+  },
+  {
+    "slot": "input-field",
+    "source": "input-field_97301.png",
+    "size": [
+      316,
+      78
+    ],
+    "type": "SLICED",
+    "slice_px": {
+      "top": 20,
+      "right": 28,
+      "bottom": 20,
+      "left": 28
+    },
+    "css": "border-image: url('input-field.png') 20 28 20 28 fill stretch; border-style: solid; border-width: 20px 28px 20px 28px;"
+  },
+  {
+    "slot": "panel-frame-ornate",
+    "source": "panel-frame-ornate_98101.png",
+    "size": [
+      711,
+      509
+    ],
+    "type": "SLICED",
+    "slice_px": {
+      "top": 61,
+      "right": 67,
+      "bottom": 61,
+      "left": 69
+    },
+    "css": "border-image: url('panel-frame-ornate.png') 61 67 61 69 fill stretch; border-style: solid; border-width: 61px 67px 61px 69px;"
+  },
+  {
+    "slot": "panel-header-room-info",
+    "source": "panel-header-room-info_98301.png",
+    "size": [
+      439,
+      132
+    ],
+    "type": "SLICED",
+    "slice_px": {
+      "top": 23,
+      "right": 34,
+      "bottom": 21,
+      "left": 35
+    },
+    "css": "border-image: url('panel-header-room-info.png') 23 34 21 35 fill stretch; border-style: solid; border-width: 23px 34px 21px 35px;"
+  },
+  {
+    "slot": "pill-count-small",
+    "source": "pill-count-small_97801.png",
+    "size": [
+      43,
+      28
+    ],
+    "type": "SLICED",
+    "slice_px": {
+      "top": 10,
+      "right": 12,
+      "bottom": 9,
+      "left": 9
+    },
+    "css": "border-image: url('pill-count-small.png') 10 12 9 9 fill stretch; border-style: solid; border-width: 10px 12px 9px 9px;"
+  },
+  {
+    "slot": "pill-role-badge",
+    "source": "pill-role-badge_97701.png",
+    "size": [
+      173,
+      54
+    ],
+    "type": "SLICED",
+    "slice_px": {
+      "top": 14,
+      "right": 19,
+      "bottom": 14,
+      "left": 19
+    },
+    "css": "border-image: url('pill-role-badge.png') 14 19 14 19 fill stretch; border-style: solid; border-width: 14px 19px 14px 19px;"
+  },
+  {
+    "slot": "pill-status-gold",
+    "source": "pill-status-gold_97501.png",
+    "size": [
+      74,
+      34
+    ],
+    "type": "SLICED",
+    "slice_px": {
+      "top": 11,
+      "right": 14,
+      "bottom": 11,
+      "left": 14
+    },
+    "css": "border-image: url('pill-status-gold.png') 11 14 11 14 fill stretch; border-style: solid; border-width: 11px 14px 11px 14px;"
+  },
+  {
+    "slot": "pill-status-red",
+    "source": "pill-status-red_97601.png",
+    "size": [
+      80,
+      34
+    ],
+    "type": "SLICED",
+    "slice_px": {
+      "top": 11,
+      "right": 14,
+      "bottom": 11,
+      "left": 14
+    },
+    "css": "border-image: url('pill-status-red.png') 11 14 11 14 fill stretch; border-style: solid; border-width: 11px 14px 11px 14px;"
+  },
+  {
+    "slot": "row-bubble-bg",
+    "source": "row-bubble-bg_99201.png",
+    "size": [
+      236,
+      66
+    ],
+    "type": "SLICED",
+    "slice_px": {
+      "top": 27,
+      "right": 24,
+      "bottom": 26,
+      "left": 33
+    },
+    "css": "border-image: url('row-bubble-bg.png') 27 24 26 33 fill stretch; border-style: solid; border-width: 27px 24px 26px 33px;"
+  },
+  {
+    "slot": "seat-accent-moon",
+    "source": "seat-accent-moon_96201.png",
+    "size": [
+      28,
+      34
+    ],
+    "type": "SIMPLE"
+  },
+  {
+    "slot": "seat-badge-corner",
+    "source": "seat-badge-corner_96301.png",
+    "size": [
+      58,
+      58
+    ],
+    "type": "SIMPLE"
+  },
+  {
+    "slot": "seat-badge-crown",
+    "source": "seat-badge-crown_96401.png",
+    "size": [
+      496,
+      391
+    ],
+    "type": "SIMPLE",
+    "note": "参考图不是 cutouts tile（概念稿缺失槽位），尺寸保持裁剪结果，替换时按需调整"
+  },
+  {
+    "slot": "seat-frame-empty",
+    "source": "seat-frame-empty_95301.png",
+    "size": [
+      174,
+      170
+    ],
+    "type": "SIMPLE"
+  },
+  {
+    "slot": "seat-frame-occupied",
+    "source": "seat-frame-occupied_95202.png",
+    "size": [
+      177,
+      174
+    ],
+    "type": "SIMPLE"
+  },
+  {
+    "slot": "seat-frame-speaking-ring",
+    "source": "seat-frame-speaking-ring_96101.png",
+    "size": [
+      196,
+      196
+    ],
+    "type": "SIMPLE"
+  },
+  {
+    "slot": "seat-nametag",
+    "source": "seat-nametag_96501.png",
+    "size": [
+      142,
+      46
+    ],
+    "type": "SLICED",
+    "slice_px": {
+      "top": 13,
+      "right": 19,
+      "bottom": 13,
+      "left": 19
+    },
+    "css": "border-image: url('seat-nametag.png') 13 19 13 19 fill stretch; border-style: solid; border-width: 13px 19px 13px 19px;"
+  }
+]

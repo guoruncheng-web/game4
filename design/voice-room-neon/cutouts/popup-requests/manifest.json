@@ -1,0 +1,62 @@
+[
+  {
+    "name": "avatar-circle-plain-ring",
+    "source": "popup-candidates/p04-requests_91402.png",
+    "box_px": [
+      132,
+      1120,
+      208,
+      1196
+    ],
+    "size_px": [
+      76,
+      76
+    ],
+    "note": "申请人头像圆(细描边圆环)"
+  },
+  {
+    "name": "lv-badge-pill",
+    "source": "popup-candidates/p04-requests_91402.png",
+    "box_px": [
+      450,
+      1148,
+      502,
+      1196
+    ],
+    "size_px": [
+      52,
+      48
+    ],
+    "note": "Lv 等级小徽章"
+  },
+  {
+    "name": "chevron-expand-icon",
+    "source": "popup-candidates/p04-requests_91402.png",
+    "box_px": [
+      595,
+      1078,
+      645,
+      1110
+    ],
+    "size_px": [
+      50,
+      32
+    ],
+    "note": "列表展开箭头圆按钮"
+  },
+  {
+    "name": "corner-ornament-flourish",
+    "source": "popup-candidates/p04-requests_91402.png",
+    "box_px": [
+      24,
+      1328,
+      100,
+      1390
+    ],
+    "size_px": [
+      76,
+      62
+    ],
+    "note": "面板底部左下角雕花装饰(单独,供九宫格边角参考)"
+  }
+]

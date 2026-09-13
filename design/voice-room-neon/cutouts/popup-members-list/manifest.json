@@ -1,0 +1,92 @@
+[
+  {
+    "name": "member-row-avatar",
+    "source": "popup-candidates/p07-members_91702.png",
+    "box_px": [
+      106,
+      984,
+      174,
+      1052
+    ],
+    "size_px": [
+      68,
+      68
+    ],
+    "note": "成员列表头像圆"
+  },
+  {
+    "name": "member-row-bubble-bg",
+    "source": "popup-candidates/p07-members_91702.png",
+    "box_px": [
+      184,
+      984,
+      714,
+      1048
+    ],
+    "size_px": [
+      530,
+      64
+    ],
+    "note": "成员列表行背景(气泡形)"
+  },
+  {
+    "name": "badge-icon-lv-diamond",
+    "source": "popup-candidates/p07-members_91702.png",
+    "box_px": [
+      490,
+      992,
+      530,
+      1032
+    ],
+    "size_px": [
+      40,
+      40
+    ],
+    "note": "等级图标(菱形 LV,金色)"
+  },
+  {
+    "name": "badge-icon-heart",
+    "source": "popup-candidates/p07-members_91702.png",
+    "box_px": [
+      490,
+      1090,
+      530,
+      1130
+    ],
+    "size_px": [
+      40,
+      40
+    ],
+    "note": "身份图标(心形,金色/红色变体)"
+  },
+  {
+    "name": "status-pill-gold",
+    "source": "popup-candidates/p07-members_91702.png",
+    "box_px": [
+      546,
+      996,
+      622,
+      1030
+    ],
+    "size_px": [
+      76,
+      34
+    ],
+    "note": "状态胶囊(金色态,如'在麦上')"
+  },
+  {
+    "name": "status-pill-red",
+    "source": "popup-candidates/p07-members_91702.png",
+    "box_px": [
+      546,
+      1292,
+      622,
+      1326
+    ],
+    "size_px": [
+      76,
+      34
+    ],
+    "note": "状态胶囊(红色态)"
+  }
+]

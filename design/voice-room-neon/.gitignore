@@ -1,0 +1,14 @@
+# 素材生产的中间产物：体积大且可完整重建，不进仓库。
+# 重建方法：slots.py 里记录了每个槽位的参考图、画布尺寸、seed 和完整提示词，
+# 跑 `python3 greenscreen-trials/batch_run.py [槽位...]` 即可重新生成 raw/ 与抠图结果。
+
+# 绿幕原图（31M）
+greenscreen-trials/raw/
+
+# 每槽位 2 个 seed 的抠图结果（15M）；选定的那份已固化在 greenscreen-final/
+greenscreen-assets/
+
+# 已废弃的矩形裁切路线产物（20M）。manifest.json 必须保留——
+# nine_slice.py 依赖它反查各槽位在概念稿里的目标尺寸。
+cutouts/**/*.png
+cutouts/_probe/
