@@ -99,7 +99,7 @@ html:has(.voice-room-starry) { background: #292b4b; }
 .voice-room-starry .voice-room-header .voice-room-title { min-width: 0; flex: 1; padding: 6px 0; }
 .voice-room-starry .voice-room-title b { display: block; overflow: hidden; font-size: 14px; line-height: 20px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .voice-room-starry .voice-room-header small { display: block; color: #c0bed4; font-size: 10px; line-height: 18px; }
-.voice-room-starry .voice-room-header .voice-header-invite { width: 29px; height: 29px; flex-basis: 29px; border-radius: 50%; color: #1c3453; background: #32d19a; }
+.voice-room-starry .voice-room-header .voice-header-invite { width: 32px; height: 32px; flex-basis: 32px; align-self: center; border-radius: 50%; color: #ffe8b8; background: url('/assets/game-box/voice-starry/button-icon-round.png') center / contain no-repeat; }
 .voice-room-starry .voice-header-members { display: flex; align-items: center; margin-left: 8px; }
 .voice-room-starry .voice-header-members > *:not(small) { width: 24px; height: 24px; margin-left: -5px; border: 1px solid #ece2db; border-radius: 50%; object-fit: cover; font-size: 16px; background: #645674; }
 .voice-room-starry .voice-header-members small { display: grid; width: 24px; height: 26px; place-items: center; border-radius: 50%; background: var(--room-glass); }
@@ -109,18 +109,22 @@ html:has(.voice-room-starry) { background: #292b4b; }
 .voice-room-starry .voice-stage { flex: 0 0 auto; padding: 22px 0 10px; }
 .voice-room-starry .voice-seat-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 9px; }
 .voice-room-starry .voice-seat { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0; border: 0; color: #fff; opacity: 1; background: none; }
-.voice-room-starry .voice-seat.is-featured { grid-column: span 2; margin-bottom: 2px; }
-.voice-room-starry .voice-seat > .voice-seat-portrait { position: relative; display: grid; width: clamp(48px, 15vw, 68px); height: auto; aspect-ratio: 1; place-items: center; overflow: visible; border: 1px solid #c1b1ea65; border-radius: 50%; color: #d2c5e9; background: #9d86c329; box-shadow: inset 0 0 22px #ded0ff12; }
-.voice-room-starry .voice-seat.is-featured > .voice-seat-portrait { width: clamp(80px, 23vw, 104px); }
-.voice-room-starry .voice-seat.is-occupied > .voice-seat-portrait { border: 2px solid #f1dcac; background: #655a7b; box-shadow: 0 0 0 3px #aa8bcc40, 0 0 17px #eed19645; }
+.voice-room-starry .voice-seat > .voice-seat-portrait { position: relative; display: grid; width: clamp(52px, 16.5vw, 72px); height: auto; aspect-ratio: 1; place-items: center; overflow: visible; border: 0; border-radius: 50%; color: #d2c5e9; background: url('/assets/game-box/voice-starry/seat-frame-empty.png') center / contain no-repeat; box-shadow: none; }
+/* 空麦位贴图已自带麦克风图标，隐藏 DOM 里重复的 lucide Mic；按钮的 aria-label 不受影响 */
+.voice-room-starry .voice-seat:not(.is-occupied) > .voice-seat-portrait > svg { display: none; }
+.voice-room-starry .voice-seat.is-occupied > .voice-seat-portrait { border: 0; background: #39315a; box-shadow: none; }
 .voice-room-starry .voice-seat.is-occupied > .voice-seat-portrait::before { position: absolute; inset: -6px; border: 1px solid #cbb7f28c; border-radius: 42% 58% 48% 52%; transform: rotate(-20deg); content: ''; pointer-events: none; }
 .voice-room-starry .voice-seat.is-occupied > .voice-seat-portrait::after { position: absolute; right: -4px; bottom: 3px; content: '✦'; color: #fff2be; font-size: 18px; text-shadow: 0 0 8px #edccec; pointer-events: none; }
 .voice-room-starry .voice-seat-portrait > img, .voice-room-starry .voice-seat-portrait > span { width: 100%; height: 100%; display: grid; place-items: center; border-radius: 50%; object-fit: cover; font-size: 34px; }
-.voice-room-starry .voice-seat.is-featured .voice-seat-portrait > span { font-size: 46px; }
-.voice-room-starry .voice-seat b { max-width: 100%; color: #f8f4ff; font-size: 12px; font-weight: 400; line-height: 18px; }
-.voice-room-starry .voice-seat.is-featured b { font-size: 14px; }
-.voice-room-starry .voice-seat b i { display: inline-block; margin-right: 4px; padding: 0 3px; border-radius: 3px; color: white; font-size: 10px; font-style: normal; background: #f8567b; }
-.voice-room-starry .voice-seat b .voice-role-moderator { background: #599feb; }
+.voice-room-starry .voice-seat b { max-width: 100%; padding: 1px 3px; border-style: solid; border-width: 6px 8px; border-image: url('/assets/game-box/voice-starry/seat-nametag.png') 13 19 13 19 fill stretch; color: #f8f4ff; font-size: 11px; font-weight: 400; line-height: 15px; }
+.voice-room-starry .voice-seat { position: relative; }
+.voice-room-starry .voice-seat > .voice-seat-portrait { --seat-frame: 1; }
+.voice-room-starry .voice-seat b i { position: absolute; z-index: 4; margin: 0; padding: 0; border-radius: 0; font-style: normal; background: none; pointer-events: none; }
+/* 房主金冠：坐在麦位框正上方，图形本身即身份标识，'房'字视觉隐藏（按钮 aria-label 已含用户名） */
+.voice-room-starry .voice-seat b .voice-role-owner { top: -7px; left: 50%; width: 26px; height: 20px; transform: translateX(-50%); background: url('/assets/game-box/voice-starry/seat-badge-crown.png') center / contain no-repeat; font-size: 0; }
+/* 管理徽章：框右上角圆底座，底座留空，'管'字压在上面 */
+.voice-room-starry .voice-seat b .voice-role-moderator { top: 2px; right: 8px; display: grid; width: 19px; height: 19px; place-items: center; background: url('/assets/game-box/voice-starry/seat-badge-corner.png') center / contain no-repeat; color: #ffe8b8; font-size: 9px; line-height: 1; }
+
 .voice-room-starry .voice-seat-portrait em { display: inline-flex; gap: 2px; align-items: center; z-index: 1; padding: 2px 4px; color: white; background: #9a4c74; }
 .voice-room-starry .voice-chat-panel { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 90px; margin: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 .voice-room-starry .voice-message-list { display: flex; flex-direction: column; justify-content: flex-start; gap: 8px; min-height: 0; max-height: none; flex: 1; padding: 18px 0 0; overflow-y: auto; scrollbar-width: none; mask-image: linear-gradient(transparent, black 12px); }
@@ -128,20 +132,20 @@ html:has(.voice-room-starry) { background: #292b4b; }
 .voice-room-starry .voice-message-empty { display: grid; justify-items: start; gap: 5px; margin-right: 26px; padding: 13px 14px; border-radius: 12px; color: #efca91; background: var(--room-glass); text-align: left; }
 .voice-room-starry .voice-message-empty b { font-size: 13px; font-weight: 500; }
 .voice-room-starry .voice-message-empty small { color: #d6c5d4; font-size: 11px; line-height: 1.6; }
-.voice-room-starry .voice-message { display: flex; flex: 0 0 auto; align-items: flex-start; gap: 7px; width: fit-content; max-width: 94%; padding: 9px 11px; border: 1px solid #dfd5f140; border-radius: 9px; background: #211d394d; }
+.voice-room-starry .voice-message { display: flex; flex: 0 0 auto; align-items: flex-start; gap: 7px; width: fit-content; max-width: 94%; padding: 1px 2px; border-style: solid; border-width: 13px 12px 13px 16px; border-image: url('/assets/game-box/voice-starry/row-bubble-bg.png') 27 24 26 33 fill stretch; background: none; }
 .voice-room-starry .voice-message > img, .voice-room-starry .voice-message > span:first-child { width: 23px; height: 23px; flex: 0 0 23px; border-radius: 50%; }
 .voice-room-starry .voice-message > span:last-child { display: grid; gap: 3px; min-width: 0; }
 .voice-room-starry .voice-message small { color: #cec1e5; font-size: 10px; }
 .voice-room-starry .voice-message b, .voice-room-starry .voice-message.is-mine b { padding: 0; border: 0; border-radius: 0; color: #fff; background: none; font-size: 13px; font-weight: 400; line-height: 1.6; overflow-wrap: anywhere; }
-.voice-room-starry .voice-message.is-mine { align-self: flex-start; border-color: #8ad9d784; background: #24213865; }
+.voice-room-starry .voice-message.is-mine { align-self: flex-start; background: none; filter: hue-rotate(-18deg) saturate(1.15); }
 .voice-room-starry .voice-room-dock { display: grid; grid-template-columns: auto 1fr; gap: 6px; padding: 7px 16px calc(9px + env(safe-area-inset-bottom, 0px)); border: 0; border-radius: 0; background: linear-gradient(transparent, #27244380 24%); backdrop-filter: blur(8px); }
 .voice-room-starry .voice-dock-compose-row { display: flex; grid-column: 1 / -1; gap: 10px; align-items: center; }
-.voice-room-starry .voice-composer { display: flex; flex: 1; min-width: 0; min-height: 42px; gap: 0; border: 0; border-radius: 25px; background: var(--room-glass); }
-.voice-room-starry .voice-composer input { min-height: 42px; width: 100%; padding: 0 14px; border: 0; border-radius: 25px; color: #fff; background: transparent; font-size: 14px; }
+.voice-room-starry .voice-composer { display: flex; flex: 1; min-width: 0; min-height: 42px; gap: 0; border-style: solid; border-width: 10px 14px; border-image: url('/assets/game-box/voice-starry/input-field.png') 20 28 20 28 fill stretch; border-radius: 0; background: none; }
+.voice-room-starry .voice-composer input { min-height: 22px; width: 100%; padding: 0 2px; border: 0; border-radius: 0; color: #fff; background: transparent; font-size: 14px; }
 .voice-room-starry .voice-composer input::placeholder { color: #c6bed7; }
-.voice-room-starry .voice-composer button { display: grid; min-width: 38px; min-height: 42px; padding: 0; place-items: center; color: #e8ddfa; background: none; }
+.voice-room-starry .voice-composer button { display: grid; min-width: 30px; min-height: 22px; padding: 0; place-items: center; color: #e8ddfa; background: none; }
 .voice-room-starry .voice-composer button:disabled { opacity: .35; }
-.voice-room-starry .voice-game-list-entry, .voice-room-starry .voice-dock-more { display: grid; width: 42px; height: 42px; min-height: 42px; flex: 0 0 42px; place-items: center; margin: 0; padding: 0; border: 0; border-radius: 50%; color: #f5eaff; background: var(--room-glass); }
+.voice-room-starry .voice-game-list-entry, .voice-room-starry .voice-dock-more { display: grid; width: 42px; height: 42px; min-height: 42px; flex: 0 0 42px; place-items: center; margin: 0; padding: 0; border: 0; border-radius: 50%; color: #f5eaff; background: url('/assets/game-box/voice-starry/button-icon-round.png') center / contain no-repeat; }
 .voice-room-starry .voice-game-list-entry { color: #ffe0a1; }
 .voice-room-starry .voice-room-actions { width: auto; min-height: 32px; padding: 0; align-items: center; background: none; }
 .voice-room-starry .voice-room-actions > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
@@ -166,7 +170,6 @@ html:has(.voice-room-starry) { background: #292b4b; }
 @media (max-height: 700px) {
   .voice-room-starry .voice-stage { padding-top: 14px; }
   .voice-room-starry .voice-seat-grid { gap: 10px 8px; }
-  .voice-room-starry .voice-seat.is-featured > .voice-seat-portrait { width: 72px; }
   .voice-room-starry .voice-seat > .voice-seat-portrait { width: 48px; }
 }
 @media (max-height: 520px) and (min-aspect-ratio: 1/1) {
@@ -175,11 +178,9 @@ html:has(.voice-room-starry) { background: #292b4b; }
 }
 .voice-room-starry .voice-room-title { text-align: left; }
 .voice-room-starry .voice-seat { min-height: 0; }
-.voice-room-starry .voice-seat:nth-last-child(2):nth-child(7) { grid-column: 2; }
-.voice-room-starry .voice-seat.is-occupied > .voice-seat-portrait::before { z-index: 2; inset: -10px; border: 0; border-radius: 0; transform: none; background: url('/assets/game-box/voice-starry/moon-frame.webp') center / contain no-repeat; }
-.voice-room-starry .voice-seat.is-featured.is-occupied > .voice-seat-portrait::before { inset: -14px; }
+.voice-room-starry .voice-seat.is-occupied > .voice-seat-portrait::before { z-index: 2; inset: -11px; border: 0; border-radius: 0; transform: none; background: url('/assets/game-box/voice-starry/seat-frame-occupied.png') center / contain no-repeat; }
 .voice-room-starry .voice-seat.is-occupied > .voice-seat-portrait::after { display: none; }
-.voice-room-starry .voice-seat.is-occupied > .voice-seat-portrait { border-color: transparent; box-shadow: 0 0 16px #dab9df2a; }
+
 .voice-room-starry .voice-message.is-mine { flex-direction: row; text-align: left; }
 .voice-room-starry .voice-room-actions { grid-column: 1; grid-row: 2; }
 .voice-room-starry .voice-audio-panel.is-compact { order: 0; grid-column: 2; grid-row: 2; }
@@ -193,15 +194,14 @@ html:has(.voice-room-starry) { background: #292b4b; }
 .voice-room-starry .voice-dock-compose-row { gap: 8px; }
 .voice-room-starry .voice-dock-compose-row .voice-audio-panel.is-compact { flex: 0 0 auto; align-self: center; }
 .voice-room-starry .voice-dock-compose-row .voice-audio-controls { flex-wrap: nowrap; align-items: center; gap: 6px; }
-.voice-room-starry .voice-audio-controls .voice-microphone-toggle, .voice-room-starry .voice-audio-controls .voice-playback-retry { display: grid; width: 42px; height: 42px; min-height: 42px; flex: 0 0 42px; padding: 0; place-items: center; border: 0; border-radius: 50%; color: #f5eaff; background: var(--room-glass); }
-.voice-room-starry .voice-audio-controls .voice-microphone-toggle[aria-pressed="true"] { color: #173c35; background: #8ce3c0; box-shadow: 0 0 0 3px #8ce3c033; }
+.voice-room-starry .voice-audio-controls .voice-microphone-toggle, .voice-room-starry .voice-audio-controls .voice-playback-retry { display: grid; width: 42px; height: 42px; min-height: 42px; flex: 0 0 42px; padding: 0; place-items: center; border: 0; border-radius: 50%; color: #f5eaff; background: url('/assets/game-box/voice-starry/button-icon-round.png') center / contain no-repeat; }
+.voice-room-starry .voice-audio-controls .voice-microphone-toggle[aria-pressed="true"] { color: #8ce3c0; background: url('/assets/game-box/voice-starry/button-icon-round.png') center / contain no-repeat; box-shadow: 0 0 0 3px #8ce3c055, 0 0 14px #8ce3c04d; }
 .voice-room-starry .voice-audio-controls .voice-microphone-toggle[data-publish="denied"][aria-pressed="false"] { color: #b9aecb; }
 .voice-room-starry .voice-audio-controls .voice-playback-retry { color: #ffe0a1; }
 .voice-room-starry .voice-microphone-toggle .lucide-loader-circle { animation: voice-mic-spin 1s linear infinite; }
 @keyframes voice-mic-spin { to { transform: rotate(360deg); } }
-.voice-room-starry .voice-requests-pill { margin-left: auto; min-height: 26px; padding: 0 10px; border: 1px solid #f1dcac80; border-radius: 13px; color: #ffe8b8; background: #3f345999; font-size: 11px; }
+.voice-room-starry .voice-requests-pill { margin-left: auto; min-height: 26px; padding: 0 2px; border-style: solid; border-width: 6px 7px; border-image: url('/assets/game-box/voice-starry/pill-status-gold.png') 11 14 11 14 fill stretch; border-radius: 0; color: #4a2f12; background: none; font-size: 11px; font-weight: 500; }
 .voice-room-starry .voice-seat-portrait > .voice-speaking-badge { position: absolute; right: -3px; bottom: -3px; z-index: 3; display: flex; width: 20px; height: 20px; align-items: center; justify-content: center; gap: 2px; border-radius: 50%; background: #8ce3c0; box-shadow: 0 0 0 2px #272443b3; font-size: 0; pointer-events: none; }
-.voice-room-starry .voice-seat.is-featured .voice-seat-portrait > .voice-speaking-badge { right: 1px; bottom: 1px; width: 24px; height: 24px; }
 .voice-room-starry .voice-speaking-badge i { display: block; width: 2px; height: 10px; border-radius: 1px; background: #173c35; transform: scaleY(.4); animation: voice-speaking-wave 600ms ease-in-out infinite; }
 .voice-room-starry .voice-speaking-badge i:nth-child(2) { height: 12px; animation-delay: -200ms; }
 .voice-room-starry .voice-speaking-badge i:nth-child(3) { animation-delay: -400ms; }
@@ -210,4 +210,119 @@ html:has(.voice-room-starry) { background: #292b4b; }
   .voice-room-starry .voice-speaking-badge i { animation: none; transform: scaleY(.7); }
   .voice-room-starry .voice-speaking-badge i:nth-child(2) { transform: none; }
   .voice-room-starry .voice-microphone-toggle .lucide-loader-circle { animation: none; }
+}
+
+/* ===== 2026-09-13：弹窗星空换肤 =====
+   基础弹窗样式在 pwa-v5.css 里是整套浅色主题（白底深字/灰分隔线/coral 主色）。
+   这里在 .voice-room-starry 作用域内整体翻成暗底，并接入金色雕花面板与胶囊按钮贴图。
+   DOM 结构不动，只换外观。 */
+:root { --starry-asset: '/assets/game-box/voice-starry'; }
+
+/* --- 面板容器：底部抽屉与居中确认弹窗都换成金色雕花九宫格底板 --- */
+.voice-room-starry .voice-action-sheet {
+  padding: 14px 14px calc(20px + env(safe-area-inset-bottom, 0px));
+  border-style: solid; border-width: 20px 22px;
+  border-image: url('/assets/game-box/voice-starry/panel-frame-ornate.png') 61 67 61 69 fill stretch;
+  border-radius: 0; color: #f3ecff; background: none; box-shadow: none;
+}
+.voice-room-starry .voice-confirm {
+  padding: 10px 12px 14px; border-style: solid; border-width: 17px 19px;
+  border-image: url('/assets/game-box/voice-starry/panel-frame-ornate.png') 61 67 61 69 fill stretch;
+  border-radius: 0; color: #f3ecff; background: none;
+}
+.voice-room-starry .voice-action-sheet, .voice-room-starry .voice-confirm { color: #f3ecff; }
+
+/* --- 标题栏：原本是白色 sticky 条 + 灰色分隔线 --- */
+.voice-room-starry .voice-action-sheet > header {
+  margin: 0 0 6px; padding: 0; border-bottom: 1px solid #d9c48f3d; background: none; color: #fff6e3;
+}
+.voice-room-starry .voice-action-sheet > header h2 { color: #ffeec9; font-weight: 600; }
+.voice-room-starry .voice-action-sheet > header button { color: #e8d9b6; background: none; }
+
+/* --- 文字层级 --- */
+.voice-room-starry .voice-sheet-help,
+.voice-room-starry .voice-sheet-list small,
+.voice-room-starry .voice-sheet-empty,
+.voice-room-starry .voice-manage-meta span,
+.voice-room-starry .voice-confirm p { color: #c3b6da; }
+.voice-room-starry .voice-sheet-list b,
+.voice-room-starry .voice-confirm h2,
+.voice-room-starry .voice-action-sheet > h3 { color: #f6efff; }
+
+/* --- 列表行：灰分隔线换成暗金细线，头像底换暗紫圆环 --- */
+.voice-room-starry .voice-sheet-list > div,
+.voice-room-starry .voice-member-row,
+.voice-room-starry .voice-choice-list button { border-bottom: 1px solid #cbb7f229; }
+.voice-room-starry .voice-sheet-list > div > span:first-child,
+.voice-room-starry .voice-member-row > span:first-child {
+  background: url('/assets/game-box/voice-starry/avatar-circle-plain.png') center / contain no-repeat, #39315a;
+}
+.voice-room-starry .voice-member-row em { color: #b6a8d0; }
+
+/* --- 按钮：coral 实心 → 金色胶囊；次要 → 红色胶囊；禁用 → 暗色胶囊 --- */
+.voice-room-starry .voice-sheet-list button:not(.voice-member-row) {
+  min-height: 40px; padding: 0 4px; border-style: solid; border-width: 13px 14px;
+  border-image: url('/assets/game-box/voice-starry/button-capsule-gold.png') 27 29 26 29 fill stretch;
+  border-radius: 0; color: #4a2f12; background: none; font-weight: 700;
+}
+.voice-room-starry .voice-sheet-list button.is-secondary {
+  border-image: url('/assets/game-box/voice-starry/button-capsule-red.png') 22 25 21 26 fill stretch;
+  border-width: 11px 13px; color: #ffe9e4;
+}
+.voice-room-starry .voice-sheet-list button:disabled {
+  border-image: url('/assets/game-box/voice-starry/button-capsule-disabled.png') 22 26 22 26 fill stretch;
+  border-width: 11px 13px; color: #9c8fb5; background: none;
+}
+
+/* --- 管理列表 / 元信息卡：白卡片换暗紫玻璃 --- */
+.voice-room-starry .voice-manage-list,
+.voice-room-starry .voice-manage-meta {
+  border: 1px solid #cbb7f23d; border-radius: 15px; background: #2a2347b8;
+}
+.voice-room-starry .voice-manage-list button,
+.voice-room-starry .voice-manage-meta > :is(div,button) { border-bottom: 1px solid #cbb7f229; color: #ede5ff; }
+.voice-room-starry .voice-manage-list .is-danger { color: #ff8fa0; }
+.voice-room-starry .voice-manage-meta b { color: #fff3dc; }
+
+/* --- 设置输入框 / 选择列表 --- */
+.voice-room-starry .voice-setting-editor input {
+  border: 0; border-radius: 0; color: #fff;
+  border-style: solid; border-width: 10px 14px;
+  border-image: url('/assets/game-box/voice-starry/input-field.png') 20 28 20 28 fill stretch;
+  background: none;
+}
+.voice-room-starry .voice-setting-editor small { color: #b7a9d2; }
+.voice-room-starry .voice-setting-editor button,
+.voice-room-starry .voice-close-room button {
+  min-height: 46px; border-style: solid; border-width: 13px 14px;
+  border-image: url('/assets/game-box/voice-starry/button-capsule-gold.png') 27 29 26 29 fill stretch;
+  border-radius: 0; color: #4a2f12; background: none;
+}
+.voice-room-starry .voice-choice-list button { color: #ede5ff; }
+.voice-room-starry .voice-choice-list button small { color: #b7a9d2; }
+.voice-room-starry .voice-choice-list button > span { color: #ffd98a; }
+.voice-room-starry .voice-choice-list button.is-selected { color: #ffd98a; }
+
+/* --- 离房 / 关房按钮 --- */
+.voice-room-starry .voice-leave-room,
+.voice-room-starry .voice-close-room-button {
+  min-height: 44px; border-style: solid; border-width: 11px 13px; border-radius: 0;
+  border-image: url('/assets/game-box/voice-starry/button-capsule-red.png') 22 25 21 26 fill stretch;
+  color: #ffe9e4; background: none;
+}
+.voice-room-starry .voice-leave-room {
+  border-image: url('/assets/game-box/voice-starry/button-capsule-disabled.png') 22 26 22 26 fill stretch;
+  color: #cfc3e6;
+}
+.voice-room-starry .voice-close-room p { color: #c3b6da; }
+
+/* --- 确认弹窗按钮：左次要（暗）右主要（红） --- */
+.voice-room-starry .voice-confirm button {
+  min-height: 42px; border-style: solid; border-width: 11px 13px; border-radius: 0;
+  border-image: url('/assets/game-box/voice-starry/button-capsule-disabled.png') 22 26 22 26 fill stretch;
+  color: #ded3f2; background: none; font-weight: 700;
+}
+.voice-room-starry .voice-confirm button:last-child {
+  border-image: url('/assets/game-box/voice-starry/button-capsule-red.png') 22 25 21 26 fill stretch;
+  color: #fff1ee;
 }

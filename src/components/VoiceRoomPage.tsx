@@ -140,7 +140,7 @@ export default function VoiceRoomPage({ roomId }: { roomId: string }) {
 
       <section className="voice-stage" aria-label="语聊麦位">
         <div className="voice-seat-grid">
-          {seats.map((member, index) => <button key={index} type="button" aria-label={member ? `${index + 1}号麦位 ${member.username}${member.mutedByStaff ? ' 已禁麦' : ''}` : `${index + 1}号空麦位，申请上麦`} className={`voice-seat ${index < 2 ? 'is-featured' : ''} ${member ? 'is-occupied' : ''}`} onClick={() => {
+          {seats.map((member, index) => <button key={index} type="button" aria-label={member ? `${index + 1}号麦位 ${member.username}${member.mutedByStaff ? ' 已禁麦' : ''}` : `${index + 1}号空麦位，申请上麦`} className={`voice-seat ${member ? 'is-occupied' : ''}`} onClick={() => {
             if (!member) { if (me?.micSeat == null && !me?.micRequestedAt) void updateMic('request', index + 1); return; }
             if (manages && member.uid !== me?.uid && member.role !== 'owner' && (me?.role === 'owner' || member.role === 'member')) { setSelected(member); setSheet('manage'); }
           }} disabled={!member && (busy || me?.mutedByStaff || me?.micSeat != null || !!me?.micRequestedAt)}>
