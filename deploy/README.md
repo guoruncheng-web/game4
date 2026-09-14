@@ -56,3 +56,5 @@ Actions additionally verifies real authenticated browser bot management, human r
 Social 验收入口是 `tools/pwa/social-acceptance.mjs`，由 PWA_CACHE_VERSION 固定缓存版本；保留首次30秒检查与失败截图。v95 已知首次公网约75秒，未通过冷启动预算；本变更不放宽该门槛，未来目标部署仍需要解决该问题或按发布手册处理明确的性能例外。
 
 使用 v94 的真实累计路径回放，新分类仅选择 Social + RTC，旧十三张及 UMO 长测不再触发。参考 v95 的对应耗时，四人开场394秒、机器人343秒、旧十三张 PWA128秒、UMO118秒，共983秒（约16分钟）；这是可避免的既有工作量，不承诺每次部署固定耗时。
+
+启用提交 `efde185cc3dc4d87113692ee9c66a7c967560d54`；[Actions 34820384127](https://github.com/guoruncheng-web/game4/actions/runs/34820384127) 成功，用时38秒。此次仅流程/工具/证据变化，所有服务构建、切换及公网专项均显示 skipped，未重启线上 v95。分类/版本/流程测试22项、既有后端回滚等测试7项、frontend lint/build、新 Social 脚本本地完整玩法/音频/离线验收通过。证据见 `evidence/on-demand-v2/`。这不是未来业务发布的固定耗时承诺。
