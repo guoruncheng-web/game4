@@ -18,6 +18,12 @@ try{
  for(const method of ['Runtime.enable','Page.enable','Network.enable'])await cdp.send(method);await cdp.send('Emulation.setDeviceMetricsOverride',{width:390,height:780,deviceScaleFactor:1,mobile:true});
  await cdp.send('Page.addScriptToEvaluateOnNewDocument',{source:`(()=>{performance.setResourceTimingBufferSize(3000);window.__audioAudit={contexts:[],starts:0};const A=window.AudioContext;if(A){window.AudioContext=class extends A{constructor(...args){super(...args);window.__audioAudit.contexts.push(this);}};const original=A.prototype.createBufferSource;A.prototype.createBufferSource=function(){const n=original.call(this),s=n.start;n.start=function(...args){window.__audioAudit.starts++;return s.apply(this,args);};return n;};}})()`});
  await cdp.send('Page.navigate',{url});report.firstLoad=await scene('Preparation');report.coldResources=await evaluate(`({host:performance.getEntriesByType('resource').map(r=>({name:r.name.split('?')[0],start:r.startTime,duration:r.duration,bytes:r.transferSize})),game:${G}.performance.getEntriesByType('resource').map(r=>({name:r.name.split('?')[0],start:r.startTime,duration:r.duration,bytes:r.transferSize}))})`);await shot('first-preparation');
+ report.layouts=[];
+ for(const height of [496,780]){
+  await cdp.send('Emulation.setDeviceMetricsOverride',{width:390,height,deviceScaleFactor:1,mobile:true});await sleep(600);
+  const layout=await evaluate(`(()=>{const g=${G},r=g.cc.director.getScene().getChildByPath('Canvas/GameRoot');return {height:g.cc.view.getVisibleSize().height,scale:r.scale.x,readyY:r.getChildByPath('ReadyButton').position.y}})()`);
+  assert.ok(Math.abs(layout.height-height)<1);assert.equal(layout.scale,1);assert.ok(Math.abs(layout.readyY-(height===496?-212:-274.1))<.01);report.layouts.push(layout);await shot('layout-'+height);
+ }
  await wait('navigator.serviceWorker.controller','SW_CONTROL');
  await cdp.send('Page.navigate',{url});report.online=await scene('Preparation');
  await wait(`${G}.cc.director.getScene().getChildByPath('Canvas/GameRoot').getComponent('SocialTable').clips.size>0`,'AUDIO_LOADED');

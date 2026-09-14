@@ -1,0 +1,152 @@
+{
+  "url": "https://www.gameai.xingzdh.com/thirteen-social",
+  "version": "v97",
+  "exceptions": [],
+  "assetErrors": [],
+  "accepted": false,
+  "error": "Error: WAIT_Preparation",
+  "failureState": {
+    "href": "https://www.gameai.xingzdh.com/thirteen-social",
+    "ready": "complete",
+    "iframe": "https://www.gameai.xingzdh.com/thirteen-social/game/index.html",
+    "host": [
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/media/690f6d3b44e8cbb9-s.p.woff2",
+        "duration": 749.7999999999884,
+        "bytes": 71896
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/media/739f45a8b71a2bd5-s.p.woff2",
+        "duration": 759.3999999999651,
+        "bytes": 70060
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/css/31a7111d6dc0d705.css",
+        "duration": 200.40000000002328,
+        "bytes": 1152
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/css/8bfa0b5b99f944da.css",
+        "duration": 586.7000000000116,
+        "bytes": 21924
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/css/61040640e9208525.css",
+        "duration": 566.5999999999767,
+        "bytes": 8777
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/css/010939a743262bbe.css",
+        "duration": 596.6999999999534,
+        "bytes": 15610
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/webpack-b4100efeba7e108f.js",
+        "duration": 795.4000000000233,
+        "bytes": 2433
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/2528dbef-b901915c374f806f.js",
+        "duration": 1695.5999999999767,
+        "bytes": 63598
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/5846-acd9c0fd7efb1649.js",
+        "duration": 1696,
+        "bytes": 65899
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/main-app-7215c76f495b2e3c.js",
+        "duration": 795.7999999999884,
+        "bytes": 815
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/6061-ae61c3ed82d79b13.js",
+        "duration": 802.5,
+        "bytes": 5921
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/2614-21c6af2fd0af2beb.js",
+        "duration": 825.7999999999884,
+        "bytes": 3699
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/app/layout-c9443e529f8607c1.js",
+        "duration": 886.0999999999767,
+        "bytes": 6259
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/app/thirteen-social/page-4ccbe33b04c0d7c3.js",
+        "duration": 1168.5,
+        "bytes": 2955
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/manifest.webmanifest",
+        "duration": 598.5,
+        "bytes": 1808
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/index.html",
+        "duration": 286.1000000000349,
+        "bytes": 1218
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/api/auth/me",
+        "duration": 198.10000000003492,
+        "bytes": 367
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/favicon.ico?603d046c9a6fdfbb",
+        "duration": 586.6999999999534,
+        "bytes": 26231
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/icons/icon-192.png",
+        "duration": 281.0999999999767,
+        "bytes": 52183
+      }
+    ],
+    "game": [
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/style.css",
+        "duration": 809.5999999999767,
+        "bytes": 866
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/src/polyfills.bundle.js",
+        "duration": 809.0999999999767,
+        "bytes": 5420
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/src/system.bundle.js",
+        "duration": 809.8999999999651,
+        "bytes": 4729
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/src/import-map.json",
+        "duration": 186.20000000001164,
+        "bytes": 340
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/index.js",
+        "duration": 414,
+        "bytes": 1118
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/application.js",
+        "duration": 2381.7000000000116,
+        "bytes": 1448
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/cocos-js/cc.js",
+        "duration": 195.39999999996508,
+        "bytes": 3756
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/cocos-js/_virtual_cc-Bp5iGE8z.js",
+        "duration": 23986.100000000035,
+        "bytes": 0
+      }
+    ]
+  }
+}
