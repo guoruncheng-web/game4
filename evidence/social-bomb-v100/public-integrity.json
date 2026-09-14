@@ -1,0 +1,22 @@
+{
+  "/": {
+    "status": 200,
+    "sha256": "4ae2234053478fc99ce79bd519a9161c83226366026fb57f6e1ac5a67e3e9a7c"
+  },
+  "/thirteen-social": {
+    "status": 200,
+    "sha256": "9835cedeb9535bdd33c9a7c08ea17dafede31bc7fd68bf68cfd7c31df9bd8172"
+  },
+  "/sw.js": {
+    "status": 200,
+    "sha256": "b7e39934ceab983ec040cef9c590ec5defb1ea3457d2b34b2233acc5282c45bb"
+  },
+  "/thirteen-social/game/index.html": {
+    "status": 200,
+    "sha256": "2d163d62a13128463f994f509ea96db3e6d359fdab1b617251e43755432279b1"
+  },
+  "/thirteen-social/game/assets/main/index.js": {
+    "status": 200,
+    "sha256": "f00487102d3266448f0331178b55f4a5e8eddb7cd3d890c9eee22446d5acf11b"
+  }
+}
