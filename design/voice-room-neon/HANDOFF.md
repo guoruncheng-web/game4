@@ -87,7 +87,16 @@
 ## 现状
 
 - 线上：frontend `2de205c`（PWA v91，含“准备环境中”与顶部修复），Actions 34566337098 成功。
-- 候选仓库 `release-candidates/pwa-rtc-voice`（分支 `feat/voice-rtc-20260910` 跟踪 `origin/main`）：
-  概念图与现状截图已于 2026-09-11 提交（`f820005` / `c545c92`）；此后新增的
-  `cutouts/`、`greenscreen-assets/`、`greenscreen-trials/`、`ASSET_SLOTS.md`、`RESKIN_PLAN.md`
-  **尚未提交**。推送仍须由用户在 Mac 上执行。
+- **换肤已发布上线（2026-09-14）**：frontend `7b7c544`，PWA v92，
+  [Actions 34799069646](https://github.com/guoruncheng-web/game4/actions/runs/34799069646) success（7 分 2 秒）。
+  推送前 rebase 到 `origin/main` 的 `fc40d59`（thirteen-social room-only 入口），
+  **文件零重叠、无冲突**——上游动的是 thirteen-social/registry/middleware/sw.js/pwa-version，
+  本次动的是 voice-reference.css、VoiceRoomPage.tsx 与全新的 `public/assets/game-box/voice-starry/`。
+- **已完成的验收**：本地 fixture 14 屏全过（含"确认下麦"屏，`继续上麦`/`确认下麦` 文案完好）；
+  PWA 三处版本号一致性测试通过；公网核验首页 200、`sw.js` VERSION=v92、
+  预缓存清单 v92、新素材逐个 200 且字节数与本地一致。
+- **⚠ 尚未做的验收（发布 playbook 要求，需补）**：公网全新 profile 的
+  真实账号 RTC 双端通话、可信音频解锁、离线重载、Service Worker 接管，以及回滚演练。
+  本次只做了静态资源与版本号层面的核验，**不等于功能验收通过**。
+- 素材生产的中间产物（绿幕原图、双 seed 抠图、废弃的裁切图，共 66MB）按
+  `design/voice-room-neon/.gitignore` 排除，可用 `slots.py` 记录的 seed 与提示词重建。
