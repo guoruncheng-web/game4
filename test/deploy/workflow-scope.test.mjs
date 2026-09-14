@@ -21,3 +21,9 @@ test('basic smoke, actual production baselines, cleanup and rollback remain mand
  assert.match(step('Clean temporary accounts'),/always\(\) && steps\.switch\.outcome == 'success'/);
  assert.match(step('Restore previous release if public acceptance fails'),/failure\(\) && steps\.switch\.outcome == 'success'/);
 });
+
+test('Social browser preflight precedes cutover and uploads diagnostics',()=>{
+ assert.ok(workflow.indexOf('name: Verify Social browser before production cutover')<workflow.indexOf('name: Build candidate and switch services with rollback'));
+ assert.match(step('Verify Social browser before production cutover'),/outputs.social_pwa == 'true'/);
+ assert.ok(workflow.includes('frontend-source/evidence/browser-preflight/'));
+});

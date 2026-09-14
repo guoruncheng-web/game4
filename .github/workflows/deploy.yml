@@ -84,6 +84,13 @@ jobs:
         if: steps.plan.outputs.voice == 'true'
         working-directory: backend-source
         run: node --experimental-transform-types --test ../frontend-source/test/voice/*.test.mjs
+      - name: Verify Social browser before production cutover
+        if: steps.plan.outputs.deploy == 'true' && steps.plan.outputs.social_pwa == 'true'
+        working-directory: frontend-source
+        env:
+          COCOS_CHROME: /usr/bin/google-chrome
+        run: node tools/pwa/chrome-session.mjs evidence/browser-preflight
+
       - name: Reclaim inactive release storage
         if: steps.plan.outputs.deploy == 'true'
         env:
@@ -202,6 +209,7 @@ jobs:
           path: |
             frontend-source/evidence/acceptance-plan.json
             frontend-source/evidence/public-social-pwa/
+            frontend-source/evidence/browser-preflight/
             backend-source/evidence/public-voice-rtc/
             backend-source/evidence/public-smoke.json
             backend-source/evidence/public-match-start/
