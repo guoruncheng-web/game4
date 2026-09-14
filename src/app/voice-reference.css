@@ -391,7 +391,7 @@ html:has(.voice-room-starry) { background: #292b4b; }
 
 /* 关闭按钮移除后，用 bottom sheet 常见的抓手横条提示"可下滑/点蒙层关闭"。
    整页形态（voice-management-page）压满屏、没有蒙层可点，仍保留左上角返回箭头，不加抓手。 */
-.voice-room-starry .voice-action-sheet:not(.voice-management-page) > header {
+.voice-room-starry .voice-action-sheet:not(.voice-management-page):not(.voice-game-window) > header {
   position: relative;
 }
 .voice-room-starry .voice-action-sheet:not(.voice-management-page) > header::before {
@@ -399,5 +399,12 @@ html:has(.voice-room-starry) { background: #292b4b; }
   border-radius: 2px; background: #d9c48f66; transform: translateX(-50%); content: '';
 }
 /* 游戏窗口的标题是隐藏的，header 只剩抓手，压扁一些把高度让给游戏 */
-.voice-room-starry .voice-game-window > header { min-height: 24px; flex-basis: 24px; }
-.voice-room-starry .voice-game-window > header::before { top: 9px; }
+/* header 里只剩隐藏标题和抓手，让它脱离文档流浮在顶部，游戏画面直接从窗口顶端开始，
+   不再占用 24px 高度。pointer-events 关掉，避免这条透明带挡住游戏的触摸。 */
+.voice-room-starry .voice-game-window > header {
+  position: absolute; top: 0; right: 0; left: 0; z-index: 2;
+  min-height: 0; height: 14px; flex: none; pointer-events: none;
+}
+.voice-room-starry .voice-game-window > header::before {
+  top: 5px; background: #ffffff7a; box-shadow: 0 0 0 1px #00000038;
+}
