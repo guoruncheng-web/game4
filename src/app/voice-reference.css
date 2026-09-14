@@ -368,7 +368,7 @@ html:has(.voice-room-starry) { background: #292b4b; }
 /* 房间内游戏窗口：半屏、无雕花边框、无标题，只留关闭按钮 */
 .voice-room-starry .voice-game-window-backdrop { align-items: flex-end; padding: 0; }
 .voice-room-starry .voice-game-window {
-  display: flex; width: 100%; max-width: none; height: 52dvh; max-height: 52dvh;
+  display: flex; width: 100%; max-width: none; height: calc(100dvh * 2 / 3); max-height: calc(100dvh * 2 / 3);
   flex-direction: column; min-height: 0; margin: 0; padding: 0; overflow: hidden;
   border: 0; border-image: none; border-radius: 18px 18px 0 0;
   background: #17122b; box-shadow: 0 -10px 30px #0006;
@@ -388,3 +388,16 @@ html:has(.voice-room-starry) { background: #292b4b; }
 .voice-room-starry .voice-game-frame {
   width: 100%; flex: 1; min-height: 0; border: 0; background: #17122b;
 }
+
+/* 关闭按钮移除后，用 bottom sheet 常见的抓手横条提示"可下滑/点蒙层关闭"。
+   整页形态（voice-management-page）压满屏、没有蒙层可点，仍保留左上角返回箭头，不加抓手。 */
+.voice-room-starry .voice-action-sheet:not(.voice-management-page) > header {
+  position: relative;
+}
+.voice-room-starry .voice-action-sheet:not(.voice-management-page) > header::before {
+  position: absolute; top: -8px; left: 50%; width: 38px; height: 4px;
+  border-radius: 2px; background: #d9c48f66; transform: translateX(-50%); content: '';
+}
+/* 游戏窗口的标题是隐藏的，header 只剩抓手，压扁一些把高度让给游戏 */
+.voice-room-starry .voice-game-window > header { min-height: 24px; flex-basis: 24px; }
+.voice-room-starry .voice-game-window > header::before { top: 9px; }

@@ -185,7 +185,17 @@ export default function VoiceRoomPage({ roomId }: { roomId: string }) {
 }
 
 function SheetFrame({ title, children, onClose, fullPage = false }: { title: string; children: ReactNode; onClose: () => void; fullPage?: boolean }) {
-  return <div className={`voice-sheet-backdrop ${fullPage ? 'voice-full-page-backdrop' : ''}`}><section className={`voice-action-sheet ${fullPage ? 'voice-management-page' : ''}`} role="dialog" aria-modal="true" aria-label={title}><header><h2>{title}</h2><button type="button" onClick={onClose} aria-label="关闭">{fullPage ? '‹' : '×'}</button></header>{fullPage && <div className="voice-page-art"><ClubBrand /></div>}{children}</section></div>;
+  // 关闭按钮已按设计去掉，改为点蒙层关闭；键盘用户靠 Escape，否则弹窗将无法关闭。
+  // 确认弹窗（alertdialog）叠加在上层时让它优先，避免一次 Escape 连带关掉底层面板。
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || document.querySelector('[role="alertdialog"]')) return;
+      onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  return <div className={`voice-sheet-backdrop ${fullPage ? 'voice-full-page-backdrop' : ''}`} onClick={event => { if (event.target === event.currentTarget) onClose(); }}><section className={`voice-action-sheet ${fullPage ? 'voice-management-page' : ''}`} role="dialog" aria-modal="true" aria-label={title}><header><h2>{title}</h2>{fullPage && <button type="button" onClick={onClose} aria-label="返回">‹</button>}</header>{fullPage && <div className="voice-page-art"><ClubBrand /></div>}{children}</section></div>;
 }
 
 function InviteSheet({ roomId, onClose, onError }: { roomId: string; onClose: () => void; onError: (value: string) => void }) {

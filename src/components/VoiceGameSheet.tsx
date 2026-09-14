@@ -20,7 +20,6 @@ export default function VoiceGameSheet({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
   const [activeGame, setActiveGame] = useState<string | null>(null);
-  const closeButton = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -43,10 +42,11 @@ export default function VoiceGameSheet({ onClose }: { onClose: () => void }) {
   }, []);
 
   useEffect(() => {
-    if (activeGame) closeButton.current?.focus();
+    // 关闭按钮已移除，焦点改落在对话框本身（tabIndex=-1），否则 section 上的 Escape 收不到键盘事件
+    if (activeGame) dialog.current?.focus();
   }, [activeGame]);
 
-  return <div className={`voice-sheet-backdrop ${activeGame ? 'voice-game-window-backdrop' : ''}`} onClick={event => { if (!activeGame && event.target === event.currentTarget) onClose(); }}>
+  return <div className={`voice-sheet-backdrop ${activeGame ? 'voice-game-window-backdrop' : ''}`} onClick={event => { if (event.target === event.currentTarget) onClose(); }}>
     <section ref={dialog} className={`voice-action-sheet ${activeGame ? 'voice-game-window' : 'voice-game-picker-sheet'}`} role="dialog" aria-modal="true" aria-labelledby="voice-game-picker-title" tabIndex={-1} onKeyDown={event => {
       if (event.key === 'Escape') { event.stopPropagation(); onClose(); }
       if (event.key !== 'Tab') return;
@@ -55,7 +55,7 @@ export default function VoiceGameSheet({ onClose }: { onClose: () => void }) {
       if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog.current)) { event.preventDefault(); last?.focus(); }
       else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
     }}>
-      <header><h2 id="voice-game-picker-title">{activeGame ? GAMES.find(game => game.slug === activeGame)?.title : '游戏列表'}</h2><button ref={closeButton} type="button" aria-label={activeGame ? '关闭游戏，返回房间' : '关闭游戏列表'} onClick={onClose}>×</button></header>
+      <header><h2 id="voice-game-picker-title">{activeGame ? GAMES.find(game => game.slug === activeGame)?.title : '游戏列表'}</h2></header>
       {activeGame ? <iframe key={activeGame} className="voice-game-frame" src={withGameCredentials(`/${activeGame}`, credentials)} title={GAMES.find(game => game.slug === activeGame)?.title ?? '房间游戏'} allow="autoplay; gamepad" /> : <>
       <p className="voice-sheet-help">选一个游戏，开启新的乐趣</p>
       {loading ? <p className="voice-sheet-empty" role="status">正在加载游戏…</p> : error ? <div className="voice-game-picker-error" role="alert"><p>{error}</p><button type="button" onClick={() => { setLoading(true); setError(''); setAttempt(value => value + 1); }}>重新加载</button></div> : games.length === 0 ? <p className="voice-sheet-empty">暂无可玩的游戏</p> : <div className="voice-game-picker-list">{games.map(game => {
