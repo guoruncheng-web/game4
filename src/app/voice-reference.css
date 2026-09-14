@@ -96,7 +96,7 @@ html:has(.voice-room-starry) { background: #292b4b; }
 .voice-room-starry .voice-room-shell::before { position: absolute; z-index: -1; inset: 0; content: ''; background: linear-gradient(#16193515, #25213d10 45%, #27223f50); pointer-events: none; }
 .voice-room-starry .voice-room-header { display: flex; flex: 0 0 auto; gap: 5px; min-height: 44px; }
 .voice-room-starry .voice-room-header > button { display: grid; width: 30px; height: 44px; flex: 0 0 30px; padding: 0; place-items: center; color: #fff; background: transparent; border: 0; }
-.voice-room-starry .voice-room-header .voice-room-title { min-width: 0; flex: 1; padding: 6px 0; }
+.voice-room-starry .voice-room-header .voice-room-title { display: flex; min-width: 0; flex: 1; align-items: center; padding: 0; }
 .voice-room-starry .voice-room-title b { display: block; overflow: hidden; font-size: 14px; line-height: 20px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .voice-room-starry .voice-room-header small { display: block; color: #c0bed4; font-size: 10px; line-height: 18px; }
 .voice-room-starry .voice-room-header .voice-header-invite { width: 32px; height: 32px; flex-basis: 32px; align-self: center; border-radius: 50%; color: #ffe8b8; background: url('/assets/game-box/voice-starry/button-icon-round.png') center / contain no-repeat; }
@@ -325,4 +325,24 @@ html:has(.voice-room-starry) { background: #292b4b; }
 .voice-room-starry .voice-confirm button:last-child {
   border-image: url('/assets/game-box/voice-starry/button-capsule-red.png') 22 25 21 26 fill stretch;
   color: #fff1ee;
+}
+
+/* 游戏卡：基础样式是白底粉按钮（voice-reference.css:63-70），在金色暗底面板里完全出戏。
+   这套 class 不在 .voice-sheet-list 系列里，之前的弹窗换肤漏掉了它。 */
+.voice-room-starry .voice-game-picker-card {
+  border: 1px solid #cbb7f23d; border-radius: 16px; background: #2a2347b8;
+}
+.voice-room-starry .voice-game-picker-card b { color: #f6efff; }
+.voice-room-starry .voice-game-picker-card small { color: #c3b6da; }
+.voice-room-starry .voice-game-picker-card em {
+  padding: 0 4px; min-height: 34px; display: grid; place-items: center;
+  border-style: solid; border-width: 13px 14px; border-radius: 0;
+  border-image: url('/assets/game-box/voice-starry/button-capsule-gold.png') 27 29 26 29 fill stretch;
+  color: #4a2f12; background: none; font-weight: 700;
+}
+.voice-room-starry .voice-game-picker-error { color: #c3b6da; }
+.voice-room-starry .voice-game-picker-error button {
+  padding: 0 4px; border-style: solid; border-width: 13px 14px; border-radius: 0;
+  border-image: url('/assets/game-box/voice-starry/button-capsule-gold.png') 27 29 26 29 fill stretch;
+  color: #4a2f12; background: none;
 }

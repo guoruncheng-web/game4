@@ -128,7 +128,7 @@ export default function VoiceRoomPage({ roomId }: { roomId: string }) {
     <div className="voice-room-shell">
       <header className="voice-room-header">
         <button type="button" aria-label="返回" onClick={() => setLeaveOpen(true)}><ArrowLeft size={19} /></button>
-        <div className="voice-room-title"><b>{room.title}</b><small>连麦聊 · {room.roomCode ?? (room.visibility === 'friends' ? '好友房' : '私密房')}</small></div>
+        <div className="voice-room-title"><b>{room.title}</b></div>
         <button type="button" className="voice-header-invite" aria-label="邀请好友" onClick={() => setSheet('invite')}><Plus size={22} /></button>
         <div className="voice-header-members" aria-label={`${room.members.length} 人在线`}>{room.members.slice(0, 3).map(member => <Avatar key={member.uid} emoji={member.avatar} url={member.avatarUrl} />)}<small>{room.members.length}</small></div>
         <button type="button" aria-label="房间操作" onClick={() => manages ? setSheet('manage') : setLeaveOpen(true)}><MoreHorizontal size={23} /></button>

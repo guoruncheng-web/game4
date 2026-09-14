@@ -9,6 +9,9 @@ import { cardStyle } from './ClubArt';
 type AvailableGame = { slug: string; enabled: boolean; sortOrder?: number };
 
 /** 游戏在独立 iframe 中运行，关闭时卸载，外层房间保持挂载。 */
+/** 语聊房内开放的游戏。房间内玩法与首页游戏盒子是两套开放范围，这里只放房间内可玩的。 */
+const ROOM_GAMES = ['thirteen-social'];
+
 export default function VoiceGameSheet({ onClose }: { onClose: () => void }) {
   const { credentials } = useAuth();
   const dialog = useRef<HTMLElement>(null);
@@ -26,7 +29,7 @@ export default function VoiceGameSheet({ onClose }: { onClose: () => void }) {
         if (!response.ok) throw new Error('游戏列表暂时加载失败');
         const data = await response.json() as { games?: AvailableGame[] };
         if (!Array.isArray(data.games)) throw new Error('游戏列表暂时加载失败');
-        if (!controller.signal.aborted) setGames(data.games.filter(game => game.enabled && GAMES.some(meta => meta.slug === game.slug)).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)));
+        if (!controller.signal.aborted) setGames(data.games.filter(game => game.enabled && ROOM_GAMES.includes(game.slug) && GAMES.some(meta => meta.slug === game.slug)).sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)));
       })
       .catch(() => { if (!controller.signal.aborted) setError('游戏列表暂时加载失败，请重试'); })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
