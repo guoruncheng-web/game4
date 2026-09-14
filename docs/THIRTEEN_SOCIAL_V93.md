@@ -13,3 +13,9 @@
 本地前端 lint、production build、PWA 版本测试通过。全新 Chrome profile 单次首次导航：首次准备页 4,907ms，缓存 2,955ms，离线 3,147ms；可信点击 AudioContext running、音效触发、准备→兑换→机器人→对局→结算→返回，以及离线重新开局均通过，游戏异常及缺失资源为 0。这些是代表主机结果，不等于真机或公网性能通过。
 
 发布前远端基线 `002ddde6691fd136ee5237ea69eb81cc03f9ad94`；旧游戏树位于工作室 `releases/backups/thirteen-social-before-v93`。Actions 根据实际生产到候选累计差异选择验收，失败自动恢复旧生产。需要手动回滚时 revert 本次 frontend 发布提交并推进缓存版本，遵循 deploy/README.md；保留生产状态、密钥和独立后端固定修订。
+
+## v94 独立复验候选
+
+首次发布 c912f90 / Actions 34812539995 在旧十三张大厅冷启动 180 秒超时后自动回滚。同一时段 Mac 另开 Social 首次下载，30 秒及 120 秒诊断均未进入准备页；保留私有游戏仓库 public-pwa、public-diagnostic、actions-failed 证据，不记为通过。
+
+本次不改游戏产物，缓存升级 v94 以隔离失败候选缓存；按顺序等待 Actions 全部结束，再执行 Social 全新 profile 公网验收，避免多个冷启动验收同时下载。性能门槛不变，本次结果独立记录。
