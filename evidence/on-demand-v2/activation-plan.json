@@ -1,0 +1,38 @@
+{
+  "deploy": false,
+  "thirteen": false,
+  "thirteen_pwa": false,
+  "umo_pwa": false,
+  "social_pwa": false,
+  "voice": false,
+  "reasons": [
+    "pipeline-only:.github/workflows/deploy.yml",
+    "pipeline-only:deploy/acceptance-plan.mjs",
+    "pipeline-only:test/deploy/acceptance-plan.test.mjs",
+    "pipeline-only:test/deploy/workflow-scope.test.mjs",
+    "pipeline-only:tools/pwa/social-acceptance.mjs"
+  ],
+  "backend_changed": false,
+  "backend_build": false,
+  "baselineFront": "95ab10b0027a332593507346ae575a5da01e2335",
+  "baselineBack": "0773aee8070261b1bdf89ff3a6c9ab6710ab41f4",
+  "frontendPaths": [
+    ".github/workflows/deploy.yml",
+    "deploy/README.md",
+    "deploy/acceptance-plan.mjs",
+    "evidence/on-demand-v2/build.log",
+    "evidence/on-demand-v2/lint.log",
+    "evidence/on-demand-v2/server.log",
+    "evidence/on-demand-v2/social-local/first-preparation.png",
+    "evidence/on-demand-v2/social-local/match.png",
+    "evidence/on-demand-v2/social-local/offline-match.png",
+    "evidence/on-demand-v2/social-local/result.json",
+    "evidence/on-demand-v2/social-local/settlement.png",
+    "evidence/on-demand-v2/v94-plan-after.json",
+    "evidence/on-demand-v2/v94-plan-before.json",
+    "test/deploy/acceptance-plan.test.mjs",
+    "test/deploy/workflow-scope.test.mjs",
+    "tools/pwa/social-acceptance.mjs"
+  ],
+  "backendPaths": []
+}

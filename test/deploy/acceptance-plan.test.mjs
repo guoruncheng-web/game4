@@ -69,3 +69,35 @@ test('room-only artwork follows voice acceptance scope',()=>{
  const p=classifyPaths(['public/assets/game-box/voice-starry/night-room.webp','src/app/voice-reference.css','src/components/VoiceRoomPage.tsx']);
  assert.ok(p.deploy && p.voice);assert.equal(p.thirteen,false);assert.equal(p.thirteen_pwa,false);assert.equal(p.umo_pwa,false);
 });
+
+test('Social release with both version files selects only Social acceptance',()=>{
+ const p=classifyPaths(['public/thirteen-social/game/assets/main/index.js','src/app/thirteen-social/page.tsx','public/sw.js','src/lib/pwa-version.ts','.github/workflows/deploy.yml'],[],(path,old)=>path==='src/lib/pwa-version.ts'?`export const PWA_VERSION = 'v${old?95:96}';\nexport const PREPARE_BOOT_SCRIPT='same';`:`const VERSION = 'v${old?95:96}';`);
+ assert.ok(p.deploy&&p.social_pwa);
+ for(const key of ['thirteen','thirteen_pwa','umo_pwa','voice'])assert.equal(p[key],false,key);
+});
+test('cache constant number-only is narrow, bootstrap code changes retain all PWA suites',()=>{
+ const read=(path,old)=>`export const PWA_VERSION = 'v${old?95:96}';\nconst boot='${old?'before':'after'}';`;
+ const p=classifyPaths(['src/lib/pwa-version.ts'],[],read);
+ assert.ok(p.social_pwa&&p.thirteen_pwa&&p.umo_pwa&&p.voice);assert.equal(p.thirteen,false);
+});
+test('Social and voice changes union their scopes without unrelated game suites',()=>{
+ const p=classifyPaths(['public/thirteen-social/game/index.js','src/components/VoiceRoomPage.tsx']);
+ assert.ok(p.deploy&&p.social_pwa&&p.voice);assert.equal(p.thirteen,false);assert.equal(p.umo_pwa,false);
+});
+test('pipeline-only and evidence changes do not switch production',()=>{
+ const p=classifyPaths(['deploy/acceptance-plan.mjs','.github/workflows/deploy.yml','tools/pwa/social-acceptance.mjs','test/deploy/acceptance-plan.test.mjs','docs/note.md']);
+ assert.equal(p.deploy,false);assert.equal(p.social_pwa,false);
+});
+test('unknown games and auth still select Social as part of full acceptance',()=>{
+ for(const path of ['public/new-game/game/index.js','src/components/AuthProvider.tsx'])assert.ok(classifyPaths([path]).social_pwa);
+ const p=classify({frontendPaths:[],backendPaths:[],readFrontend:()=>'',forceFull:true});assert.ok(p.social_pwa&&p.thirteen&&p.voice&&p.umo_pwa);
+});
+test('backend reuse is based on exact production revision, not merely runtime path filtering',()=>{
+ const root=mkdtempSync(join(tmpdir(),'deploy-reuse-'));const g=(...args)=>execFileSync('git',args,{cwd:root,encoding:'utf8',stdio:['ignore','pipe','ignore']}).trim();
+ try{g('init');g('config','user.email','fixture@example.invalid');g('config','user.name','Fixture');writeFileSync(join(root,'README.md'),'base');g('add','.');g('commit','-m','base');const baseline=g('rev-parse','HEAD');
+ let p=buildPlan(root,root,baseline,baseline);assert.equal(p.backend_build,false);assert.equal(p.backend_changed,false);
+ p=buildPlan(root,root,baseline,baseline,true);assert.equal(p.backend_build,true);assert.equal(p.backend_changed,false);
+ writeFileSync(join(root,'README.md'),'docs only new revision');g('add','.');g('commit','-m','docs');p=buildPlan(root,root,baseline,baseline);assert.equal(p.deploy,false);assert.equal(p.backend_changed,true);assert.equal(p.backend_build,true);
+ p=buildPlan(root,root,'f'.repeat(40),baseline);assert.ok(p.deploy&&p.backend_build&&p.social_pwa);
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
