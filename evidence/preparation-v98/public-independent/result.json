@@ -1,0 +1,2005 @@
+{
+  "url": "https://www.gameai.xingzdh.com/thirteen-social",
+  "version": "v98",
+  "exceptions": [],
+  "assetErrors": [
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/213b8916-fbe6-4ded-a7a9-83d4e7f31b73.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/0a/0af6fb32-6bd4-4061-a2e4-f43e3d24d7f9.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/51/510ffad1-446e-41b5-affe-72d32bbd8954.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2f/2fb512d5-63e7-41cf-b8c3-8201994dc30e.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/22/2236425c-0534-4a1f-83c3-ce96819db886.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/c0/c04f479c-0309-4ab3-acbc-c396ebe74777.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34081f1c-3e31-473a-b69d-12b1baeb9bcb.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/6b/6b1f0c13-617a-480d-812a-1a0b6054177e.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/04/04754741-8552-44cc-bd5f-f5197473e091.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/66/6678e3b3-09c1-48de-9daa-5ed84ce07bf9.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/12/12d1333e-8e0e-42dd-908a-aac682b1a1fa.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/43/439dd995-4bef-4e0e-9854-4d0a12f55a60.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96398f91-c0d5-4865-aff9-2364a73eeb97.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f3/f3225182-13aa-4d9a-a102-01986e117961.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a2/a20faf39-d706-4b79-9e28-5b774838fb43.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/2161b19a-3647-4d43-a160-daeef22c0bd8.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96077e79-bd6a-4a93-92b9-7e714141c1dd.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/86/8608da66-c5db-404a-9dcb-7a4a0259a45d.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/1f/1f14db28-418f-4b4a-b003-867cb385f6bf.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/19/19431b7e-62e4-485a-95f9-d90e3c32aa2f.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/82/82d1fd79-fa3d-4fa1-81e8-19c0e47985ef.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64aad45c-7112-4206-a724-f71cd1f68478.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/98/98daef81-c411-4370-9286-b82ab1898514.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/9c/9c38ad4e-1c9a-40be-a01a-986ff083f0d7.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/be/befba1b9-5fd8-4576-93a2-2dcfee493c56.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34406411-06cc-4df4-b205-2954637a5513.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/77/77983b36-3a86-4dd4-b79a-4b9d0c72f214.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2d/2d6223a2-aaba-484e-a398-8c2056ee56a3.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a82a3fe3-bd64-47d9-a4d9-a26aa1a05267.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a8d8f285-02c0-4f2f-b100-b392011313e5.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/ec/ece1f9a3-6622-4a6d-9e72-17e3cd0c1559.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/e4/e44911c5-6ba4-4343-b8ba-eeca82f2323a.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/08/08c46130-d033-4cf6-b499-2e828a79d235.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a4/a431f0a4-2be4-4163-861b-f54561b8438f.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/18/18f1015a-60db-4909-aa3b-cb332eae1da6.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64f82915-1f06-45d8-a894-e89ec3e5c337.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f5/f5816bce-523e-402b-bf1e-b1398ff5269d.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/06/06f96147-8135-4a18-b210-9d6013286868.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/99/9948486e-f463-48c3-a7b6-013488960ce0.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/21bd5e24-7d15-4ebd-96e1-652d0b7dbf69.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64d003a6-3bb8-43df-89ad-24cca5e919d5.webp",
+      "status": 500
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/213b8916-fbe6-4ded-a7a9-83d4e7f31b73.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/0a/0af6fb32-6bd4-4061-a2e4-f43e3d24d7f9.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/51/510ffad1-446e-41b5-affe-72d32bbd8954.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2f/2fb512d5-63e7-41cf-b8c3-8201994dc30e.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/22/2236425c-0534-4a1f-83c3-ce96819db886.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/c0/c04f479c-0309-4ab3-acbc-c396ebe74777.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34081f1c-3e31-473a-b69d-12b1baeb9bcb.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/6b/6b1f0c13-617a-480d-812a-1a0b6054177e.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/04/04754741-8552-44cc-bd5f-f5197473e091.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/66/6678e3b3-09c1-48de-9daa-5ed84ce07bf9.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/12/12d1333e-8e0e-42dd-908a-aac682b1a1fa.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/43/439dd995-4bef-4e0e-9854-4d0a12f55a60.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96398f91-c0d5-4865-aff9-2364a73eeb97.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f3/f3225182-13aa-4d9a-a102-01986e117961.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a2/a20faf39-d706-4b79-9e28-5b774838fb43.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/2161b19a-3647-4d43-a160-daeef22c0bd8.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96077e79-bd6a-4a93-92b9-7e714141c1dd.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/86/8608da66-c5db-404a-9dcb-7a4a0259a45d.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/1f/1f14db28-418f-4b4a-b003-867cb385f6bf.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/19/19431b7e-62e4-485a-95f9-d90e3c32aa2f.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64d003a6-3bb8-43df-89ad-24cca5e919d5.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/21bd5e24-7d15-4ebd-96e1-652d0b7dbf69.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/99/9948486e-f463-48c3-a7b6-013488960ce0.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/06/06f96147-8135-4a18-b210-9d6013286868.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f5/f5816bce-523e-402b-bf1e-b1398ff5269d.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64f82915-1f06-45d8-a894-e89ec3e5c337.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/18/18f1015a-60db-4909-aa3b-cb332eae1da6.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a4/a431f0a4-2be4-4163-861b-f54561b8438f.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/08/08c46130-d033-4cf6-b499-2e828a79d235.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/e4/e44911c5-6ba4-4343-b8ba-eeca82f2323a.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/ec/ece1f9a3-6622-4a6d-9e72-17e3cd0c1559.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a8d8f285-02c0-4f2f-b100-b392011313e5.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a82a3fe3-bd64-47d9-a4d9-a26aa1a05267.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2d/2d6223a2-aaba-484e-a398-8c2056ee56a3.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/77/77983b36-3a86-4dd4-b79a-4b9d0c72f214.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34406411-06cc-4df4-b205-2954637a5513.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/be/befba1b9-5fd8-4576-93a2-2dcfee493c56.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/9c/9c38ad4e-1c9a-40be-a01a-986ff083f0d7.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/98/98daef81-c411-4370-9286-b82ab1898514.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64aad45c-7112-4206-a724-f71cd1f68478.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/82/82d1fd79-fa3d-4fa1-81e8-19c0e47985ef.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/213b8916-fbe6-4ded-a7a9-83d4e7f31b73.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/0a/0af6fb32-6bd4-4061-a2e4-f43e3d24d7f9.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/51/510ffad1-446e-41b5-affe-72d32bbd8954.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2f/2fb512d5-63e7-41cf-b8c3-8201994dc30e.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/22/2236425c-0534-4a1f-83c3-ce96819db886.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/c0/c04f479c-0309-4ab3-acbc-c396ebe74777.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34081f1c-3e31-473a-b69d-12b1baeb9bcb.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/6b/6b1f0c13-617a-480d-812a-1a0b6054177e.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/04/04754741-8552-44cc-bd5f-f5197473e091.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/66/6678e3b3-09c1-48de-9daa-5ed84ce07bf9.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/12/12d1333e-8e0e-42dd-908a-aac682b1a1fa.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/43/439dd995-4bef-4e0e-9854-4d0a12f55a60.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96398f91-c0d5-4865-aff9-2364a73eeb97.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f3/f3225182-13aa-4d9a-a102-01986e117961.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a2/a20faf39-d706-4b79-9e28-5b774838fb43.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/2161b19a-3647-4d43-a160-daeef22c0bd8.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96077e79-bd6a-4a93-92b9-7e714141c1dd.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/86/8608da66-c5db-404a-9dcb-7a4a0259a45d.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/1f/1f14db28-418f-4b4a-b003-867cb385f6bf.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/19/19431b7e-62e4-485a-95f9-d90e3c32aa2f.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64d003a6-3bb8-43df-89ad-24cca5e919d5.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/21bd5e24-7d15-4ebd-96e1-652d0b7dbf69.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/99/9948486e-f463-48c3-a7b6-013488960ce0.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/06/06f96147-8135-4a18-b210-9d6013286868.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f5/f5816bce-523e-402b-bf1e-b1398ff5269d.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64f82915-1f06-45d8-a894-e89ec3e5c337.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/18/18f1015a-60db-4909-aa3b-cb332eae1da6.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a4/a431f0a4-2be4-4163-861b-f54561b8438f.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/08/08c46130-d033-4cf6-b499-2e828a79d235.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/e4/e44911c5-6ba4-4343-b8ba-eeca82f2323a.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/ec/ece1f9a3-6622-4a6d-9e72-17e3cd0c1559.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a8d8f285-02c0-4f2f-b100-b392011313e5.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a82a3fe3-bd64-47d9-a4d9-a26aa1a05267.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2d/2d6223a2-aaba-484e-a398-8c2056ee56a3.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/77/77983b36-3a86-4dd4-b79a-4b9d0c72f214.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34406411-06cc-4df4-b205-2954637a5513.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/be/befba1b9-5fd8-4576-93a2-2dcfee493c56.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/9c/9c38ad4e-1c9a-40be-a01a-986ff083f0d7.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/98/98daef81-c411-4370-9286-b82ab1898514.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64aad45c-7112-4206-a724-f71cd1f68478.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/82/82d1fd79-fa3d-4fa1-81e8-19c0e47985ef.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/213b8916-fbe6-4ded-a7a9-83d4e7f31b73.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/0a/0af6fb32-6bd4-4061-a2e4-f43e3d24d7f9.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/51/510ffad1-446e-41b5-affe-72d32bbd8954.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2f/2fb512d5-63e7-41cf-b8c3-8201994dc30e.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/22/2236425c-0534-4a1f-83c3-ce96819db886.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/c0/c04f479c-0309-4ab3-acbc-c396ebe74777.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34081f1c-3e31-473a-b69d-12b1baeb9bcb.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/6b/6b1f0c13-617a-480d-812a-1a0b6054177e.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/04/04754741-8552-44cc-bd5f-f5197473e091.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/66/6678e3b3-09c1-48de-9daa-5ed84ce07bf9.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/12/12d1333e-8e0e-42dd-908a-aac682b1a1fa.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/43/439dd995-4bef-4e0e-9854-4d0a12f55a60.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96398f91-c0d5-4865-aff9-2364a73eeb97.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f3/f3225182-13aa-4d9a-a102-01986e117961.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a2/a20faf39-d706-4b79-9e28-5b774838fb43.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/2161b19a-3647-4d43-a160-daeef22c0bd8.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96077e79-bd6a-4a93-92b9-7e714141c1dd.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/86/8608da66-c5db-404a-9dcb-7a4a0259a45d.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/1f/1f14db28-418f-4b4a-b003-867cb385f6bf.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/19/19431b7e-62e4-485a-95f9-d90e3c32aa2f.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64d003a6-3bb8-43df-89ad-24cca5e919d5.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/21bd5e24-7d15-4ebd-96e1-652d0b7dbf69.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/99/9948486e-f463-48c3-a7b6-013488960ce0.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/06/06f96147-8135-4a18-b210-9d6013286868.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f5/f5816bce-523e-402b-bf1e-b1398ff5269d.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64f82915-1f06-45d8-a894-e89ec3e5c337.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/18/18f1015a-60db-4909-aa3b-cb332eae1da6.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a4/a431f0a4-2be4-4163-861b-f54561b8438f.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/08/08c46130-d033-4cf6-b499-2e828a79d235.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/e4/e44911c5-6ba4-4343-b8ba-eeca82f2323a.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/ec/ece1f9a3-6622-4a6d-9e72-17e3cd0c1559.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a8d8f285-02c0-4f2f-b100-b392011313e5.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a82a3fe3-bd64-47d9-a4d9-a26aa1a05267.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2d/2d6223a2-aaba-484e-a398-8c2056ee56a3.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/77/77983b36-3a86-4dd4-b79a-4b9d0c72f214.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34406411-06cc-4df4-b205-2954637a5513.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/be/befba1b9-5fd8-4576-93a2-2dcfee493c56.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/9c/9c38ad4e-1c9a-40be-a01a-986ff083f0d7.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/98/98daef81-c411-4370-9286-b82ab1898514.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64aad45c-7112-4206-a724-f71cd1f68478.webp",
+      "status": 404
+    },
+    {
+      "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/82/82d1fd79-fa3d-4fa1-81e8-19c0e47985ef.webp",
+      "status": 404
+    }
+  ],
+  "accepted": false,
+  "error": "Error: WAIT_Preparation",
+  "failureState": {
+    "href": "https://www.gameai.xingzdh.com/thirteen-social",
+    "ready": "complete",
+    "iframe": "https://www.gameai.xingzdh.com/thirteen-social/game/index.html",
+    "scene": "Loading",
+    "host": [
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/media/690f6d3b44e8cbb9-s.p.woff2",
+        "duration": 1288.7999999970198,
+        "bytes": 71896
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/media/739f45a8b71a2bd5-s.p.woff2",
+        "duration": 1794.2999999970198,
+        "bytes": 70060
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/css/31a7111d6dc0d705.css",
+        "duration": 754.5999999940395,
+        "bytes": 1152
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/css/8bfa0b5b99f944da.css",
+        "duration": 891.5999999940395,
+        "bytes": 21924
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/css/010939a743262bbe.css",
+        "duration": 1034.3999999910593,
+        "bytes": 15610
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/css/61040640e9208525.css",
+        "duration": 1288.2000000029802,
+        "bytes": 8777
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/webpack-b4100efeba7e108f.js",
+        "duration": 1794.2000000029802,
+        "bytes": 2433
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/2528dbef-b901915c374f806f.js",
+        "duration": 2321,
+        "bytes": 63598
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/5846-acd9c0fd7efb1649.js",
+        "duration": 2929.7999999970198,
+        "bytes": 65899
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/main-app-e7995ecc1a855ba9.js",
+        "duration": 2930,
+        "bytes": 815
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/6061-ae61c3ed82d79b13.js",
+        "duration": 2930.4000000059605,
+        "bytes": 5921
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/2614-21c6af2fd0af2beb.js",
+        "duration": 2989,
+        "bytes": 3699
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/app/layout-463e2d102f3a24f1.js",
+        "duration": 2989.4000000059605,
+        "bytes": 6257
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/_next/static/chunks/app/thirteen-social/page-9c215d896516ff00.js",
+        "duration": 2989.5,
+        "bytes": 2953
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/manifest.webmanifest",
+        "duration": 309.29999999701977,
+        "bytes": 1808
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/index.html",
+        "duration": 743.3999999910593,
+        "bytes": 1218
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/api/auth/me",
+        "duration": 237.3999999910593,
+        "bytes": 367
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/favicon.ico?603d046c9a6fdfbb",
+        "duration": 233.90000000596046,
+        "bytes": 26231
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/icons/icon-192.png",
+        "duration": 744,
+        "bytes": 52183
+      }
+    ],
+    "game": [
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/style.css",
+        "duration": 817.2999999970198,
+        "bytes": 866
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/src/polyfills.bundle.js",
+        "duration": 817.5,
+        "bytes": 5420
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/src/system.bundle.js",
+        "duration": 817.7000000029802,
+        "bytes": 4729
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/src/import-map.json",
+        "duration": 114.59999999403954,
+        "bytes": 340
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/index.js",
+        "duration": 21.799999997019768,
+        "bytes": 1118
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/application.js",
+        "duration": 726,
+        "bytes": 1448
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/cocos-js/cc.js",
+        "duration": 124.6000000089407,
+        "bytes": 3756
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/cocos-js/_virtual_cc-Bp5iGE8z.js",
+        "duration": 8044.29999999702,
+        "bytes": 637472
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/src/settings.json",
+        "duration": 171.79999999701977,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/cocos-js/spine.wasm-BP65faBu.js",
+        "duration": 57.8999999910593,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/cocos-js/spine-BGFFnNyc.js",
+        "duration": 26,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/cocos-js/assets/spine-CC34fKUR.wasm",
+        "duration": 530.5,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/src/effect.bin",
+        "duration": 42.20000000298023,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/src/chunks/bundle.js",
+        "duration": 38.599999994039536,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/internal/config.json",
+        "duration": 24.799999997019768,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/internal/index.js",
+        "duration": 62.79999999701977,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/internal/import/04/04f923b60.json",
+        "duration": 91.09999999403954,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/config.json",
+        "duration": 157.8999999910593,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/index.js",
+        "duration": 98.1000000089407,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/main/config.json",
+        "duration": 108.3999999910593,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/main/index.js",
+        "duration": 216,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/main/import/07/075a36d64.json",
+        "duration": 31.5,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/47/47b3bad76.json",
+        "duration": 185.90000000596046,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/main/native/e0/e056f492-647e-46e4-b1eb-c34ccdc56d36/ZCOOLQingKeHuangYou-TSUI-subset.ttf",
+        "duration": 216.09999999403954,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/08/08917cc70.json",
+        "duration": 49.400000005960464,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f8/f89be3e4-1bb5-4668-933e-e4d724951761.webp",
+        "duration": 988.1999999880791,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/02/027e98c1-f8e8-440a-848d-63832a4fa05b.webp",
+        "duration": 1359.5,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/43/439d41d8-a3c2-4926-88e5-31c8e4e5f877.webp",
+        "duration": 1854.800000011921,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f0/f0b9a4da-b9ff-4675-bdd4-43bd82e62c3d.webp",
+        "duration": 1943.2000000029802,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/7e/7e6398db-b71a-4f03-826e-66d310a57f80.webp",
+        "duration": 2146.0999999940395,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/6e/6ec9e766-be06-4858-bc4d-6fdb6fe2e8c4.png",
+        "duration": 2147.3999999910593,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/08/08ec20b1-121e-491d-99cc-8bfe761a0999.json",
+        "duration": 103.3999999910593,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/16/168ad709-4106-44cf-bcf9-cbedd330ff0d.json",
+        "duration": 103,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/27/27e3953c-9120-4291-b13d-a142242f7f46.json",
+        "duration": 103.5,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/2c/2ce9d14b-af2e-4505-9001-e82a29cfe901.json",
+        "duration": 103.29999999701977,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/3f/3f313359-e60f-4ee0-b709-0da007515548.json",
+        "duration": 103.19999998807907,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/5a/5a5a15ad-01ca-4504-924a-58637232b039.json",
+        "duration": 118.5,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/5a/5a676acd-a8c6-4ba8-b360-6c7358fe2fc1.json",
+        "duration": 119.09999999403954,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/5c/5c32515a-cbeb-44da-abde-fe1f906edcc1.json",
+        "duration": 119.30000001192093,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/6c/6c8bb3d4-da2b-4efe-8e36-c6403de3d1f0.json",
+        "duration": 119.40000000596046,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/71/7140ac4f-fc16-40c1-b0c6-ffd989562930.json",
+        "duration": 119.5,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/7c/7cef13a7-8351-42ec-bc0e-e3514a85f18b.json",
+        "duration": 119.6000000089407,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/7f/7f24ab9e-054e-4890-954f-5fddbcf9a053.json",
+        "duration": 120.70000000298023,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/87/87b4ecfe-469b-453e-af0b-27c672b7ee86.json",
+        "duration": 121.5,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/ac/acf1ccf5-f7aa-4033-bfc3-a1a0152db0e7.json",
+        "duration": 121.5,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/b1/b1109367-0013-48ac-8f3e-5c0d17f0495e.json",
+        "duration": 121.29999999701977,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/main/import/b0/b088c6bb-d815-4116-ba16-bc07865d51d9.json",
+        "duration": 165.90000000596046,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/08/08ec20b1-121e-491d-99cc-8bfe761a0999.wav",
+        "duration": 216.69999998807907,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/27/27e3953c-9120-4291-b13d-a142242f7f46.wav",
+        "duration": 233.5,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2c/2ce9d14b-af2e-4505-9001-e82a29cfe901.wav",
+        "duration": 588.2000000029802,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/3f/3f313359-e60f-4ee0-b709-0da007515548.wav",
+        "duration": 644.9000000059605,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/5a/5a5a15ad-01ca-4504-924a-58637232b039.wav",
+        "duration": 638,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/5a/5a676acd-a8c6-4ba8-b360-6c7358fe2fc1.wav",
+        "duration": 669.5,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/5c/5c32515a-cbeb-44da-abde-fe1f906edcc1.wav",
+        "duration": 671.5,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/6c/6c8bb3d4-da2b-4efe-8e36-c6403de3d1f0.wav",
+        "duration": 772.9000000059605,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/71/7140ac4f-fc16-40c1-b0c6-ffd989562930.wav",
+        "duration": 1052.7000000029802,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/7c/7cef13a7-8351-42ec-bc0e-e3514a85f18b.wav",
+        "duration": 1155.7999999970198,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/7f/7f24ab9e-054e-4890-954f-5fddbcf9a053.wav",
+        "duration": 1239.5,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/b1/b1109367-0013-48ac-8f3e-5c0d17f0495e.wav",
+        "duration": 1239.199999988079,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/87/87b4ecfe-469b-453e-af0b-27c672b7ee86.wav",
+        "duration": 1239.1000000089407,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/ac/acf1ccf5-f7aa-4033-bfc3-a1a0152db0e7.wav",
+        "duration": 1311.2000000029802,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/213b8916-fbe6-4ded-a7a9-83d4e7f31b73.webp",
+        "duration": 1263.9000000059605,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/0a/0af6fb32-6bd4-4061-a2e4-f43e3d24d7f9.webp",
+        "duration": 1264.2000000029802,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/9c/9cda4f36-eeaa-4b14-8814-ba2e005fca45.webp",
+        "duration": 1263.4000000059605,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/51/510ffad1-446e-41b5-affe-72d32bbd8954.webp",
+        "duration": 1264.0999999940395,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2f/2fb512d5-63e7-41cf-b8c3-8201994dc30e.webp",
+        "duration": 1264.2000000029802,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/22/2236425c-0534-4a1f-83c3-ce96819db886.webp",
+        "duration": 1264.3999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/c0/c04f479c-0309-4ab3-acbc-c396ebe74777.webp",
+        "duration": 636.1000000089407,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34081f1c-3e31-473a-b69d-12b1baeb9bcb.webp",
+        "duration": 636.2000000029802,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/6b/6b1f0c13-617a-480d-812a-1a0b6054177e.webp",
+        "duration": 536.8999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/04/04754741-8552-44cc-bd5f-f5197473e091.webp",
+        "duration": 263,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/66/6678e3b3-09c1-48de-9daa-5ed84ce07bf9.webp",
+        "duration": 163.1000000089407,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/12/12d1333e-8e0e-42dd-908a-aac682b1a1fa.webp",
+        "duration": 79.90000000596046,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/43/439dd995-4bef-4e0e-9854-4d0a12f55a60.webp",
+        "duration": 79.8999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96398f91-c0d5-4865-aff9-2364a73eeb97.webp",
+        "duration": 80.3999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/41/41db31e3-6859-45f3-8b8b-87c66214a467.json",
+        "duration": 23.099999994039536,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f3/f3225182-13aa-4d9a-a102-01986e117961.webp",
+        "duration": 22.900000005960464,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a2/a20faf39-d706-4b79-9e28-5b774838fb43.webp",
+        "duration": 23.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/2161b19a-3647-4d43-a160-daeef22c0bd8.webp",
+        "duration": 26.19999998807907,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96077e79-bd6a-4a93-92b9-7e714141c1dd.webp",
+        "duration": 26.299999997019768,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/86/8608da66-c5db-404a-9dcb-7a4a0259a45d.webp",
+        "duration": 40,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/1f/1f14db28-418f-4b4a-b003-867cb385f6bf.webp",
+        "duration": 40.19999998807907,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/19/19431b7e-62e4-485a-95f9-d90e3c32aa2f.webp",
+        "duration": 40.19999998807907,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/82/82d1fd79-fa3d-4fa1-81e8-19c0e47985ef.webp",
+        "duration": 40.29999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64aad45c-7112-4206-a724-f71cd1f68478.webp",
+        "duration": 40.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/98/98daef81-c411-4370-9286-b82ab1898514.webp",
+        "duration": 41,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/9c/9c38ad4e-1c9a-40be-a01a-986ff083f0d7.webp",
+        "duration": 41.3999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/be/befba1b9-5fd8-4576-93a2-2dcfee493c56.webp",
+        "duration": 41.3999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34406411-06cc-4df4-b205-2954637a5513.webp",
+        "duration": 41.29999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/77/77983b36-3a86-4dd4-b79a-4b9d0c72f214.webp",
+        "duration": 41.400000005960464,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/41/41db31e3-6859-45f3-8b8b-87c66214a467/header-ui.ttf",
+        "duration": 76,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2d/2d6223a2-aaba-484e-a398-8c2056ee56a3.webp",
+        "duration": 69,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a82a3fe3-bd64-47d9-a4d9-a26aa1a05267.webp",
+        "duration": 69.09999999403954,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a8d8f285-02c0-4f2f-b100-b392011313e5.webp",
+        "duration": 69.09999999403954,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/ec/ece1f9a3-6622-4a6d-9e72-17e3cd0c1559.webp",
+        "duration": 69.19999998807907,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/e4/e44911c5-6ba4-4343-b8ba-eeca82f2323a.webp",
+        "duration": 52.400000005960464,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/08/08c46130-d033-4cf6-b499-2e828a79d235.webp",
+        "duration": 61.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a4/a431f0a4-2be4-4163-861b-f54561b8438f.webp",
+        "duration": 61.599999994039536,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/18/18f1015a-60db-4909-aa3b-cb332eae1da6.webp",
+        "duration": 61.900000005960464,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64f82915-1f06-45d8-a894-e89ec3e5c337.webp",
+        "duration": 62,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/06/06f96147-8135-4a18-b210-9d6013286868.webp",
+        "duration": 62.20000000298023,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f5/f5816bce-523e-402b-bf1e-b1398ff5269d.webp",
+        "duration": 62.1000000089407,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/99/9948486e-f463-48c3-a7b6-013488960ce0.webp",
+        "duration": 62.20000000298023,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/21bd5e24-7d15-4ebd-96e1-652d0b7dbf69.webp",
+        "duration": 62.30000001192093,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64d003a6-3bb8-43df-89ad-24cca5e919d5.webp",
+        "duration": 62.30000001192093,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/16/168ad709-4106-44cf-bcf9-cbedd330ff0d.wav",
+        "duration": 125.3999999910593,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/fe/fe28712b-44dc-4633-b8fa-820384b76a1d.json",
+        "duration": 125.5,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/f9/f98b76af-7003-4c96-8ede-d929025c5d0e.json",
+        "duration": 128.5,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/f3/f3d507fd-66b4-4a6c-9aa6-ac4598ac8c53.json",
+        "duration": 129,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/f1/f16e931b-0204-4ae1-a830-8d2e9c59816f.json",
+        "duration": 128.90000000596046,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/ef/eff08c49-d393-4694-bc63-81c8b22f2b8e.json",
+        "duration": 130,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/da/dafe00a9-79f8-4816-882e-ad76f0467144.json",
+        "duration": 130.1000000089407,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/db/db9bd0fa-4e8b-466b-ba2d-71f5e70a88ae.json",
+        "duration": 130.1000000089407,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/d2/d26b9cc7-36d1-4bf8-804e-536e59fab190.json",
+        "duration": 134.40000000596046,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/import/c1/c1b5d2d1-1c0d-4d55-bdc4-47e2787968fc.json",
+        "duration": 134.59999999403954,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/fe/fe28712b-44dc-4633-b8fa-820384b76a1d.wav",
+        "duration": 34.70000000298023,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f9/f98b76af-7003-4c96-8ede-d929025c5d0e.wav",
+        "duration": 50.69999998807907,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f3/f3d507fd-66b4-4a6c-9aa6-ac4598ac8c53.wav",
+        "duration": 70.3999999910593,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f1/f16e931b-0204-4ae1-a830-8d2e9c59816f.wav",
+        "duration": 123.19999998807907,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/ef/eff08c49-d393-4694-bc63-81c8b22f2b8e.wav",
+        "duration": 134.69999998807907,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/da/dafe00a9-79f8-4816-882e-ad76f0467144.wav",
+        "duration": 134.70000000298023,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/db/db9bd0fa-4e8b-466b-ba2d-71f5e70a88ae.wav",
+        "duration": 194.09999999403954,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/d2/d26b9cc7-36d1-4bf8-804e-536e59fab190.wav",
+        "duration": 210,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/c1/c1b5d2d1-1c0d-4d55-bdc4-47e2787968fc.wav",
+        "duration": 251.29999999701977,
+        "bytes": 0
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/213b8916-fbe6-4ded-a7a9-83d4e7f31b73.webp",
+        "duration": 694.5999999940395,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/0a/0af6fb32-6bd4-4061-a2e4-f43e3d24d7f9.webp",
+        "duration": 711.6999999880791,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/51/510ffad1-446e-41b5-affe-72d32bbd8954.webp",
+        "duration": 724.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2f/2fb512d5-63e7-41cf-b8c3-8201994dc30e.webp",
+        "duration": 732.7999999970198,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/22/2236425c-0534-4a1f-83c3-ce96819db886.webp",
+        "duration": 743.5999999940395,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/c0/c04f479c-0309-4ab3-acbc-c396ebe74777.webp",
+        "duration": 758.2000000029802,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34081f1c-3e31-473a-b69d-12b1baeb9bcb.webp",
+        "duration": 856,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/6b/6b1f0c13-617a-480d-812a-1a0b6054177e.webp",
+        "duration": 855.8999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/04/04754741-8552-44cc-bd5f-f5197473e091.webp",
+        "duration": 847.2999999970198,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/66/6678e3b3-09c1-48de-9daa-5ed84ce07bf9.webp",
+        "duration": 868,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/12/12d1333e-8e0e-42dd-908a-aac682b1a1fa.webp",
+        "duration": 880.2999999970198,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/43/439dd995-4bef-4e0e-9854-4d0a12f55a60.webp",
+        "duration": 894,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96398f91-c0d5-4865-aff9-2364a73eeb97.webp",
+        "duration": 906.7000000029802,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f3/f3225182-13aa-4d9a-a102-01986e117961.webp",
+        "duration": 891.5999999940395,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a2/a20faf39-d706-4b79-9e28-5b774838fb43.webp",
+        "duration": 902,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/2161b19a-3647-4d43-a160-daeef22c0bd8.webp",
+        "duration": 915.6000000089407,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96077e79-bd6a-4a93-92b9-7e714141c1dd.webp",
+        "duration": 928.8999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/86/8608da66-c5db-404a-9dcb-7a4a0259a45d.webp",
+        "duration": 925.2999999970198,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/1f/1f14db28-418f-4b4a-b003-867cb385f6bf.webp",
+        "duration": 937.7000000029802,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/19/19431b7e-62e4-485a-95f9-d90e3c32aa2f.webp",
+        "duration": 950.2999999970198,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64d003a6-3bb8-43df-89ad-24cca5e919d5.webp",
+        "duration": 307,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/21bd5e24-7d15-4ebd-96e1-652d0b7dbf69.webp",
+        "duration": 306,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/99/9948486e-f463-48c3-a7b6-013488960ce0.webp",
+        "duration": 319.90000000596046,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/06/06f96147-8135-4a18-b210-9d6013286868.webp",
+        "duration": 314.59999999403954,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f5/f5816bce-523e-402b-bf1e-b1398ff5269d.webp",
+        "duration": 310.90000000596046,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64f82915-1f06-45d8-a894-e89ec3e5c337.webp",
+        "duration": 325,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/18/18f1015a-60db-4909-aa3b-cb332eae1da6.webp",
+        "duration": 244.70000000298023,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a4/a431f0a4-2be4-4163-861b-f54561b8438f.webp",
+        "duration": 256.3999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/08/08c46130-d033-4cf6-b499-2e828a79d235.webp",
+        "duration": 270.8999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/e4/e44911c5-6ba4-4343-b8ba-eeca82f2323a.webp",
+        "duration": 253.3999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/ec/ece1f9a3-6622-4a6d-9e72-17e3cd0c1559.webp",
+        "duration": 265.79999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a8d8f285-02c0-4f2f-b100-b392011313e5.webp",
+        "duration": 263.59999999403954,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a82a3fe3-bd64-47d9-a4d9-a26aa1a05267.webp",
+        "duration": 261.40000000596046,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2d/2d6223a2-aaba-484e-a398-8c2056ee56a3.webp",
+        "duration": 258.6000000089407,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/77/77983b36-3a86-4dd4-b79a-4b9d0c72f214.webp",
+        "duration": 287.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34406411-06cc-4df4-b205-2954637a5513.webp",
+        "duration": 291.6000000089407,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/be/befba1b9-5fd8-4576-93a2-2dcfee493c56.webp",
+        "duration": 294.79999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/9c/9c38ad4e-1c9a-40be-a01a-986ff083f0d7.webp",
+        "duration": 300.1000000089407,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/98/98daef81-c411-4370-9286-b82ab1898514.webp",
+        "duration": 387.79999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64aad45c-7112-4206-a724-f71cd1f68478.webp",
+        "duration": 371.90000000596046,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/82/82d1fd79-fa3d-4fa1-81e8-19c0e47985ef.webp",
+        "duration": 355.20000000298023,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/213b8916-fbe6-4ded-a7a9-83d4e7f31b73.webp",
+        "duration": 38.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/0a/0af6fb32-6bd4-4061-a2e4-f43e3d24d7f9.webp",
+        "duration": 42.80000001192093,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/51/510ffad1-446e-41b5-affe-72d32bbd8954.webp",
+        "duration": 53.3999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2f/2fb512d5-63e7-41cf-b8c3-8201994dc30e.webp",
+        "duration": 65.29999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/22/2236425c-0534-4a1f-83c3-ce96819db886.webp",
+        "duration": 73.09999999403954,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/c0/c04f479c-0309-4ab3-acbc-c396ebe74777.webp",
+        "duration": 72,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34081f1c-3e31-473a-b69d-12b1baeb9bcb.webp",
+        "duration": 94.19999998807907,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/6b/6b1f0c13-617a-480d-812a-1a0b6054177e.webp",
+        "duration": 94.29999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/04/04754741-8552-44cc-bd5f-f5197473e091.webp",
+        "duration": 94.3999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/66/6678e3b3-09c1-48de-9daa-5ed84ce07bf9.webp",
+        "duration": 108.19999998807907,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/12/12d1333e-8e0e-42dd-908a-aac682b1a1fa.webp",
+        "duration": 109.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/43/439dd995-4bef-4e0e-9854-4d0a12f55a60.webp",
+        "duration": 105.20000000298023,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96398f91-c0d5-4865-aff9-2364a73eeb97.webp",
+        "duration": 102.79999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f3/f3225182-13aa-4d9a-a102-01986e117961.webp",
+        "duration": 106.79999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a2/a20faf39-d706-4b79-9e28-5b774838fb43.webp",
+        "duration": 107.6000000089407,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/2161b19a-3647-4d43-a160-daeef22c0bd8.webp",
+        "duration": 110.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96077e79-bd6a-4a93-92b9-7e714141c1dd.webp",
+        "duration": 110.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/86/8608da66-c5db-404a-9dcb-7a4a0259a45d.webp",
+        "duration": 110.70000000298023,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/1f/1f14db28-418f-4b4a-b003-867cb385f6bf.webp",
+        "duration": 112.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/19/19431b7e-62e4-485a-95f9-d90e3c32aa2f.webp",
+        "duration": 110.40000000596046,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64d003a6-3bb8-43df-89ad-24cca5e919d5.webp",
+        "duration": 110.29999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/21bd5e24-7d15-4ebd-96e1-652d0b7dbf69.webp",
+        "duration": 120.70000000298023,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/99/9948486e-f463-48c3-a7b6-013488960ce0.webp",
+        "duration": 123.79999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/06/06f96147-8135-4a18-b210-9d6013286868.webp",
+        "duration": 138.70000000298023,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f5/f5816bce-523e-402b-bf1e-b1398ff5269d.webp",
+        "duration": 140.79999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64f82915-1f06-45d8-a894-e89ec3e5c337.webp",
+        "duration": 138.6000000089407,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/18/18f1015a-60db-4909-aa3b-cb332eae1da6.webp",
+        "duration": 134.70000000298023,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a4/a431f0a4-2be4-4163-861b-f54561b8438f.webp",
+        "duration": 135.40000000596046,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/08/08c46130-d033-4cf6-b499-2e828a79d235.webp",
+        "duration": 135.29999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/e4/e44911c5-6ba4-4343-b8ba-eeca82f2323a.webp",
+        "duration": 133.09999999403954,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/ec/ece1f9a3-6622-4a6d-9e72-17e3cd0c1559.webp",
+        "duration": 134.09999999403954,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a8d8f285-02c0-4f2f-b100-b392011313e5.webp",
+        "duration": 134.90000000596046,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a82a3fe3-bd64-47d9-a4d9-a26aa1a05267.webp",
+        "duration": 130.19999998807907,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2d/2d6223a2-aaba-484e-a398-8c2056ee56a3.webp",
+        "duration": 133.40000000596046,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/77/77983b36-3a86-4dd4-b79a-4b9d0c72f214.webp",
+        "duration": 117.09999999403954,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34406411-06cc-4df4-b205-2954637a5513.webp",
+        "duration": 109.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/be/befba1b9-5fd8-4576-93a2-2dcfee493c56.webp",
+        "duration": 104.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/9c/9c38ad4e-1c9a-40be-a01a-986ff083f0d7.webp",
+        "duration": 202,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/98/98daef81-c411-4370-9286-b82ab1898514.webp",
+        "duration": 114.59999999403954,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64aad45c-7112-4206-a724-f71cd1f68478.webp",
+        "duration": 114.80000001192093,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/82/82d1fd79-fa3d-4fa1-81e8-19c0e47985ef.webp",
+        "duration": 114.79999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/213b8916-fbe6-4ded-a7a9-83d4e7f31b73.webp",
+        "duration": 32.29999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/0a/0af6fb32-6bd4-4061-a2e4-f43e3d24d7f9.webp",
+        "duration": 32.599999994039536,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/51/510ffad1-446e-41b5-affe-72d32bbd8954.webp",
+        "duration": 31.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2f/2fb512d5-63e7-41cf-b8c3-8201994dc30e.webp",
+        "duration": 30.599999994039536,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/22/2236425c-0534-4a1f-83c3-ce96819db886.webp",
+        "duration": 32.8999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/c0/c04f479c-0309-4ab3-acbc-c396ebe74777.webp",
+        "duration": 36.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34081f1c-3e31-473a-b69d-12b1baeb9bcb.webp",
+        "duration": 93.09999999403954,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/6b/6b1f0c13-617a-480d-812a-1a0b6054177e.webp",
+        "duration": 93.1000000089407,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/04/04754741-8552-44cc-bd5f-f5197473e091.webp",
+        "duration": 129.90000000596046,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/66/6678e3b3-09c1-48de-9daa-5ed84ce07bf9.webp",
+        "duration": 113.29999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/12/12d1333e-8e0e-42dd-908a-aac682b1a1fa.webp",
+        "duration": 112.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/43/439dd995-4bef-4e0e-9854-4d0a12f55a60.webp",
+        "duration": 114.79999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96398f91-c0d5-4865-aff9-2364a73eeb97.webp",
+        "duration": 118.29999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f3/f3225182-13aa-4d9a-a102-01986e117961.webp",
+        "duration": 116.6000000089407,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a2/a20faf39-d706-4b79-9e28-5b774838fb43.webp",
+        "duration": 117.40000000596046,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/2161b19a-3647-4d43-a160-daeef22c0bd8.webp",
+        "duration": 117.70000000298023,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/96/96077e79-bd6a-4a93-92b9-7e714141c1dd.webp",
+        "duration": 118.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/86/8608da66-c5db-404a-9dcb-7a4a0259a45d.webp",
+        "duration": 119.79999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/1f/1f14db28-418f-4b4a-b003-867cb385f6bf.webp",
+        "duration": 118.70000000298023,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/19/19431b7e-62e4-485a-95f9-d90e3c32aa2f.webp",
+        "duration": 118.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64d003a6-3bb8-43df-89ad-24cca5e919d5.webp",
+        "duration": 121.29999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/21/21bd5e24-7d15-4ebd-96e1-652d0b7dbf69.webp",
+        "duration": 111.09999999403954,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/99/9948486e-f463-48c3-a7b6-013488960ce0.webp",
+        "duration": 108.3999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/06/06f96147-8135-4a18-b210-9d6013286868.webp",
+        "duration": 96,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/f5/f5816bce-523e-402b-bf1e-b1398ff5269d.webp",
+        "duration": 94.59999999403954,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64f82915-1f06-45d8-a894-e89ec3e5c337.webp",
+        "duration": 95.79999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/18/18f1015a-60db-4909-aa3b-cb332eae1da6.webp",
+        "duration": 94.69999998807907,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a4/a431f0a4-2be4-4163-861b-f54561b8438f.webp",
+        "duration": 93.8999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/08/08c46130-d033-4cf6-b499-2e828a79d235.webp",
+        "duration": 95.8999999910593,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/e4/e44911c5-6ba4-4343-b8ba-eeca82f2323a.webp",
+        "duration": 94.70000000298023,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/ec/ece1f9a3-6622-4a6d-9e72-17e3cd0c1559.webp",
+        "duration": 94.19999998807907,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a8d8f285-02c0-4f2f-b100-b392011313e5.webp",
+        "duration": 93,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/a8/a82a3fe3-bd64-47d9-a4d9-a26aa1a05267.webp",
+        "duration": 94.79999999701977,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/2d/2d6223a2-aaba-484e-a398-8c2056ee56a3.webp",
+        "duration": 93.6000000089407,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/77/77983b36-3a86-4dd4-b79a-4b9d0c72f214.webp",
+        "duration": 95.40000000596046,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/34/34406411-06cc-4df4-b205-2954637a5513.webp",
+        "duration": 95.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/be/befba1b9-5fd8-4576-93a2-2dcfee493c56.webp",
+        "duration": 92.90000000596046,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/9c/9c38ad4e-1c9a-40be-a01a-986ff083f0d7.webp",
+        "duration": 110.5,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/98/98daef81-c411-4370-9286-b82ab1898514.webp",
+        "duration": 120,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/64/64aad45c-7112-4206-a724-f71cd1f68478.webp",
+        "duration": 137.1000000089407,
+        "bytes": 300
+      },
+      {
+        "url": "https://www.gameai.xingzdh.com/thirteen-social/game/assets/resources/native/82/82d1fd79-fa3d-4fa1-81e8-19c0e47985ef.webp",
+        "duration": 150.20000000298023,
+        "bytes": 300
+      }
+    ]
+  }
+}
