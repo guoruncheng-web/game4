@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "base": "https://www.gameai.xingzdh.com",
+  "checks": [
+    "Public pages, expected PWA cache version and unauthenticated HTTP/WS rejection",
+    "UID login and canonical username compatibility",
+    "Login, Cookie, wallet, admin denial, uid binding and expired HTTP/WS denial",
+    "Voice room create without game, eight-seat capacity, in-room game selection and Agora listener token",
+    "Four public WSS clients create/join/ready/start and receive private 13-card hands",
+    "Legacy authenticated lobby connection",
+    "UMO authenticated gateway protocol",
+    "Logout revocation blocks HTTP and closes connected WSS"
+  ]
+}
