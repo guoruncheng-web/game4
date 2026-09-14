@@ -1,0 +1,1052 @@
+{
+  "url": "http://127.0.0.1:3338/thirteen-social",
+  "version": "v100",
+  "exceptions": [],
+  "assetErrors": [],
+  "accepted": true,
+  "firstLoad": {
+    "scene": "Preparation",
+    "readyMs": 5420,
+    "canvas": true
+  },
+  "coldResources": {
+    "host": [
+      {
+        "name": "http://127.0.0.1:3338/_next/static/media/690f6d3b44e8cbb9-s.p.woff2",
+        "start": 514.8999999910593,
+        "duration": 43.6000000089407,
+        "bytes": 71896
+      },
+      {
+        "name": "http://127.0.0.1:3338/_next/static/media/739f45a8b71a2bd5-s.p.woff2",
+        "start": 515.3999999910593,
+        "duration": 45.29999999701977,
+        "bytes": 70060
+      },
+      {
+        "name": "http://127.0.0.1:3338/_next/static/css/31a7111d6dc0d705.css",
+        "start": 515.5,
+        "duration": 40.8999999910593,
+        "bytes": 1152
+      },
+      {
+        "name": "http://127.0.0.1:3338/_next/static/css/010939a743262bbe.css",
+        "start": 515.5999999940395,
+        "duration": 80.40000000596046,
+        "bytes": 15610
+      },
+      {
+        "name": "http://127.0.0.1:3338/_next/static/css/61040640e9208525.css",
+        "start": 515.5999999940395,
+        "duration": 81.40000000596046,
+        "bytes": 8777
+      },
+      {
+        "name": "http://127.0.0.1:3338/_next/static/css/8bfa0b5b99f944da.css",
+        "start": 515.5999999940395,
+        "duration": 81.90000000596046,
+        "bytes": 21924
+      },
+      {
+        "name": "http://127.0.0.1:3338/_next/static/chunks/webpack-b4100efeba7e108f.js",
+        "start": 515.5999999940395,
+        "duration": 115.20000000298023,
+        "bytes": 2433
+      },
+      {
+        "name": "http://127.0.0.1:3338/_next/static/chunks/main-app-d180428d9b74174c.js",
+        "start": 515.6999999880791,
+        "duration": 112.40000000596046,
+        "bytes": 813
+      },
+      {
+        "name": "http://127.0.0.1:3338/_next/static/chunks/2528dbef-b901915c374f806f.js",
+        "start": 515.6999999880791,
+        "duration": 132.90000000596046,
+        "bytes": 63598
+      },
+      {
+        "name": "http://127.0.0.1:3338/_next/static/chunks/5846-acd9c0fd7efb1649.js",
+        "start": 515.6999999880791,
+        "duration": 135.1000000089407,
+        "bytes": 65899
+      },
+      {
+        "name": "http://127.0.0.1:3338/_next/static/chunks/6061-ae61c3ed82d79b13.js",
+        "start": 515.7999999970198,
+        "duration": 117.09999999403954,
+        "bytes": 5921
+      },
+      {
+        "name": "http://127.0.0.1:3338/_next/static/chunks/2614-21c6af2fd0af2beb.js",
+        "start": 515.7999999970198,
+        "duration": 128.59999999403954,
+        "bytes": 3699
+      },
+      {
+        "name": "http://127.0.0.1:3338/_next/static/chunks/app/layout-3fe46dd82a56a68f.js",
+        "start": 515.7999999970198,
+        "duration": 131.3999999910593,
+        "bytes": 6259
+      },
+      {
+        "name": "http://127.0.0.1:3338/_next/static/chunks/app/thirteen-social/page-4dcd3b3f93e59ea4.js",
+        "start": 515.7999999970198,
+        "duration": 131.70000000298023,
+        "bytes": 2955
+      },
+      {
+        "name": "http://127.0.0.1:3338/manifest.webmanifest",
+        "start": 534,
+        "duration": 87.19999998807907,
+        "bytes": 1808
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/index.html",
+        "start": 601.1999999880791,
+        "duration": 33.30000001192093,
+        "bytes": 1218
+      },
+      {
+        "name": "http://127.0.0.1:3338/api/auth/me",
+        "start": 714.2999999970198,
+        "duration": 295.09999999403954,
+        "bytes": 367
+      },
+      {
+        "name": "http://127.0.0.1:3338/favicon.ico",
+        "start": 750.1999999880791,
+        "duration": 12.900000005960464,
+        "bytes": 26231
+      },
+      {
+        "name": "http://127.0.0.1:3338/icons/icon-192.png",
+        "start": 750.3999999910593,
+        "duration": 12.799999997019768,
+        "bytes": 52183
+      }
+    ],
+    "game": [
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/style.css",
+        "start": 36.099999994039536,
+        "duration": 11.200000002980232,
+        "bytes": 866
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/src/polyfills.bundle.js",
+        "start": 36.20000000298023,
+        "duration": 14.799999997019768,
+        "bytes": 5420
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/src/system.bundle.js",
+        "start": 36.20000000298023,
+        "duration": 16.399999991059303,
+        "bytes": 4729
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/src/import-map.json",
+        "start": 103.40000000596046,
+        "duration": 2.0999999940395355,
+        "bytes": 340
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/index.js",
+        "start": 119.29999999701977,
+        "duration": 23.200000002980232,
+        "bytes": 1118
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/application.js",
+        "start": 148.90000000596046,
+        "duration": 13.899999991059303,
+        "bytes": 1448
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/cocos-js/cc.js",
+        "start": 168.59999999403954,
+        "duration": 4.200000002980232,
+        "bytes": 3756
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/cocos-js/_virtual_cc-Bp5iGE8z.js",
+        "start": 176.09999999403954,
+        "duration": 140.1000000089407,
+        "bytes": 637472
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/src/settings.json",
+        "start": 616.5999999940395,
+        "duration": 8.5,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/cocos-js/spine.wasm-BP65faBu.js",
+        "start": 2156.0999999940395,
+        "duration": 8,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/cocos-js/spine-BGFFnNyc.js",
+        "start": 2156.2000000029802,
+        "duration": 7.299999997019768,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/cocos-js/assets/spine-CC34fKUR.wasm",
+        "start": 2271.9000000059605,
+        "duration": 12.599999994039536,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/src/effect.bin",
+        "start": 2288.9000000059605,
+        "duration": 5.699999988079071,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/src/chunks/bundle.js",
+        "start": 2302.7000000029802,
+        "duration": 2.5,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/internal/config.json",
+        "start": 2308.7999999970198,
+        "duration": 3.7000000029802322,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/internal/index.js",
+        "start": 2308.9000000059605,
+        "duration": 4.399999991059303,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/internal/import/04/04f923b60.json",
+        "start": 2333.5,
+        "duration": 5.700000002980232,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/config.json",
+        "start": 2347.2000000029802,
+        "duration": 8.399999991059303,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/index.js",
+        "start": 2347.2999999970198,
+        "duration": 4.299999997019768,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/main/config.json",
+        "start": 2347.7000000029802,
+        "duration": 5.5999999940395355,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/main/index.js",
+        "start": 2347.7999999970198,
+        "duration": 8.400000005960464,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/main/import/07/075a36d64.json",
+        "start": 4388.0999999940395,
+        "duration": 25.700000002980232,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/import/20/209a36290.json",
+        "start": 4419.9000000059605,
+        "duration": 21.399999991059303,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/main/native/e0/e056f492-647e-46e4-b1eb-c34ccdc56d36/ZCOOLQingKeHuangYou-TSUI-subset.ttf",
+        "start": 4421.79999999702,
+        "duration": 15.100000008940697,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/import/02/02f93ac7b.json",
+        "start": 4445.5999999940395,
+        "duration": 4.800000011920929,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/02/027e98c1-f8e8-440a-848d-63832a4fa05b.webp",
+        "start": 4451.5999999940395,
+        "duration": 8.900000005960464,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/43/439d41d8-a3c2-4926-88e5-31c8e4e5f877.webp",
+        "start": 4451.5999999940395,
+        "duration": 11.400000005960464,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/f8/f89be3e4-1bb5-4668-933e-e4d724951761.webp",
+        "start": 4451.5999999940395,
+        "duration": 13.100000008940697,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/f0/f0b9a4da-b9ff-4675-bdd4-43bd82e62c3d.webp",
+        "start": 4451.79999999702,
+        "duration": 8.299999997019768,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/6e/6ec9e766-be06-4858-bc4d-6fdb6fe2e8c4.png",
+        "start": 4451.79999999702,
+        "duration": 9.600000008940697,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/7e/7e6398db-b71a-4f03-826e-66d310a57f80.webp",
+        "start": 4451.79999999702,
+        "duration": 10.400000005960464,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/main/import/b0/b088c6bb-d815-4116-ba16-bc07865d51d9.json",
+        "start": 4516.20000000298,
+        "duration": 4.5,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/21/213b8916-fbe6-4ded-a7a9-83d4e7f31b73.webp",
+        "start": 4570.5,
+        "duration": 12.200000002980232,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/0a/0af6fb32-6bd4-4061-a2e4-f43e3d24d7f9.webp",
+        "start": 4570.5999999940395,
+        "duration": 7.600000008940697,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/9c/9cda4f36-eeaa-4b14-8814-ba2e005fca45.webp",
+        "start": 4570.5999999940395,
+        "duration": 8.100000008940697,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/2f/2fb512d5-63e7-41cf-b8c3-8201994dc30e.webp",
+        "start": 4570.5999999940395,
+        "duration": 9.400000005960464,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/51/510ffad1-446e-41b5-affe-72d32bbd8954.webp",
+        "start": 4570.5999999940395,
+        "duration": 9.300000011920929,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/22/2236425c-0534-4a1f-83c3-ce96819db886.webp",
+        "start": 4570.5999999940395,
+        "duration": 9.700000002980232,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/64/64d003a6-3bb8-43df-89ad-24cca5e919d5.webp",
+        "start": 4570.70000000298,
+        "duration": 15.299999997019768,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/21/21bd5e24-7d15-4ebd-96e1-652d0b7dbf69.webp",
+        "start": 4570.70000000298,
+        "duration": 15.399999991059303,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/99/9948486e-f463-48c3-a7b6-013488960ce0.webp",
+        "start": 4570.70000000298,
+        "duration": 15.799999997019768,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/f5/f5816bce-523e-402b-bf1e-b1398ff5269d.webp",
+        "start": 4570.70000000298,
+        "duration": 16.5,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/06/06f96147-8135-4a18-b210-9d6013286868.webp",
+        "start": 4570.70000000298,
+        "duration": 16.799999997019768,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/64/64f82915-1f06-45d8-a894-e89ec3e5c337.webp",
+        "start": 4570.70000000298,
+        "duration": 25.399999991059303,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/a4/a431f0a4-2be4-4163-861b-f54561b8438f.webp",
+        "start": 4570.79999999702,
+        "duration": 27.100000008940697,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/08/08c46130-d033-4cf6-b499-2e828a79d235.webp",
+        "start": 4570.79999999702,
+        "duration": 29,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/18/18f1015a-60db-4909-aa3b-cb332eae1da6.webp",
+        "start": 4570.79999999702,
+        "duration": 29.799999997019768,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/ec/ece1f9a3-6622-4a6d-9e72-17e3cd0c1559.webp",
+        "start": 4570.79999999702,
+        "duration": 32.29999999701977,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/e4/e44911c5-6ba4-4343-b8ba-eeca82f2323a.webp",
+        "start": 4570.79999999702,
+        "duration": 32.79999999701977,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/a8/a8d8f285-02c0-4f2f-b100-b392011313e5.webp",
+        "start": 4570.79999999702,
+        "duration": 34.1000000089407,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/a8/a82a3fe3-bd64-47d9-a4d9-a26aa1a05267.webp",
+        "start": 4570.9000000059605,
+        "duration": 38.69999998807907,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/2d/2d6223a2-aaba-484e-a398-8c2056ee56a3.webp",
+        "start": 4570.9000000059605,
+        "duration": 39.79999999701977,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/c0/c04f479c-0309-4ab3-acbc-c396ebe74777.webp",
+        "start": 4599.20000000298,
+        "duration": 22.5,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/34/34081f1c-3e31-473a-b69d-12b1baeb9bcb.webp",
+        "start": 4599.29999999702,
+        "duration": 12,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/6b/6b1f0c13-617a-480d-812a-1a0b6054177e.webp",
+        "start": 4599.5,
+        "duration": 13.099999994039536,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/04/04754741-8552-44cc-bd5f-f5197473e091.webp",
+        "start": 4599.5,
+        "duration": 14.299999997019768,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/66/6678e3b3-09c1-48de-9daa-5ed84ce07bf9.webp",
+        "start": 4599.5999999940395,
+        "duration": 16.30000001192093,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/12/12d1333e-8e0e-42dd-908a-aac682b1a1fa.webp",
+        "start": 4599.5999999940395,
+        "duration": 17.900000005960464,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/43/439dd995-4bef-4e0e-9854-4d0a12f55a60.webp",
+        "start": 4606.70000000298,
+        "duration": 13.099999994039536,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/96/96398f91-c0d5-4865-aff9-2364a73eeb97.webp",
+        "start": 4606.70000000298,
+        "duration": 15.099999994039536,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/f3/f3225182-13aa-4d9a-a102-01986e117961.webp",
+        "start": 4606.70000000298,
+        "duration": 16.399999991059303,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/a2/a20faf39-d706-4b79-9e28-5b774838fb43.webp",
+        "start": 4606.79999999702,
+        "duration": 16.700000002980232,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/21/2161b19a-3647-4d43-a160-daeef22c0bd8.webp",
+        "start": 4606.9000000059605,
+        "duration": 18,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/96/96077e79-bd6a-4a93-92b9-7e714141c1dd.webp",
+        "start": 4606.9000000059605,
+        "duration": 17.799999997019768,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/import/41/41db31e3-6859-45f3-8b8b-87c66214a467.json",
+        "start": 4677,
+        "duration": 11.400000005960464,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/86/8608da66-c5db-404a-9dcb-7a4a0259a45d.webp",
+        "start": 4677,
+        "duration": 17.099999994039536,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/82/82d1fd79-fa3d-4fa1-81e8-19c0e47985ef.webp",
+        "start": 4677.0999999940395,
+        "duration": 11.600000008940697,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/19/19431b7e-62e4-485a-95f9-d90e3c32aa2f.webp",
+        "start": 4677.0999999940395,
+        "duration": 13,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/1f/1f14db28-418f-4b4a-b003-867cb385f6bf.webp",
+        "start": 4677.0999999940395,
+        "duration": 14.700000002980232,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/64/64aad45c-7112-4206-a724-f71cd1f68478.webp",
+        "start": 4677.0999999940395,
+        "duration": 15.100000008940697,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/98/98daef81-c411-4370-9286-b82ab1898514.webp",
+        "start": 4677.0999999940395,
+        "duration": 24.200000002980232,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/9c/9c38ad4e-1c9a-40be-a01a-986ff083f0d7.webp",
+        "start": 4677.0999999940395,
+        "duration": 24.900000005960464,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/be/befba1b9-5fd8-4576-93a2-2dcfee493c56.webp",
+        "start": 4677.0999999940395,
+        "duration": 26.200000002980232,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/34/34406411-06cc-4df4-b205-2954637a5513.webp",
+        "start": 4677.20000000298,
+        "duration": 26.599999994039536,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/77/77983b36-3a86-4dd4-b79a-4b9d0c72f214.webp",
+        "start": 4677.20000000298,
+        "duration": 27.299999997019768,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/41/41db31e3-6859-45f3-8b8b-87c66214a467/header-ui.ttf",
+        "start": 4689,
+        "duration": 15.799999997019768,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/01/019b535b-75fd-42c0-a82d-5aef55f63424.wav",
+        "start": 4735.29999999702,
+        "duration": 9,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/04/0459f8fd-bd2e-4146-895e-fa2a91a043d8.wav",
+        "start": 4735.5999999940395,
+        "duration": 7.300000011920929,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/08/08a3da6c-392c-44f0-928b-2fa2e492e92e.wav",
+        "start": 4735.79999999702,
+        "duration": 8,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/0c/0c179610-6b23-4d2a-a6bf-c33da4c39318.wav",
+        "start": 4735.9000000059605,
+        "duration": 9.5,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/1c/1c0f5140-245d-49ea-bc2e-4869ec2f4d87.wav",
+        "start": 4736,
+        "duration": 8.200000002980232,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/23/2391eaf3-9b16-4b8a-b1cc-e6c89ff59ef7.wav",
+        "start": 4736,
+        "duration": 8.799999997019768,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/2b/2bd51821-54bc-4ade-af46-b5c81063d402.wav",
+        "start": 4736.0999999940395,
+        "duration": 13,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/30/30525b93-c099-4140-8a70-b431ddb094af.wav",
+        "start": 4736.20000000298,
+        "duration": 12.799999997019768,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/34/34d62e1b-16d2-446d-82de-80b29867eb47.wav",
+        "start": 4736.29999999702,
+        "duration": 13.700000002980232,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/32/321eecef-2480-4868-830c-3cf3c30bd963.wav",
+        "start": 4736.29999999702,
+        "duration": 14.100000008940697,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/3e/3e8f075c-882e-420f-b221-f182292b3a52.wav",
+        "start": 4736.4000000059605,
+        "duration": 13,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/42/4276ffd6-5fd5-4a21-8773-55ea02d8a953.wav",
+        "start": 4736.70000000298,
+        "duration": 13.700000002980232,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/48/4871aae3-152e-404d-9295-271f885ffd9d.wav",
+        "start": 4736.79999999702,
+        "duration": 15.900000005960464,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/4e/4e1cf2c1-51a1-4c2e-aba0-79e0d23222e8.wav",
+        "start": 4736.9000000059605,
+        "duration": 16.399999991059303,
+        "bytes": 0
+      },
+      {
+        "name": "http://127.0.0.1:3338/thirteen-social/game/assets/resources/native/73/7337d54c-ad9a-42e0-a328-7af79f20b70b.wav",
+        "start": 4737,
+        "duration": 16.200000002980232,
+        "bytes": 0
+      }
+    ]
+  },
+  "layouts": [
+    {
+      "height": 496,
+      "scale": 1,
+      "readyY": -212
+    },
+    {
+      "height": 780,
+      "scale": 1,
+      "readyY": -274.1
+    }
+  ],
+  "online": {
+    "scene": "Preparation",
+    "readyMs": 2406,
+    "canvas": true
+  },
+  "match": {
+    "scene": "Match",
+    "readyMs": 4051,
+    "canvas": true
+  },
+  "cards": {
+    "frames": 52,
+    "hand": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "audio": {
+    "contexts": [
+      "running"
+    ],
+    "starts": 13
+  },
+  "settlement": {
+    "turns": 66,
+    "result": {
+      "version": "beans-v1",
+      "winner": 1,
+      "remaining": [
+        2,
+        0,
+        4,
+        7
+      ],
+      "doubled": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "points": [
+        -2,
+        13,
+        -4,
+        -7
+      ],
+      "deltas": [
+        -20,
+        130,
+        -40,
+        -70
+      ],
+      "matchId": "826391:local:1",
+      "balances": [
+        {
+          "diamonds": 9000,
+          "beans": 980,
+          "available": 980,
+          "frozen": 0,
+          "mode": "local-preview"
+        },
+        {
+          "diamonds": 10000,
+          "beans": 1130,
+          "available": 1130,
+          "frozen": 0,
+          "mode": "local-preview"
+        },
+        {
+          "diamonds": 10000,
+          "beans": 960,
+          "available": 960,
+          "frozen": 0,
+          "mode": "local-preview"
+        },
+        {
+          "diamonds": 10000,
+          "beans": 930,
+          "available": 930,
+          "frozen": 0,
+          "mode": "local-preview"
+        }
+      ]
+    },
+    "mode": "local-preview"
+  },
+  "cache": {
+    "names": [
+      "game-box-shell-v100",
+      "game-box-assets-v100",
+      "game-box-static-v100"
+    ],
+    "assets": [
+      "/thirteen-social/game/src/settings.json",
+      "/thirteen-social/game/cocos-js/spine-BGFFnNyc.js",
+      "/thirteen-social/game/cocos-js/spine.wasm-BP65faBu.js",
+      "/thirteen-social/game/cocos-js/assets/spine-CC34fKUR.wasm",
+      "/thirteen-social/game/src/effect.bin",
+      "/thirteen-social/game/src/chunks/bundle.js",
+      "/thirteen-social/game/assets/internal/config.json",
+      "/thirteen-social/game/assets/internal/index.js",
+      "/thirteen-social/game/assets/internal/import/04/04f923b60.json",
+      "/thirteen-social/game/assets/resources/index.js",
+      "/thirteen-social/game/assets/main/config.json",
+      "/thirteen-social/game/assets/resources/config.json",
+      "/thirteen-social/game/assets/main/index.js",
+      "/thirteen-social/game/assets/main/import/07/075a36d64.json",
+      "/thirteen-social/game/assets/resources/import/20/209a36290.json",
+      "/thirteen-social/game/assets/main/native/e0/e056f492-647e-46e4-b1eb-c34ccdc56d36/ZCOOLQingKeHuangYou-TSUI-subset.ttf",
+      "/thirteen-social/game/assets/resources/import/02/02f93ac7b.json",
+      "/thirteen-social/game/assets/resources/native/f0/f0b9a4da-b9ff-4675-bdd4-43bd82e62c3d.webp",
+      "/thirteen-social/game/assets/resources/native/02/027e98c1-f8e8-440a-848d-63832a4fa05b.webp",
+      "/thirteen-social/game/assets/resources/native/6e/6ec9e766-be06-4858-bc4d-6fdb6fe2e8c4.png",
+      "/thirteen-social/game/assets/resources/native/7e/7e6398db-b71a-4f03-826e-66d310a57f80.webp",
+      "/thirteen-social/game/assets/resources/native/43/439d41d8-a3c2-4926-88e5-31c8e4e5f877.webp",
+      "/thirteen-social/game/assets/resources/native/f8/f89be3e4-1bb5-4668-933e-e4d724951761.webp",
+      "/thirteen-social/game/assets/main/import/b0/b088c6bb-d815-4116-ba16-bc07865d51d9.json",
+      "/thirteen-social/game/assets/resources/native/0a/0af6fb32-6bd4-4061-a2e4-f43e3d24d7f9.webp",
+      "/thirteen-social/game/assets/resources/native/9c/9cda4f36-eeaa-4b14-8814-ba2e005fca45.webp",
+      "/thirteen-social/game/assets/resources/native/51/510ffad1-446e-41b5-affe-72d32bbd8954.webp",
+      "/thirteen-social/game/assets/resources/native/2f/2fb512d5-63e7-41cf-b8c3-8201994dc30e.webp",
+      "/thirteen-social/game/assets/resources/native/22/2236425c-0534-4a1f-83c3-ce96819db886.webp",
+      "/thirteen-social/game/assets/resources/native/21/213b8916-fbe6-4ded-a7a9-83d4e7f31b73.webp",
+      "/thirteen-social/game/assets/resources/native/64/64d003a6-3bb8-43df-89ad-24cca5e919d5.webp",
+      "/thirteen-social/game/assets/resources/native/21/21bd5e24-7d15-4ebd-96e1-652d0b7dbf69.webp",
+      "/thirteen-social/game/assets/resources/native/99/9948486e-f463-48c3-a7b6-013488960ce0.webp",
+      "/thirteen-social/game/assets/resources/native/f5/f5816bce-523e-402b-bf1e-b1398ff5269d.webp",
+      "/thirteen-social/game/assets/resources/native/06/06f96147-8135-4a18-b210-9d6013286868.webp",
+      "/thirteen-social/game/assets/resources/native/64/64f82915-1f06-45d8-a894-e89ec3e5c337.webp",
+      "/thirteen-social/game/assets/resources/native/a4/a431f0a4-2be4-4163-861b-f54561b8438f.webp",
+      "/thirteen-social/game/assets/resources/native/08/08c46130-d033-4cf6-b499-2e828a79d235.webp",
+      "/thirteen-social/game/assets/resources/native/18/18f1015a-60db-4909-aa3b-cb332eae1da6.webp",
+      "/thirteen-social/game/assets/resources/native/ec/ece1f9a3-6622-4a6d-9e72-17e3cd0c1559.webp",
+      "/thirteen-social/game/assets/resources/native/e4/e44911c5-6ba4-4343-b8ba-eeca82f2323a.webp",
+      "/thirteen-social/game/assets/resources/native/a8/a8d8f285-02c0-4f2f-b100-b392011313e5.webp",
+      "/thirteen-social/game/assets/resources/native/a8/a82a3fe3-bd64-47d9-a4d9-a26aa1a05267.webp",
+      "/thirteen-social/game/assets/resources/native/2d/2d6223a2-aaba-484e-a398-8c2056ee56a3.webp",
+      "/thirteen-social/game/assets/resources/native/34/34081f1c-3e31-473a-b69d-12b1baeb9bcb.webp",
+      "/thirteen-social/game/assets/resources/native/6b/6b1f0c13-617a-480d-812a-1a0b6054177e.webp",
+      "/thirteen-social/game/assets/resources/native/04/04754741-8552-44cc-bd5f-f5197473e091.webp",
+      "/thirteen-social/game/assets/resources/native/66/6678e3b3-09c1-48de-9daa-5ed84ce07bf9.webp",
+      "/thirteen-social/game/assets/resources/native/12/12d1333e-8e0e-42dd-908a-aac682b1a1fa.webp",
+      "/thirteen-social/game/assets/resources/native/43/439dd995-4bef-4e0e-9854-4d0a12f55a60.webp",
+      "/thirteen-social/game/assets/resources/native/c0/c04f479c-0309-4ab3-acbc-c396ebe74777.webp",
+      "/thirteen-social/game/assets/resources/native/96/96398f91-c0d5-4865-aff9-2364a73eeb97.webp",
+      "/thirteen-social/game/assets/resources/native/f3/f3225182-13aa-4d9a-a102-01986e117961.webp",
+      "/thirteen-social/game/assets/resources/native/a2/a20faf39-d706-4b79-9e28-5b774838fb43.webp",
+      "/thirteen-social/game/assets/resources/native/96/96077e79-bd6a-4a93-92b9-7e714141c1dd.webp",
+      "/thirteen-social/game/assets/resources/native/21/2161b19a-3647-4d43-a160-daeef22c0bd8.webp",
+      "/thirteen-social/game/assets/resources/import/41/41db31e3-6859-45f3-8b8b-87c66214a467.json",
+      "/thirteen-social/game/assets/resources/native/82/82d1fd79-fa3d-4fa1-81e8-19c0e47985ef.webp",
+      "/thirteen-social/game/assets/resources/native/19/19431b7e-62e4-485a-95f9-d90e3c32aa2f.webp",
+      "/thirteen-social/game/assets/resources/native/1f/1f14db28-418f-4b4a-b003-867cb385f6bf.webp",
+      "/thirteen-social/game/assets/resources/native/64/64aad45c-7112-4206-a724-f71cd1f68478.webp",
+      "/thirteen-social/game/assets/resources/native/86/8608da66-c5db-404a-9dcb-7a4a0259a45d.webp",
+      "/thirteen-social/game/assets/resources/native/98/98daef81-c411-4370-9286-b82ab1898514.webp",
+      "/thirteen-social/game/assets/resources/native/9c/9c38ad4e-1c9a-40be-a01a-986ff083f0d7.webp",
+      "/thirteen-social/game/assets/resources/native/be/befba1b9-5fd8-4576-93a2-2dcfee493c56.webp",
+      "/thirteen-social/game/assets/resources/native/34/34406411-06cc-4df4-b205-2954637a5513.webp",
+      "/thirteen-social/game/assets/resources/native/77/77983b36-3a86-4dd4-b79a-4b9d0c72f214.webp",
+      "/thirteen-social/game/assets/resources/native/41/41db31e3-6859-45f3-8b8b-87c66214a467/header-ui.ttf",
+      "/thirteen-social/game/assets/resources/native/04/0459f8fd-bd2e-4146-895e-fa2a91a043d8.wav",
+      "/thirteen-social/game/assets/resources/native/08/08a3da6c-392c-44f0-928b-2fa2e492e92e.wav",
+      "/thirteen-social/game/assets/resources/native/1c/1c0f5140-245d-49ea-bc2e-4869ec2f4d87.wav",
+      "/thirteen-social/game/assets/resources/native/01/019b535b-75fd-42c0-a82d-5aef55f63424.wav",
+      "/thirteen-social/game/assets/resources/native/23/2391eaf3-9b16-4b8a-b1cc-e6c89ff59ef7.wav",
+      "/thirteen-social/game/assets/resources/native/0c/0c179610-6b23-4d2a-a6bf-c33da4c39318.wav",
+      "/thirteen-social/game/assets/resources/native/30/30525b93-c099-4140-8a70-b431ddb094af.wav",
+      "/thirteen-social/game/assets/resources/native/2b/2bd51821-54bc-4ade-af46-b5c81063d402.wav",
+      "/thirteen-social/game/assets/resources/native/3e/3e8f075c-882e-420f-b221-f182292b3a52.wav",
+      "/thirteen-social/game/assets/resources/native/34/34d62e1b-16d2-446d-82de-80b29867eb47.wav",
+      "/thirteen-social/game/assets/resources/native/32/321eecef-2480-4868-830c-3cf3c30bd963.wav",
+      "/thirteen-social/game/assets/resources/native/42/4276ffd6-5fd5-4a21-8773-55ea02d8a953.wav",
+      "/thirteen-social/game/assets/resources/native/48/4871aae3-152e-404d-9295-271f885ffd9d.wav",
+      "/thirteen-social/game/assets/resources/native/73/7337d54c-ad9a-42e0-a328-7af79f20b70b.wav",
+      "/thirteen-social/game/assets/resources/native/4e/4e1cf2c1-51a1-4c2e-aba0-79e0d23222e8.wav",
+      "/thirteen-social/game/assets/resources/native/f4/f41d90c3-f14e-4cc9-aa53-e1574a7a17d7.wav",
+      "/thirteen-social/game/assets/resources/native/fc/fc1ef80f-ab29-44f8-82f6-54211794ffe6.wav",
+      "/thirteen-social/game/assets/resources/native/f8/f8bc8a7d-0083-4bbf-9b1c-e0cce2b2fc6c.wav",
+      "/thirteen-social/game/assets/resources/native/ed/ed627f86-9337-4cb4-8a8a-caf0e2cca167.wav",
+      "/thirteen-social/game/assets/resources/native/e5/e56db8e9-399d-4b59-a764-c48e10816377.wav",
+      "/thirteen-social/game/assets/resources/native/e4/e44d5510-306b-4794-a42d-a5e19bc95cd5.wav",
+      "/thirteen-social/game/assets/resources/native/df/df9da7e2-1344-457c-bf39-1d9464867b5d.wav",
+      "/thirteen-social/game/assets/resources/native/dd/dd859a60-438b-4f0c-8908-b795acc17c18.wav",
+      "/thirteen-social/game/assets/resources/native/cf/cf3a717d-03f8-4492-bb24-5374de9938cf.wav",
+      "/thirteen-social/game/assets/resources/native/c8/c822a595-9f68-433c-b43c-be2c7ad5c33f.wav",
+      "/thirteen-social/game/assets/resources/native/bf/bf7fe60d-6fc8-4d75-bc6f-df4fd76fb074.wav",
+      "/thirteen-social/game/assets/resources/native/bd/bd4acdef-d787-4533-8301-f063c0354594.wav",
+      "/thirteen-social/game/assets/resources/native/b8/b8dc7279-add4-4f25-bc70-0c06efa34888.wav",
+      "/thirteen-social/game/assets/resources/native/b3/b3752dee-e4c0-409b-b067-3ac9c069f7eb.wav",
+      "/thirteen-social/game/assets/resources/native/10/10198171-41a2-4ce3-b07d-c2079e2fdb9a.m4a",
+      "/thirteen-social/game/assets/resources/native/ae/ae352ed4-171a-4ba0-a33e-458b68862769.wav",
+      "/thirteen-social/game/assets/resources/native/ab/ab7717f3-4b48-4be5-867e-407498de4ca2.wav",
+      "/thirteen-social/game/assets/resources/native/a5/a576d1ed-abaa-4aa6-91d4-972689e8568e.wav",
+      "/thirteen-social/game/assets/resources/native/ab/ab9d90a5-4a3d-4bce-8f2f-8a880f8d55f8.wav",
+      "/thirteen-social/game/assets/resources/native/9a/9a78b4e7-1c1c-4b9f-8d4e-5b3ba342f7b3.wav",
+      "/thirteen-social/game/assets/resources/native/a0/a05274e4-a16d-487c-a3d8-12e1a69d3c47.wav",
+      "/thirteen-social/game/assets/resources/native/92/92da5504-5369-4518-8e49-2f42ef0979df.wav",
+      "/thirteen-social/game/assets/resources/native/7e/7e4ab49f-dd4c-4f2b-b140-6df73f465ce1.wav",
+      "/thirteen-social/game/style.css",
+      "/thirteen-social/game/src/polyfills.bundle.js",
+      "/thirteen-social/game/src/system.bundle.js",
+      "/thirteen-social/game/src/import-map.json",
+      "/thirteen-social/game/index.js",
+      "/thirteen-social/game/application.js",
+      "/thirteen-social/game/cocos-js/cc.js",
+      "/thirteen-social/game/cocos-js/_virtual_cc-Bp5iGE8z.js",
+      "/thirteen-social/game/assets/main/import/36/36490e33-d35e-4b07-9e40-10c4dd6d3e7f.json",
+      "/thirteen-social/game/assets/resources/native/1f/1f3301b4-d243-4fba-b6c3-341d27f8bb04.webp",
+      "/thirteen-social/game/assets/resources/native/49/49030456-4261-48ee-9347-45cdeaba0dfa.webp",
+      "/thirteen-social/game/assets/resources/native/83/83616ddb-f8ca-4854-8b5f-3bacc1d8216d.webp",
+      "/thirteen-social/game/assets/resources/native/7b/7b0f2111-f3e0-4ecf-bf2e-67792bcb5242.webp",
+      "/thirteen-social/game/assets/resources/native/a3/a3b0ca2a-731d-47dc-aa31-2cd84e320db4.webp",
+      "/thirteen-social/game/assets/resources/native/65/65410b89-fcbf-4567-b79f-b87f8912d7bf.webp",
+      "/thirteen-social/game/assets/resources/native/7b/7b2dad2b-6793-4230-9e47-34fc7485db0f.webp",
+      "/thirteen-social/game/assets/resources/native/23/23a03fe3-1ee0-4c08-81c1-5f408d4b9e9e.webp",
+      "/thirteen-social/game/assets/resources/native/09/09a8e0a5-9228-46af-9262-52432bdb2e33.webp",
+      "/thirteen-social/game/assets/resources/native/5e/5e8dd720-e983-4b3a-aafc-a2c76c5c0805.webp",
+      "/thirteen-social/game/assets/resources/native/f0/f0c98fb4-274d-4e08-bd2d-9baa7472746e.webp",
+      "/thirteen-social/game/assets/resources/native/97/97cc4bfc-85ce-4e07-ae30-2e783e65fd0f.webp",
+      "/thirteen-social/game/assets/resources/native/28/284e671b-0a5e-4492-8b01-7f8995c588d1.webp",
+      "/thirteen-social/game/assets/resources/native/bb/bb3cb278-ce0d-47da-80c9-e2c75442cc8b.webp",
+      "/thirteen-social/game/assets/resources/native/7d/7d094bed-5e75-4364-b947-a8fa2436a1ae.webp",
+      "/thirteen-social/game/assets/resources/native/42/42cdcc7c-7bc7-4602-9d25-04ccba644b9b.webp",
+      "/thirteen-social/game/assets/resources/native/5c/5c0fb42d-5058-40db-a32e-ff725b8f1c08.webp",
+      "/thirteen-social/game/assets/resources/native/39/396c80a8-164d-478c-b74f-1c93fd3dbd5e.webp",
+      "/thirteen-social/game/assets/resources/native/2c/2c6b5fef-41f2-4d32-8b49-1aa29edb5aec.webp",
+      "/thirteen-social/game/assets/resources/import/2e/2ec868ec-fc9a-441b-bd43-cd061d84cb68.json",
+      "/thirteen-social/game/assets/resources/native/44/4452c428-4a85-442b-9f0e-68be8670d6e4.webp",
+      "/thirteen-social/game/assets/resources/native/18/1848e3a7-47b7-4f18-98dd-7e24ba1087ab.webp",
+      "/thirteen-social/game/assets/resources/native/80/80b498c9-513d-4704-a111-052e4bf9acab.webp",
+      "/thirteen-social/game/assets/resources/native/2e/2ec868ec-fc9a-441b-bd43-cd061d84cb68/settlement-ui.ttf",
+      "/thirteen-social/game/assets/resources/native/be/be8b14b8-0b7c-4314-b3d7-ed5944eec5d9.webp",
+      "/thirteen-social/game/assets/resources/native/9c/9c0ed843-a7ae-41fe-8598-dfb2d387b518.webp",
+      "/thirteen-social/game/assets/resources/native/88/88c44a90-3444-4a3a-be39-cc74b6afc6f0.webp",
+      "/thirteen-social/game/assets/resources/native/dc/dc1ec208-19f8-4ef8-aa86-7b6f2d60d6e9.webp",
+      "/thirteen-social/game/assets/resources/native/4b/4b4f4054-0e93-44f2-8c47-1e0ce897f1e7.webp",
+      "/thirteen-social/game/assets/resources/native/16/16cd2e4f-9e4f-4745-a708-8c0d95f4a409.webp",
+      "/thirteen-social/game/assets/resources/native/d1/d12c0105-6d63-4a8d-8f68-8d8a9924dd39.webp",
+      "/thirteen-social/game/assets/resources/native/b4/b4f8e568-f6bb-456a-965b-a7c10197915c.webp",
+      "/thirteen-social/game/assets/resources/native/68/68d6ff55-ecea-49e2-9f47-51e9777c585a.webp",
+      "/thirteen-social/game/assets/resources/native/79/7948543e-3e85-4ece-b827-0fdb3622f8d9.webp",
+      "/thirteen-social/game/assets/resources/native/b6/b629a3d6-5cfa-458d-863a-c26bab4b68f4.webp",
+      "/thirteen-social/game/assets/resources/native/4b/4ba6bc00-cde4-4e63-9a20-9455b72c6acf.webp",
+      "/thirteen-social/game/assets/resources/native/c5/c5ba030e-5fd5-4ed6-bbcb-29819c380afd.webp",
+      "/thirteen-social/game/assets/resources/native/66/662d2d94-29f5-443f-a88d-5346fb7a2f93.webp",
+      "/thirteen-social/game/assets/resources/native/5d/5d1fcdc4-7f56-4ce6-8386-d5eab963709d.webp",
+      "/thirteen-social/game/assets/resources/native/21/21e522ca-4bf3-42a8-bbbb-553a6b4a44af.webp",
+      "/thirteen-social/game/assets/resources/native/6d/6d8b31ed-7d51-469f-a009-e43265eb8be4.webp",
+      "/thirteen-social/game/assets/resources/native/4f/4ff7b27b-b5d4-4472-b0f3-16fe744a19c7.webp",
+      "/thirteen-social/game/assets/resources/native/12/127a207c-9a4d-4f21-9492-8c6274e9c234.webp",
+      "/thirteen-social/game/assets/resources/native/84/8435d8e0-937d-4ec1-9b5d-47d560d6edf3.webp",
+      "/thirteen-social/game/assets/resources/native/d7/d7dc6a30-443b-454c-b3b5-ee7cd736792b.webp",
+      "/thirteen-social/game/assets/resources/native/c5/c53696b1-6a4f-4965-b627-a1c868a15008.webp",
+      "/thirteen-social/game/assets/resources/native/2a/2abf50de-52a8-432b-835c-7fd9a23d6440.webp",
+      "/thirteen-social/game/assets/resources/native/86/864d5cc8-ab2d-4a20-b623-351c4c5ec6fd.webp",
+      "/thirteen-social/game/assets/resources/native/dc/dc89ad42-7ad4-4d39-b380-29225ad1c6c4.webp",
+      "/thirteen-social/game/assets/resources/native/99/99774f25-b18c-44a2-8dc7-563a10055cbe.webp",
+      "/thirteen-social/game/assets/resources/native/41/41af81fb-6614-4581-b35b-6c3d53f4f5a3.webp",
+      "/thirteen-social/game/assets/resources/native/d4/d41744d0-3166-4713-98d5-3f49f7c997a9.webp",
+      "/thirteen-social/game/assets/resources/native/79/79814f3f-2e44-487c-9583-0d7149edb346.webp",
+      "/thirteen-social/game/assets/resources/native/00/004006dc-352a-4f38-b42c-7e42df42bcd1.webp",
+      "/thirteen-social/game/assets/resources/native/5e/5ec2cd04-7860-4aa1-a11a-7ab148d11702.webp",
+      "/thirteen-social/game/assets/resources/native/16/166f56a0-15ec-4174-a0c9-cb8466e27b5a.webp",
+      "/thirteen-social/game/assets/resources/native/9c/9c421a54-7fa2-46f8-a52a-d25911812e29.webp",
+      "/thirteen-social/game/assets/resources/native/14/141cda4f-988f-49f7-a9db-2cad7b30c1c6.webp",
+      "/thirteen-social/game/assets/resources/native/9d/9d9835c1-1773-4595-8975-ae6b513682df.webp",
+      "/thirteen-social/game/assets/resources/native/7e/7e30063f-c7cd-4702-823a-c085bab86491.webp",
+      "/thirteen-social/game/assets/resources/native/a4/a49ef4b5-0093-4857-ae2e-891bbc6bc1b2.webp",
+      "/thirteen-social/game/assets/resources/native/02/020b5e64-6607-4037-b6f9-4355b235765c.webp",
+      "/thirteen-social/game/assets/resources/native/1c/1ceee3e4-1f27-4e71-b263-f67fff8ce47e.webp",
+      "/thirteen-social/game/assets/resources/native/d4/d4ce6598-57c6-4118-861e-4ac7b09f3c8b.webp",
+      "/thirteen-social/game/assets/resources/native/59/591d6775-e6a0-4bdd-9216-46cd5a63f855.webp",
+      "/thirteen-social/game/assets/resources/native/09/09a03151-f584-42c6-b5d5-1c57956b05af.webp",
+      "/thirteen-social/game/assets/resources/native/e2/e278c14f-4a01-46ec-83b9-39001d7b0a91.webp",
+      "/thirteen-social/game/assets/resources/native/71/71bb7874-186f-4ac0-97d4-ddf75e537323.webp",
+      "/thirteen-social/game/assets/resources/native/ad/adcbc749-f89f-484e-96c5-abd4acae76ce.webp",
+      "/thirteen-social/game/assets/resources/native/6d/6df5e4b2-fabb-4157-8ab7-af40c4d8a64e.webp",
+      "/thirteen-social/game/assets/resources/native/8f/8f45716d-a546-4702-a128-f3fca674dab9.webp",
+      "/thirteen-social/game/assets/resources/native/90/900d049a-b8e8-4826-8da5-050819901611.webp",
+      "/thirteen-social/game/assets/resources/native/71/7127591c-02c9-4502-a4d6-5a80530adfb9.webp",
+      "/thirteen-social/game/assets/resources/native/95/95ae530a-2dea-41ad-938d-e96a73f3acaf.webp",
+      "/thirteen-social/game/assets/resources/native/41/41107d6d-527c-4749-8671-980d7b651352.webp",
+      "/thirteen-social/game/assets/resources/native/8b/8bf4a42f-d284-47f5-81b8-d980d077e6b8.webp",
+      "/thirteen-social/game/assets/resources/native/4a/4ab804b9-7fea-4326-8d52-b48078050606.m4a",
+      "/thirteen-social/game/assets/resources/native/08/08f46f04-f898-4d04-ae18-bde3a2a98c65.webp",
+      "/thirteen-social/game/assets/resources/native/0d/0d3531d8-f1c0-454c-94af-5d22d0a04eac.webp",
+      "/thirteen-social/game/assets/resources/native/11/11b72e70-e666-4db0-b79d-3a992a29827c.webp",
+      "/thirteen-social/game/assets/resources/native/1f/1f886533-e48b-45c0-b5f3-a2ab5e53f40a.webp",
+      "/thirteen-social/game/assets/resources/native/2c/2c5f5bb0-917a-4c35-914c-c194afc31394.webp",
+      "/thirteen-social/game/assets/resources/native/0e/0e77800f-f7d9-4d12-819e-90bbbc357817.webp",
+      "/thirteen-social/game/assets/resources/native/32/32c12571-df3d-493c-b3a2-360e66be18b4.webp",
+      "/thirteen-social/game/assets/resources/native/43/433e3657-925a-42b6-8c34-4aa7ceeca988.webp",
+      "/thirteen-social/game/assets/resources/native/48/488980d9-5cb2-4d31-987e-fddd83c84210.webp",
+      "/thirteen-social/game/assets/resources/native/42/4291dc41-666a-482c-b377-11964ed34a8d.webp",
+      "/thirteen-social/game/assets/resources/native/4c/4c217f7c-6dcc-40e1-84b5-1e6c4f2694b5.webp",
+      "/thirteen-social/game/assets/resources/native/53/53478b49-c91e-4829-b527-49b7bbcc8212.webp",
+      "/thirteen-social/game/assets/resources/native/5d/5d268e77-bd19-4215-8c83-18dde6356761.webp",
+      "/thirteen-social/game/assets/resources/native/53/53f5d5ff-e301-4a5d-841f-0c94f5e06c26.webp",
+      "/thirteen-social/game/assets/resources/native/f9/f9780543-cf39-4e45-9c26-574c8201b64d.webp",
+      "/thirteen-social/game/assets/resources/native/fd/fdc33e53-c7be-4d74-82cc-ff8f8a7cfbb5.webp",
+      "/thirteen-social/game/assets/resources/native/ea/ea004a62-a057-450c-ab47-20049de5be13.webp",
+      "/thirteen-social/game/assets/resources/native/e4/e41a39c8-25bb-4a94-8556-bbb9d205c132.webp",
+      "/thirteen-social/game/assets/resources/native/f3/f3a82a55-7856-4b85-b3aa-d2965d58cea3.webp",
+      "/thirteen-social/game/assets/resources/native/f5/f5e5f6f2-afa3-4fa0-b090-d9502ebde801.webp",
+      "/thirteen-social/game/assets/resources/native/e2/e2a47150-aa57-4446-8a36-22c2d18539bd.webp",
+      "/thirteen-social/game/assets/resources/native/e1/e1c40424-e4de-492d-b1ca-e344478fa388.webp",
+      "/thirteen-social/game/assets/resources/native/d2/d2bf57d3-372c-4d99-9973-c862a8607a0d.webp",
+      "/thirteen-social/game/assets/resources/native/ce/ceb58af2-3eef-402a-8687-ac4486d48a19.webp",
+      "/thirteen-social/game/assets/resources/native/df/df2e8297-6a36-42d6-af89-44fb69e7ccac.webp",
+      "/thirteen-social/game/assets/resources/native/cb/cbae2320-aa52-4d7a-8d99-90b01cc6550f.webp",
+      "/thirteen-social/game/assets/resources/native/c3/c3e9c788-c902-455f-911c-766bc86b3b5d.webp",
+      "/thirteen-social/game/assets/resources/native/be/be16c894-5ae5-4640-9ccf-dbfe2f2fcd4c.webp",
+      "/thirteen-social/game/assets/resources/native/bd/bda9ac65-ff41-47e6-9159-325ca407e757.webp",
+      "/thirteen-social/game/assets/resources/native/b3/b3099ca0-f243-4a7e-858c-29119543e2c8.webp",
+      "/thirteen-social/game/assets/resources/native/ba/ba2c0b64-c111-4008-8662-12455e2419f5.webp",
+      "/thirteen-social/game/assets/resources/native/b7/b78f1151-505a-4daf-8ac4-40c4d0ced444.webp",
+      "/thirteen-social/game/assets/resources/native/a8/a8fb9e5c-1422-491d-8b32-d0f073de12c3.webp",
+      "/thirteen-social/game/assets/resources/native/a8/a884f6b4-3ad3-475f-ad4e-6c0d40dba9fd.webp",
+      "/thirteen-social/game/assets/resources/native/a1/a11aa3bb-d899-4fbf-869b-f399d723d35f.webp",
+      "/thirteen-social/game/assets/resources/native/8f/8ffcb77f-3c85-46ce-8820-a495e8c1eb47.webp",
+      "/thirteen-social/game/assets/resources/native/a0/a0497ba4-8b32-4bac-8b0a-a9265737e257.webp",
+      "/thirteen-social/game/assets/resources/native/88/8889eb27-9925-497b-874c-3007b4a6dd38.webp",
+      "/thirteen-social/game/assets/resources/native/81/81c08dba-aca4-4839-b9fb-b99db09fb5c6.webp",
+      "/thirteen-social/game/assets/resources/native/7b/7bf6e412-fa81-4b95-a8aa-0145f0520783.webp",
+      "/thirteen-social/game/assets/resources/native/9a/9a3397b4-2e34-4719-9003-f2205938f274.webp",
+      "/thirteen-social/game/assets/resources/native/72/726b5a3d-9f01-4cb4-aae6-76562a5ea580.webp",
+      "/thirteen-social/game/assets/resources/native/6e/6e874660-d48f-40f7-acb7-3a12f3b1f518.webp",
+      "/thirteen-social/game/assets/resources/native/6c/6c1383fa-3474-470f-994b-3797be7128af.webp",
+      "/thirteen-social/game/assets/resources/native/67/67ed9c32-807f-4e62-a90c-9993918ea276.webp",
+      "/thirteen-social/game/assets/resources/native/60/605db224-657c-49bb-96e6-ee5c65b88a93.webp",
+      "/thirteen-social/game/assets/resources/native/5d/5d787ec5-0189-40b8-a2b1-af38d7c47ea9.webp",
+      "/thirteen-social/game/assets/resources/native/69/699fa57f-f805-432d-ad01-d347f6af217e.webp"
+    ],
+    "shell": [
+      "/thirteen-social",
+      "/thirteen-social/game/index.html"
+    ]
+  },
+  "offline": {
+    "scene": "Preparation",
+    "readyMs": 2426,
+    "canvas": true
+  },
+  "offlineMatch": {
+    "scene": "Match",
+    "readyMs": 3971,
+    "canvas": true
+  },
+  "functionalPassed": true,
+  "startupBudgetPassed": true
+}

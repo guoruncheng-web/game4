@@ -1,0 +1,42 @@
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +427
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 427, reused 426, downloaded 0, added 307
+
+   ╭──────────────────────────────────────────────────────────────────╮
+   │                                                                  │
+   │                Update available! 9.15.9 → 12.4.1.                │
+   │   Changelog: https://github.com/pnpm/pnpm/releases/tag/v12.4.1   │
+   │                Run "pnpm add -g pnpm" to update.                 │
+   │                                                                  │
+   ╰──────────────────────────────────────────────────────────────────╯
+
+Progress: resolved 427, reused 427, downloaded 0, added 425
+Progress: resolved 427, reused 427, downloaded 0, added 427, done
+
+dependencies:
++ @dimforge/rapier3d-compat 0.20.0
++ agora-rtc-sdk-ng 4.24.8
++ lucide-react 1.31.0
++ next 16.3.0
++ phaser 3.90.0
++ postgres 3.4.9
++ react 19.2.8
++ react-dom 19.2.8
++ three 0.185.1
++ ws 8.21.3
+
+devDependencies:
++ @tailwindcss/postcss 4.3.3
++ @types/node 20.19.43
++ @types/react 19.2.18
++ @types/react-dom 19.2.4
++ @types/three 0.185.4
++ @types/ws 8.18.1
++ eslint 9.39.5
++ eslint-config-next 16.3.0
++ tailwindcss 4.3.3
++ typescript 5.9.3
+
+Done in 3.1s using pnpm v9.15.9
