@@ -346,3 +346,45 @@ html:has(.voice-room-starry) { background: #292b4b; }
   border-image: url('/assets/game-box/voice-starry/button-capsule-gold.png') 27 29 26 29 fill stretch;
   color: #4a2f12; background: none;
 }
+
+/* ===== 2026-09-14：弹窗蒙层与房间内游戏窗口 =====
+   基础蒙层 #342f455e 只有 37% 透明度，压在深色星空上几乎看不出来；
+   .voice-room-v2 那套带 blur 的蒙层和游戏窗口样式都只在 v2 作用域下，
+   而 v2 样式表从未被 import，所以 starry 主题两者皆缺。 */
+
+/* 蒙层：加深并加模糊，让弹窗从星空背景里分离出来 */
+.voice-room-starry .voice-sheet-backdrop {
+  background: #0c0918ad;
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+/* 房间管理是整页形态，压满屏时不需要再模糊底层 */
+.voice-room-starry .voice-full-page-backdrop {
+  background: #0c0918e0;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* 房间内游戏窗口：半屏、无雕花边框、无标题，只留关闭按钮 */
+.voice-room-starry .voice-game-window-backdrop { align-items: flex-end; padding: 0; }
+.voice-room-starry .voice-game-window {
+  display: flex; width: 100%; max-width: none; height: 52dvh; max-height: 52dvh;
+  flex-direction: column; min-height: 0; margin: 0; padding: 0; overflow: hidden;
+  border: 0; border-image: none; border-radius: 18px 18px 0 0;
+  background: #17122b; box-shadow: 0 -10px 30px #0006;
+}
+.voice-room-starry .voice-game-window > header {
+  position: relative; min-height: 38px; flex: 0 0 38px; justify-content: flex-end;
+  margin: 0; padding: 0; border: 0; background: none;
+}
+/* 标题按需求去掉，但保留给读屏用 */
+.voice-room-starry .voice-game-window > header h2 {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%);
+}
+.voice-room-starry .voice-game-window > header button {
+  position: absolute; top: 0; right: 4px; width: 40px; height: 38px;
+  color: #cfc3e6; background: none; font-size: 22px;
+}
+.voice-room-starry .voice-game-frame {
+  width: 100%; flex: 1; min-height: 0; border: 0; background: #17122b;
+}
