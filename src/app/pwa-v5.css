@@ -495,7 +495,7 @@
 .gb-chat-message-time { position: absolute; top: calc(100% + 4px); left: 4px; color: #9a94a2; font-size: 11px; font-weight: 400; white-space: nowrap; }
 .gb-chat-message-row--mine .gb-chat-message-time { right: 4px; left: auto; text-align: right; }
 /* 加载页已有返回操作，避免游戏宿主返回键盖在原稿插画上。 */
-main:has(.gb-state-art--loading) > a[aria-label='返回游戏盒子'] { display: none; }
+main:has(.gb-state-art--loading) > a[aria-label='返回趣宝玩'] { display: none; }
 .gb-platform-lobby p[class*='text-amber-'] { color: #946433; }
 .gb-platform-lobby .gb-lobby-network[data-connected='false'] { color: #96733b; background: #fff6e4; }
 
@@ -522,3 +522,6 @@ body:has(.gb-conversation-open, .gb-profile-editor-page, .gb-profile-password-pa
 html:has(.gb-app) {
   background: #fff5f7 url('/assets/game-box/v5/cloud-header.webp') right top / auto calc(84px + env(safe-area-inset-top, 0px)) no-repeat;
 }
+
+/* 趣宝玩正式品牌：保留首页游戏区的既有布局。 */
+.gb-home-brand-tagline { margin-left: 10px; color: #716e7a; font-size: 12px; font-weight: 500; white-space: nowrap; }

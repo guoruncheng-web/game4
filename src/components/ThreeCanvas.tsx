@@ -57,7 +57,7 @@ export default function ThreeCanvas({ load }: Props) {
       className="absolute inset-0 size-full min-h-0 min-w-0 touch-none overflow-hidden"
     />
       {phase === 'loading' && <div className="absolute inset-0 z-10 overflow-y-auto"><GameLoading /></div>}
-      {phase === 'error' && <div className="gb-system-page absolute inset-0 z-10 overflow-y-auto" role="alert"><section className="gb-system-card"><div className="gb-state-art gb-state-art--offline" aria-hidden="true" /><h1>暂时无法启动游戏</h1><p>请检查网络和浏览器的图形加速支持，再试一次。</p><button type="button" onClick={() => window.location.reload()}>重新加载</button><Link href="/">返回游戏盒子</Link></section></div>}
+      {phase === 'error' && <div className="gb-system-page absolute inset-0 z-10 overflow-y-auto" role="alert"><section className="gb-system-card"><div className="gb-state-art gb-state-art--offline" aria-hidden="true" /><h1>暂时无法启动游戏</h1><p>请检查网络和浏览器的图形加速支持，再试一次。</p><button type="button" onClick={() => window.location.reload()}>重新加载</button><Link href="/">返回趣宝玩</Link></section></div>}
     </>
   );
 }

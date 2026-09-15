@@ -82,7 +82,7 @@ function NeonStrike2d() {
     <div className="pointer-events-none absolute z-20" style={slotStyle}>
       <Link
         href="/"
-        aria-label="返回游戏盒子"
+        aria-label="返回趣宝玩"
         className="pointer-events-auto grid size-full place-items-center rounded-full text-cyan-100 opacity-85 transition hover:opacity-100 active:scale-90"
       >
         <svg

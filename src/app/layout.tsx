@@ -21,23 +21,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "GAME BOX · 游戏盒子",
+  title: "趣宝玩",
+  applicationName: "趣宝玩",
   description: "即开即玩的移动端小游戏合集",
   // manifest 由 src/app/manifest.ts 生成
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     // iOS 只认这套私有 meta:没有它,从主屏启动仍然会带 Safari 的地址栏
     capable: true,
-    title: "GAME BOX",
+    title: "趣宝玩",
     // 让页面背景延伸到 iOS PWA 状态栏下方；交互 HUD 在 CSS 中单独避让安全区。
     statusBarStyle: "black-translucent",
   },
   icons: {
     icon: [
-      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icons/qubaowan-icon-192-v1.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/qubaowan-icon-512-v1.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: "/icons/apple-touch-icon.png",
+    apple: "/icons/qubaowan-apple-touch-icon-v1.png",
   },
 };
 

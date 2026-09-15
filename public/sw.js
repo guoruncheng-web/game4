@@ -25,7 +25,7 @@ const ASSET_CACHE = `game-box-assets-${VERSION}`;
 const KEEP = [SHELL_CACHE, STATIC_CACHE, ASSET_CACHE];
 
 /** 安装时只预取这几样:兜底页和图标,加起来几十 KB */
-const PRECACHE = ['/offline', '/icons/icon-192.png', '/icons/icon-512.png'];
+const PRECACHE = ['/offline', '/icons/qubaowan-icon-192-v1.png', '/icons/qubaowan-icon-512-v1.png'];
 
 /** 游戏素材的判定:这些目录下的位图、模型、音频 */
 const ASSET_DIRS = ['/neon-strike/', '/neon-strike-2d/', '/fruit-slasher/', '/eight-ball/', '/triple-pile/', '/fish-hunter/', '/ludo/', '/umo/', '/thirteen/', '/assets/', '/icons/', '/concepts/'];

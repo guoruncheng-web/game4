@@ -23,7 +23,7 @@ export default function NeonStrikePage() {
       <ThreeCanvas load={() => import('@/games/neon-strike')} />
       <Link
         href="/"
-        aria-label="返回游戏盒子"
+        aria-label="返回趣宝玩"
         className="absolute left-4 top-3.5 z-20 grid size-10 place-items-center rounded-full border border-cyan-400/50 bg-[#09283a]/70 text-cyan-100 opacity-85 backdrop-blur-sm transition hover:opacity-100 active:scale-90"
       >
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="size-5 drop-shadow-[0_0_5px_rgba(103,232,249,0.85)]">

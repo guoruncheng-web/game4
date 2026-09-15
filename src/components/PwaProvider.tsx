@@ -222,7 +222,7 @@ export default function PwaProvider() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icons/icon-192.png" alt="" width={48} height={48} className="size-12 shrink-0 rounded-2xl shadow-sm" />
             <div className="min-w-0">
-              <p className="text-base font-black text-[#173366]">把游戏盒子装到桌面</p>
+              <p className="text-base font-black text-[#173366]">把趣宝玩装到桌面</p>
               <p className="mt-0.5 text-sm font-medium text-slate-500">
                 像 App 一样一点即玩,玩过的游戏素材会留在本地,断网也能开。
               </p>

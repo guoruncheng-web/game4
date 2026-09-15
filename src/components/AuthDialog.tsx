@@ -176,14 +176,14 @@ export default function AuthDialog({
       className={page ? `gb-auth-form-page gb-auth-mode-${mode} ${mode !== 'account' ? 'gb-auth-v2' : ''} ${mode === 'account' && firstSetup ? 'gb-auth-setup-v2' : ''}` : 'gb-auth-modal fixed inset-0 z-50 flex items-end justify-center bg-[#0b1a2b]/45 backdrop-blur-sm sm:items-center'}
       onClick={(event) => { if (!page && event.target === event.currentTarget) requestClose(); }}
     >
-      {page && (mode !== 'account' || firstSetup) && <nav className="gb-auth-v2-brand" aria-label="GAME BOX">{mode === 'register' && <button type="button" aria-label="返回登录" onClick={() => { setMode('login'); setError(''); }}><ArrowLeft size={22} /></button>}<span className="gb-auth-v2-mark" aria-hidden="true" /><b>GAME BOX</b></nav>}
-      {page && <header className={`gb-auth-hero ${mode !== 'account' ? 'gb-auth-reference-hero' : ''} ${firstSetup ? 'gb-auth-setup-hero' : ''}`} aria-label="GAME BOX · 一起玩，更好玩">{mode === 'account' && !firstSetup && <ClubBrand />}</header>}
+      {page && (mode !== 'account' || firstSetup) && <nav className="gb-auth-v2-brand" aria-label="趣宝玩">{mode === 'register' && <button type="button" aria-label="返回登录" onClick={() => { setMode('login'); setError(''); }}><ArrowLeft size={22} /></button>}<span className="gb-auth-v2-mark" aria-hidden="true" /><b>趣宝玩</b></nav>}
+      {page && <header className={`gb-auth-hero ${mode !== 'account' ? 'gb-auth-reference-hero' : ''} ${firstSetup ? 'gb-auth-setup-hero' : ''}`} aria-label="趣宝玩 · 一起玩，更好玩">{mode === 'account' && !firstSetup && <ClubBrand />}</header>}
       <div
         ref={dialogRef}
         className={page ? 'gb-auth-form-card' : 'gb-auth-form-card w-full max-w-[440px] rounded-t-[2rem] border-4 border-white bg-[#fffdf7] p-5 shadow-[0_-10px_45px_rgba(23,51,102,0.25)] sm:rounded-[2rem]'}
       >
         <>
-            <div className="gb-auth-title"><h1>{mode === 'login' ? (page ? '回来，一起玩。' : '欢迎回来') : mode === 'register' ? (page ? '你的新玩家身份。' : '免费创建账号') : firstSetup ? '欢迎，新玩家。' : '修改密码'}</h1><p>{mode === 'account' ? (firstSetup ? '完成两步，就可以进入 GAME BOX' : '妥善保管你的账号信息') : mode === 'login' ? '登录你的 GAME BOX 账号' : '免费创建账号，开启一起玩的时光'}</p></div>
+            <div className="gb-auth-title"><h1>{mode === 'login' ? (page ? '回来，一起玩。' : '欢迎回来') : mode === 'register' ? (page ? '你的新玩家身份。' : '免费创建账号') : firstSetup ? '欢迎，新玩家。' : '修改密码'}</h1><p>{mode === 'account' ? (firstSetup ? '完成两步，就可以进入 趣宝玩' : '妥善保管你的账号信息') : mode === 'login' ? '登录你的 趣宝玩 账号' : '免费创建账号，开启一起玩的时光'}</p></div>
             {!page && <div className="gb-auth-mode-header mb-4 flex items-center justify-between">
               {mode === 'account' ? (
                 <p className="px-1 text-base font-black text-[#173366]">账号设置</p>

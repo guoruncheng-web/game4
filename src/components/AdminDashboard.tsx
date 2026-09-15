@@ -74,7 +74,7 @@ export default function AdminDashboard({ adminName }: { adminName: string }) {
       <header className="bg-[#0b2032] px-5 pb-8 pt-[calc(1.25rem+env(safe-area-inset-top))] text-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div>
-            <p className="text-xs font-black tracking-[0.18em] text-emerald-300">GAME BOX ADMIN</p>
+            <p className="text-xs font-black tracking-[0.18em] text-emerald-300">趣宝玩管理后台</p>
             <h1 className="mt-1 text-2xl font-black">运营管理后台</h1>
             <p className="mt-1 text-xs font-semibold text-slate-400">管理员：{adminName}</p>
           </div>

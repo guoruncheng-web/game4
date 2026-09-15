@@ -11,8 +11,8 @@ import { GAMES } from '@/games/registry';
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: '/',
-    name: 'GAME BOX · 游戏盒子',
-    short_name: 'GAME BOX',
+    name: '趣宝玩',
+    short_name: '趣宝玩',
     description: '即开即玩的移动端小游戏合集,装到桌面后可离线游玩',
     start_url: '/',
     scope: '/',
@@ -26,10 +26,10 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: 'zh-CN',
     categories: ['games', 'entertainment'],
     icons: [
-      { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-      { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      { src: '/icons/qubaowan-icon-192-v1.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: '/icons/qubaowan-icon-512-v1.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
       // maskable 单独出一张:安卓会把图标裁成圆形,复用 any 那张会削掉手柄的把手
-      { src: '/icons/maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: '/icons/qubaowan-maskable-512-v1.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
     ],
     // 长按桌面图标直接进某一款游戏。安卓最多显示 4 个,取前 4 款
     shortcuts: GAMES.slice(0, 4).map((game) => ({
@@ -37,7 +37,7 @@ export default function manifest(): MetadataRoute.Manifest {
       short_name: game.title,
       description: game.tagline,
       url: `/${game.slug}`,
-      icons: [{ src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+      icons: [{ src: '/icons/qubaowan-icon-192-v1.png', sizes: '192x192', type: 'image/png' }],
     })),
   };
 }

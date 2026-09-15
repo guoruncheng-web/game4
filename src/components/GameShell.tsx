@@ -21,7 +21,7 @@ export default function GameShell({ title, subtitle, children }: Props) {
           href="/"
           className="shrink-0 rounded-lg border border-slate-700/70 px-3 py-1.5 text-sm text-slate-300 transition-colors hover:border-slate-500 hover:text-slate-100"
         >
-          ← 返回游戏盒子
+          ← 返回趣宝玩
         </Link>
       </header>
 

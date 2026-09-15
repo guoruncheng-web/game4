@@ -28,7 +28,7 @@ export default function FruitSlasherPage() {
       </div>
       <Link
         href="/"
-        aria-label="返回游戏盒子"
+        aria-label="返回趣宝玩"
         className="absolute left-[calc(0.75rem+env(safe-area-inset-left))] top-[calc(0.75rem+env(safe-area-inset-top))] z-20 grid size-[52px] place-items-center overflow-hidden rounded-[15px] text-[#fff0c8] shadow-[0_7px_20px_rgba(0,0,0,0.4)] transition duration-100 hover:brightness-110 active:scale-90"
       >
         <span
