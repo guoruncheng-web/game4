@@ -59,6 +59,18 @@ async function prepared() {
  * 单个文件失败只记数不中断:宁可少缓存一张图,也不能让新版本永远装不上。
  * 带哈希的 _next/static 文件内容永不变,直接复用旧版本缓存里的同一份,更新时只下真正变了的 chunk。
  */
+/*
+ * 首页 HTML 单独存一份:断网后从桌面图标打开仍能进首页。导航依旧 network-first,联网时总拿最新。
+ * 预缓存一开始就先存,不等那 19MB 素材下完 —— 跨地域链路上整壳要两三分钟,
+ * 让"装完就能离线开首页"白等这么久没有道理。素材下完后再存一次,那份更新。
+ */
+async function cacheHome() {
+  try {
+    const home = await fetch('/', { cache: 'no-cache', credentials: 'same-origin' });
+    if (home.ok && !home.redirected) await (await caches.open(SHELL_CACHE)).put('/', home);
+  } catch { /* 拿不到就等下次在线打开首页时由 networkFirst 补上 */ }
+}
+
 async function precacheAll() {
   if (await prepared()) {
     progress = { ...progress, phase: 'done' };
@@ -67,6 +79,7 @@ async function precacheAll() {
   }
   progress = { phase: 'running', done: 0, total: 0, bytes: 0, totalBytes: 0, failed: 0 };
   await report(true);
+  await cacheHome();
   let files = [];
   try {
     const response = await fetch(PRECACHE_MANIFEST, { cache: 'no-store' });
@@ -99,12 +112,8 @@ async function precacheAll() {
     }
   };
   await Promise.all(Array.from({ length: PRECACHE_CONCURRENCY }, worker));
+  await cacheHome();
   const shell = await caches.open(SHELL_CACHE);
-  // 首页 HTML 也存一份:准备完后断网从桌面图标打开仍能进首页。导航依旧 network-first,联网时总拿最新。
-  try {
-    const home = await fetch('/', { cache: 'no-cache', credentials: 'same-origin' });
-    if (home.ok && !home.redirected) await shell.put('/', home);
-  } catch { /* 拿不到就等下次在线打开首页时由 networkFirst 补上 */ }
   await shell.put(PREPARED_MARKER, new Response(JSON.stringify({ failed: progress.failed, at: Date.now() }), { headers: { 'content-type': 'application/json' } }));
   progress.phase = 'done';
   await report(true);

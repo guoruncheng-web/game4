@@ -1,0 +1,147 @@
+{
+  "origin": "https://www.gameai.xingzdh.com",
+  "version": "v103",
+  "passed": false,
+  "exceptions": [],
+  "icons": [
+    {
+      "path": "/icons/qubaowan-icon-192-v1.png",
+      "bytes": 51499,
+      "sha256": "b879a571f0a89b4b6d1419a92094c674b7a63fba257efb46b89fea91ac6ca176"
+    },
+    {
+      "path": "/icons/qubaowan-icon-512-v1.png",
+      "bytes": 347829,
+      "sha256": "98d716060facda18b72b214bdc78b452ea5ca28c226e54797bdcda3a69668607"
+    },
+    {
+      "path": "/icons/qubaowan-maskable-512-v1.png",
+      "bytes": 204148,
+      "sha256": "53e018b943a1d70a187478c4090f79632e3bebc63388b6d222d29de6436c608e"
+    },
+    {
+      "path": "/icons/qubaowan-apple-touch-icon-v1.png",
+      "bytes": 45768,
+      "sha256": "9e790c318b6f6339f560c0185a82b8a7a6d339138ced68f0de8ec87bb2d3946b"
+    },
+    {
+      "path": "/favicon.ico",
+      "bytes": 2269,
+      "sha256": "d07d4afa9c13be67db02fe2eb1babaf92fa5ef4bd07b409907aeccc8788e7100"
+    }
+  ],
+  "manifest": {
+    "id": "/",
+    "name": "趣宝玩",
+    "short_name": "趣宝玩",
+    "description": "即开即玩的移动端小游戏合集,装到桌面后可离线游玩",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#fff5f7",
+    "theme_color": "#fff5f7",
+    "lang": "zh-CN",
+    "categories": [
+      "games",
+      "entertainment"
+    ],
+    "icons": [
+      {
+        "src": "/icons/qubaowan-icon-192-v1.png",
+        "sizes": "192x192",
+        "type": "image/png",
+        "purpose": "any"
+      },
+      {
+        "src": "/icons/qubaowan-icon-512-v1.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "any"
+      },
+      {
+        "src": "/icons/qubaowan-maskable-512-v1.png",
+        "sizes": "512x512",
+        "type": "image/png",
+        "purpose": "maskable"
+      }
+    ],
+    "shortcuts": [
+      {
+        "name": "Star Runner",
+        "short_name": "Star Runner",
+        "description": "收集全部星星,躲开炸弹的横版跳跃",
+        "url": "/star-runner",
+        "icons": [
+          {
+            "src": "/icons/qubaowan-icon-192-v1.png",
+            "sizes": "192x192",
+            "type": "image/png"
+          }
+        ]
+      },
+      {
+        "name": "水果切切乐",
+        "short_name": "水果切切乐",
+        "description": "经典 / 限时 / 禅意三种模式 · 三档难度",
+        "url": "/fruit-slasher",
+        "icons": [
+          {
+            "src": "/icons/qubaowan-icon-192-v1.png",
+            "sizes": "192x192",
+            "type": "image/png"
+          }
+        ]
+      },
+      {
+        "name": "霓虹突击",
+        "short_name": "霓虹突击",
+        "description": "3D 纵深追尾射击 · 12 波战役 · 3 场 Boss",
+        "url": "/neon-strike",
+        "icons": [
+          {
+            "src": "/icons/qubaowan-icon-192-v1.png",
+            "sizes": "192x192",
+            "type": "image/png"
+          }
+        ]
+      },
+      {
+        "name": "霓虹突击 2D",
+        "short_name": "霓虹突击 2D",
+        "description": "初代 Phaser 竖屏弹幕版 · 手绘贴图 · 独立存档",
+        "url": "/neon-strike-2d",
+        "icons": [
+          {
+            "src": "/icons/qubaowan-icon-192-v1.png",
+            "sizes": "192x192",
+            "type": "image/png"
+          }
+        ]
+      }
+    ]
+  },
+  "home": {
+    "title": "趣宝玩",
+    "apple": "趣宝玩",
+    "heading": "趣宝玩一起玩，更好玩",
+    "width": 393,
+    "viewport": 393,
+    "readyMs": 158199
+  },
+  "cache": {
+    "names": [
+      "game-box-shell-v103",
+      "game-box-static-v103",
+      "game-box-assets-v103"
+    ],
+    "urls": [
+      "/offline",
+      "/icons/qubaowan-icon-192-v1.png",
+      "/icons/qubaowan-icon-512-v1.png",
+      "/",
+      "/__gb-prepared-v103"
+    ]
+  },
+  "error": "Error: Timed out: location.search.includes('mode=login') && document.querySelector('.gb-auth-mode-login .gb-auth-v2-brand b')?.textContent === '趣宝玩'"
+}
