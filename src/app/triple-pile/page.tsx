@@ -23,7 +23,7 @@ export default function TriplePilePage() {
       <ThreeCanvas load={() => import('@/games/triple-pile')} />
       <Link
         href="/"
-        aria-label="返回游戏盒子"
+        aria-label="返回趣宝玩"
         className="absolute left-3 top-[21px] z-20 size-[46px] bg-[url('/triple-pile/ui/button-back.png')] bg-contain bg-center bg-no-repeat transition active:scale-90"
       />
     </main>

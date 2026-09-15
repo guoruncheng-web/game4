@@ -38,5 +38,5 @@ export function homeCardStyle(slug: string): CSSProperties {
 }
 
 export function ClubBrand() {
-  return <div className="gb-brand" aria-label="GAME BOX"><b>GAME</b><b>BOX</b><small>一起玩，更好玩</small></div>;
+  return <div className="gb-brand" aria-label="趣宝玩"><b>趣宝玩</b><small>一起玩，更好玩</small></div>;
 }

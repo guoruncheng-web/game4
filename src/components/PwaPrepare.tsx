@@ -97,7 +97,7 @@ export default function PwaPrepare() {
       <div className="gb-prepare-art" aria-hidden="true" />
       <div className="gb-prepare-panel">
         <h1 id="gb-prepare-title" className="gb-prepare-title"><span className="gb-prepare-first">准备环境中</span><span className="gb-prepare-update">正在切换新版本</span></h1>
-        <p className="gb-prepare-sub gb-prepare-first">正在把游戏盒子装进你的手机<br />下次打开秒进，断网也能玩</p>
+        <p className="gb-prepare-sub gb-prepare-first">正在把趣宝玩装进你的手机<br />下次打开秒进，断网也能玩</p>
         <p className="gb-prepare-sub gb-prepare-update">新版本已经准备好，马上就好</p>
         <div className="gb-prepare-bar" role="progressbar" aria-label="准备进度" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
           <div className="gb-prepare-fill" style={{ width: `${percent}%` }}><span className="gb-prepare-badge">{percent}%</span></div>

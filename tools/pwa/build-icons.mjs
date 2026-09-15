@@ -1,9 +1,9 @@
 /**
  * 生成 PWA 图标(public/icons/*.png)。
  *
- * 图标源是 public/icons/pwa-icon-master-v2.png，产物也全部是 PNG ——
+ * 图标源是 public/icons/qubaowan-master-v1.png，产物也全部是 PNG ——
  * 安装到桌面之后，Android 的 maskable 裁切和 iOS 的圆角都只认位图。
- * 母版把手柄收在中央安全区，同一张图可以稳定派生各平台尺寸。
+ * 母版把手柄收在中央安全区，普通图标保留主体大小，maskable 额外留边以适应圆形裁切。
  *
  * 改了图形就重跑一次:
  *   node tools/pwa/build-icons.mjs
@@ -13,7 +13,7 @@
  * 裸 import 'sharp' 未必解析得到,所以这里从 .pnpm 里兜一次底。
  */
 import { createRequire } from 'node:module';
-import { mkdir, readdir } from 'node:fs/promises';
+import { mkdir, readdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -32,22 +32,35 @@ async function loadSharp() {
 }
 
 const TARGETS = [
-  { file: 'icon-192.png', size: 192 },
-  { file: 'icon-512.png', size: 512 },
-  { file: 'maskable-512.png', size: 512 },
-  { file: 'apple-touch-icon.png', size: 180 },
+  { file: 'qubaowan-icon-192-v1.png', size: 192 },
+  { file: 'qubaowan-icon-512-v1.png', size: 512 },
+  { file: 'qubaowan-maskable-512-v1.png', size: 512 },
+  { file: 'qubaowan-apple-touch-icon-v1.png', size: 180 },
 ];
 
 const sharp = await loadSharp();
 const outDir = join(ROOT, 'public/icons');
-const master = join(outDir, 'pwa-icon-master-v2.png');
+const master = join(outDir, 'qubaowan-master-v1.png');
 await mkdir(outDir, { recursive: true });
 
 for (const target of TARGETS) {
   const output = join(outDir, target.file);
-  const info = await sharp(master)
-    .resize(target.size, target.size, { fit: 'cover' })
-    .png({ compressionLevel: 9 })
-    .toFile(output);
+  const inset = target.file.includes('maskable') ? 64 : 0;
+  const pipeline = sharp(master).resize(target.size - inset * 2, target.size - inset * 2, { fit: 'cover' });
+  if (inset) pipeline.extend({ top: inset, bottom: inset, left: inset, right: inset, background: '#fff5f7' });
+  const info = await pipeline.png({ compressionLevel: 9 }).toFile(output);
   console.log(`✓ public/icons/${target.file}  ${(info.size / 1024).toFixed(1)} KB`);
 }
+
+// ICO 容器嵌入 PNG，浏览器标签与安装图标使用同一母版。
+const favicon = await sharp(master).resize(32, 32).ensureAlpha().png().toBuffer();
+const header = Buffer.alloc(22);
+header.writeUInt16LE(1, 2);
+header.writeUInt16LE(1, 4);
+header[6] = 32;
+header[7] = 32;
+header.writeUInt16LE(1, 10);
+header.writeUInt16LE(32, 12);
+header.writeUInt32LE(favicon.length, 14);
+header.writeUInt32LE(22, 18);
+await writeFile(join(ROOT, 'src/app/favicon.ico'), Buffer.concat([header, favicon]));

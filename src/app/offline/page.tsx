@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export const metadata = { title: '离线 · GAME BOX' };
+export const metadata = { title: '离线 · 趣宝玩' };
 
 /**
  * 断网且请求的页面没缓存过时,Service Worker 会回落到这张页。

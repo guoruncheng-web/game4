@@ -85,7 +85,7 @@ export default function FishHunterPage() {
       <div className="absolute left-[calc(0.5rem+env(safe-area-inset-left))] right-[calc(0.5rem+env(safe-area-inset-right))] top-[calc(0.5rem+env(safe-area-inset-top))] z-20 flex min-w-0 origin-top-left items-center gap-1.5 overflow-hidden text-nowrap">
         <Link
           href="/"
-          aria-label="返回游戏盒子"
+          aria-label="返回趣宝玩"
           className="size-11 shrink-0 bg-[url('/fish-hunter/ui/button-back.png')] bg-contain bg-center bg-no-repeat drop-shadow-[0_4px_8px_rgba(0,0,0,.45)] transition active:scale-90 max-[560px]:size-9"
         />
         {!online && (

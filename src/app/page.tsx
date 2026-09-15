@@ -181,7 +181,7 @@ export default function Home() {
               <button type="button" onClick={() => setActiveTab('messages')}><ClubIcon name="messages" /><span>好友消息</span>{unreadMessages > 0 && <i className="gb-dot" />}</button>
               <button type="button" onClick={() => setActiveTab('profile')}><ClubIcon name="security" /><span>账号安全</span></button>
             </div>
-            <div className="gb-section-heading"><h1>一起玩</h1><button type="button" onClick={() => document.getElementById('gb-games')?.scrollIntoView()}>全部游戏 ›</button></div>
+            <div className="gb-section-heading"><h1>趣宝玩<span className="gb-home-brand-tagline">一起玩，更好玩</span></h1><button type="button" onClick={() => document.getElementById('gb-games')?.scrollIntoView()}>全部游戏 ›</button></div>
             <GameLink href="/thirteen" label="南方十三张 · 好友开房 · 四人联机" enabled={gameAvailability.thirteen !== false} className="gb-game-card gb-featured" style={homeCardStyle('thirteen')}>
               <span className="gb-card-copy"><b>南方十三张</b><small>好友开房 · 四人联机</small><em>一起开局 ›</em></span>
             </GameLink>

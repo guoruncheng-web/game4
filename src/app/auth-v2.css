@@ -3,9 +3,9 @@
 .gb-auth-v2-brand { display: flex; align-items: center; gap: 9px; height: calc(64px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) 24px 0; }
 .gb-auth-v2-brand b { font-size: 19px; font-weight: 850; letter-spacing: -.6px; }
 .gb-auth-v2-brand button { display: grid; place-items: center; width: 36px; height: 44px; margin-left: -12px; }
-.gb-auth-v2-mark { width: 34px; height: 38px; background: url('/assets/game-box/auth-v2/reference.png') -124px -95px / 1310px 1200px; }
+.gb-auth-v2-mark { width: 36px; height: 36px; border-radius: 10px; background: url('/icons/qubaowan-icon-192-v1.png') center / cover; }
 .gb-auth-v2 .gb-auth-reference-hero { height: auto; aspect-ratio: 543 / 320; background: url('/assets/game-box/auth-v2/reference.png') 11.73403% 16.477273% / 241.252302% 375%; mask-image: linear-gradient(#000 82%, transparent); }
-.gb-auth-v2.gb-auth-mode-register .gb-auth-reference-hero { aspect-ratio: 543 / 320; background-position: 88.39635% 16.477273%; background-size: 241.252302% 375%; }
+.gb-auth-v2.gb-auth-mode-register .gb-auth-reference-hero { aspect-ratio: 543 / 320; background-position: 11.73403% 16.477273%; background-size: 241.252302% 375%; }
 .gb-auth-form-page.gb-auth-v2 .gb-auth-form-card { width: 100%; max-width: none; margin: -6px auto 0; padding: 0 24px; border: 0; border-radius: 0; box-shadow: none; background: transparent; }
 .gb-auth-form-page.gb-auth-v2 .gb-auth-title { margin-bottom: 28px; text-align: left; }
 .gb-auth-form-page.gb-auth-v2 .gb-auth-title h1 { font-size: clamp(27px, 7.3vw, 35px); line-height: 1.3; letter-spacing: -1px; font-weight: 850; color: var(--auth-ink); }

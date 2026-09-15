@@ -23,7 +23,7 @@ export default function EightBallPage() {
       </div>
       <Link
         href="/"
-        aria-label="返回游戏盒子"
+        aria-label="返回趣宝玩"
         className="absolute left-[calc(0.75rem+env(safe-area-inset-left))] top-[calc(0.75rem+env(safe-area-inset-top))] z-20 grid size-[52px] place-items-center rounded-[15px] border border-emerald-300/25 bg-[#143427]/85 text-emerald-100 shadow-[0_7px_20px_rgba(0,0,0,0.45)] transition duration-100 hover:brightness-125 active:scale-90"
       >
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="size-[26px]">

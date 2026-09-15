@@ -21,8 +21,8 @@ export default function ThirteenPage() {
       >
         <Link
           href="/"
-          aria-label="返回游戏盒子"
-          title="返回游戏盒子"
+          aria-label="返回趣宝玩"
+          title="返回趣宝玩"
           data-game-ready-control="home"
           className="absolute right-[calc(.5rem+env(safe-area-inset-right))] top-1/2 z-20 grid h-14 w-10 -translate-y-1/2 place-items-center rounded-xl border border-amber-100/25 bg-[#102a2f]/88 text-xl font-black text-amber-100 shadow-lg backdrop-blur transition hover:bg-[#102a2f] active:scale-90"
         >
