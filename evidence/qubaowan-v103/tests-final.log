@@ -1,0 +1,166 @@
+TAP version 13
+# Subtest: voice changes and additive SDK dependency do not request unrelated games
+ok 1 - voice changes and additive SDK dependency do not request unrelated games
+  ---
+  duration_ms: 2.231791
+  type: 'test'
+  ...
+# Subtest: an existing framework version or transitive lock resolution change requests all tests
+ok 2 - an existing framework version or transitive lock resolution change requests all tests
+  ---
+  duration_ms: 0.546667
+  type: 'test'
+  ...
+# Subtest: SW version alone differs from a caching behavior change
+ok 3 - SW version alone differs from a caching behavior change
+  ---
+  duration_ms: 0.49
+  type: 'test'
+  ...
+# Subtest: thirteen assets select its functional and PWA suites only
+ok 4 - thirteen assets select its functional and PWA suites only
+  ---
+  duration_ms: 0.0915
+  type: 'test'
+  ...
+# Subtest: auth, gateway and unknown runtime paths fail closed to all suites
+ok 5 - auth, gateway and unknown runtime paths fail closed to all suites
+  ---
+  duration_ms: 0.296625
+  type: 'test'
+  ...
+# Subtest: documentation does not deploy; invalid baseline and manual full override do
+ok 6 - documentation does not deploy; invalid baseline and manual full override do
+  ---
+  duration_ms: 0.15175
+  type: 'test'
+  ...
+# Subtest: cumulative production diff includes an earlier failed commit, not just HEAD parent
+ok 7 - cumulative production diff includes an earlier failed commit, not just HEAD parent
+  ---
+  duration_ms: 126.451458
+  type: 'test'
+  ...
+# Subtest: only the pinned RTC patch stays voice-scoped; unrelated dependency patches require all suites
+ok 8 - only the pinned RTC patch stays voice-scoped; unrelated dependency patches require all suites
+  ---
+  duration_ms: 0.212833
+  type: 'test'
+  ...
+# Subtest: additive lock snapshots include pnpm inline empty dependency blocks
+ok 9 - additive lock snapshots include pnpm inline empty dependency blocks
+  ---
+  duration_ms: 0.2695
+  type: 'test'
+  ...
+# Subtest: shared page styles retain PWA and RTC checks without game-rule suites
+ok 10 - shared page styles retain PWA and RTC checks without game-rule suites
+  ---
+  duration_ms: 0.2645
+  type: 'test'
+  ...
+# Subtest: room-only artwork follows voice acceptance scope
+ok 11 - room-only artwork follows voice acceptance scope
+  ---
+  duration_ms: 0.089958
+  type: 'test'
+  ...
+# Subtest: Social release with both version files selects only Social acceptance
+ok 12 - Social release with both version files selects only Social acceptance
+  ---
+  duration_ms: 0.131167
+  type: 'test'
+  ...
+# Subtest: cache constant number-only is narrow, bootstrap code changes retain all PWA suites
+ok 13 - cache constant number-only is narrow, bootstrap code changes retain all PWA suites
+  ---
+  duration_ms: 0.045042
+  type: 'test'
+  ...
+# Subtest: Social and voice changes union their scopes without unrelated game suites
+ok 14 - Social and voice changes union their scopes without unrelated game suites
+  ---
+  duration_ms: 0.032208
+  type: 'test'
+  ...
+# Subtest: pipeline-only and evidence changes do not switch production
+ok 15 - pipeline-only and evidence changes do not switch production
+  ---
+  duration_ms: 0.031083
+  type: 'test'
+  ...
+# Subtest: unknown games and auth still select Social as part of full acceptance
+ok 16 - unknown games and auth still select Social as part of full acceptance
+  ---
+  duration_ms: 0.047125
+  type: 'test'
+  ...
+# Subtest: backend reuse is based on exact production revision, not merely runtime path filtering
+ok 17 - backend reuse is based on exact production revision, not merely runtime path filtering
+  ---
+  duration_ms: 127.9525
+  type: 'test'
+  ...
+# Subtest: drains browser stderr, verifies endpoint and cleans only owned group
+ok 18 - drains browser stderr, verifies endpoint and cleans only owned group
+  ---
+  duration_ms: 179.142583
+  type: 'test'
+  ...
+# Subtest: browser exit preserves stderr instead of waiting for a missing port
+ok 19 - browser exit preserves stderr instead of waiting for a missing port
+  ---
+  duration_ms: 103.655042
+  type: 'test'
+  ...
+# Subtest: missing browser executable reports spawn error
+ok 20 - missing browser executable reports spawn error
+  ---
+  duration_ms: 102.335459
+  type: 'test'
+  ...
+# Subtest: Social scope runs its own browser acceptance and uploads evidence
+ok 21 - Social scope runs its own browser acceptance and uploads evidence
+  ---
+  duration_ms: 0.4095
+  type: 'test'
+  ...
+# Subtest: unchanged backend keeps acceptance dependencies but avoids build and upload
+ok 22 - unchanged backend keeps acceptance dependencies but avoids build and upload
+  ---
+  duration_ms: 0.121416
+  type: 'test'
+  ...
+# Subtest: basic smoke, actual production baselines, cleanup and rollback remain mandatory
+ok 23 - basic smoke, actual production baselines, cleanup and rollback remain mandatory
+  ---
+  duration_ms: 0.126458
+  type: 'test'
+  ...
+# Subtest: Social browser preflight precedes cutover and uploads diagnostics
+ok 24 - Social browser preflight precedes cutover and uploads diagnostics
+  ---
+  duration_ms: 0.8375
+  type: 'test'
+  ...
+# Subtest: PWA cache version is identical in the service worker, app constant and deploy acceptance
+ok 25 - PWA cache version is identical in the service worker, app constant and deploy acceptance
+  ---
+  duration_ms: 4.580583
+  type: 'test'
+  ...
+# Subtest: prepare screen is only opened on the home route before first paint
+ok 26 - prepare screen is only opened on the home route before first paint
+  ---
+  duration_ms: 1.102875
+  type: 'test'
+  ...
+1..26
+# tests 26
+# suites 0
+# pass 26
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 429.413917

@@ -248,7 +248,7 @@ export default function PwaProvider() {
 
           <div className="flex items-start gap-3 pr-8">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icons/icon-192.png" alt="" width={48} height={48} className="size-12 shrink-0 rounded-2xl shadow-sm" />
+            <img src="/icons/qubaowan-icon-192-v1.png" alt="" width={48} height={48} className="size-12 shrink-0 rounded-2xl shadow-sm" />
             <div className="min-w-0">
               <p className="text-base font-black text-[#173366]">把趣宝玩装到桌面</p>
               <p className="mt-0.5 text-sm font-medium text-slate-500">

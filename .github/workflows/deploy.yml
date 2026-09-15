@@ -143,6 +143,13 @@ jobs:
         run: |
           mkdir -p evidence
           node deploy/public-smoke.mjs https://www.gameai.xingzdh.com "$RUNNER_TEMP/acceptance.json" evidence/public-smoke.json
+      - name: Public brand, icons and offline home acceptance
+        if: steps.plan.outputs.deploy == 'true'
+        working-directory: frontend-source
+        env:
+          COCOS_CHROME: /usr/bin/google-chrome
+          PWA_CACHE_VERSION: 'v103'
+        run: node tools/pwa/brand-acceptance.mjs https://www.gameai.xingzdh.com evidence/public-brand
       - name: Public four-player countdown and reconnect acceptance
         if: steps.plan.outputs.thirteen == 'true'
         working-directory: backend-source
@@ -210,6 +217,7 @@ jobs:
           name: production-acceptance-${{ github.sha }}
           path: |
             frontend-source/evidence/acceptance-plan.json
+            frontend-source/evidence/public-brand/
             frontend-source/evidence/public-social-pwa/
             frontend-source/evidence/browser-preflight/
             backend-source/evidence/public-voice-rtc/

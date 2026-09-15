@@ -14,6 +14,6 @@
 Use case: logo-brand. Create a production square PWA app icon for the Chinese casual social game collection 趣宝玩. Reference: the green rounded cube mascot and polished candy toy style of the provided app concept board. Generate ONE icon only, not a board or mockup. A lovable lime-green rounded cube creature, two dark oval eyes and tiny happy mouth, wearing chunky blue-violet headphones, holding a small violet game controller with a simple pale D-pad and two coral buttons. Premium soft 3D toy rendering, clear bold silhouette, gentle studio light, restrained highlights, no tiny decorations. Full-bleed solid pale peach-pink background #fff5f7, opaque square edges, no rounded outer tile, no border. Entire mascot including headphones and controller must fit inside the central 70 percent of the square so Android circular masking is safe. Large readable face, centered compact composition. No text, letters, watermark, floating stars or extra objects. 1024x1024.
 ```
 
-此变更为本地实现，尚未生产发布。操作系统上已安装应用的名称与图标更新仍待发布后真机核验。
+发布候选从生产 `c36c333ff33d756e7da543685805ccaa3da2db72` 隔离创建，应用原品牌提交 `a7f933a` 并保留后续线上修复。PWA 版本升级到 v103，同步 SW、准备页常量和 Actions 版本断言；后端固定修订与游戏构建树未变。操作系统上已安装应用的名称与图标更新仍待发布后真机核验。
 
-验证：`pnpm lint`、`pnpm build`、`git diff --check` 通过；构建后的 manifest 名称/身份、PNG 尺寸、首页 title 与 Apple 安装名称断言通过。构建保留既有 middleware 弃用提示。未执行生产发布或真机安装。
+验证：`pnpm lint`、`pnpm build`、`git diff --check` 通过；构建后的 manifest 名称/身份、PNG 尺寸、首页 title 与 Apple 安装名称断言通过。构建保留既有 middleware 弃用提示。首次本地实现阶段未执行生产发布或真机安装；后续候选验收见 `evidence/qubaowan-v103/README.md`。
