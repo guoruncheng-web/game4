@@ -1,0 +1,79 @@
+{
+  "feature": "Thirteen PWA offline replay",
+  "online": {
+    "names": [
+      "game-box-shell-v42",
+      "game-box-assets-v42",
+      "game-box-static-v42"
+    ],
+    "assetCount": 87,
+    "shellKeys": [
+      "/icons/icon-192.png",
+      "/icons/icon-512.png",
+      "/offline",
+      "/thirteen",
+      "/thirteen/game/index.html"
+    ],
+    "cachedGameIndex": true,
+    "cachedSettings": true,
+    "cachedRoute": true,
+    "onlineCanvas": true,
+    "releaseLanguage": "zh-CN",
+    "trustedAudio": {
+      "before": {
+        "loadedClips": 21,
+        "unlocked": false,
+        "scene": "lobby",
+        "tension": false,
+        "musicPlaying": false,
+        "ambiencePlaying": false,
+        "liveSfx": 0,
+        "liveVoice": 0,
+        "dealPulseAttempts": 0,
+        "dealPulsePlayed": 0
+      },
+      "after": {
+        "loadedClips": 21,
+        "unlocked": true,
+        "scene": "lobby",
+        "tension": false,
+        "musicPlaying": true,
+        "ambiencePlaying": true,
+        "liveSfx": 0,
+        "liveVoice": 0,
+        "dealPulseAttempts": 0,
+        "dealPulsePlayed": 0
+      },
+      "clickPoint": {
+        "x": 640,
+        "y": 316.5,
+        "rect": [
+          0,
+          0,
+          1280,
+          633
+        ]
+      },
+      "inputProbe": {
+        "parentActiveElement": "IFRAME",
+        "frameActiveElement": "GameCanvas",
+        "events": {
+          "mouse": 1,
+          "touch": 0,
+          "pointer": 1
+        }
+      }
+    }
+  },
+  "offline": {
+    "pagePath": "/thirteen",
+    "canvas": true,
+    "canvasWidth": 1280,
+    "canvasHeight": 633,
+    "cocos": true,
+    "scene": "R02Lobby",
+    "releaseLanguage": "zh-CN",
+    "loadingOverlayVisible": false
+  },
+  "accepted": true
+}

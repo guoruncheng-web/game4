@@ -1,0 +1,12 @@
+{
+  "source": "/Users/mac/projects/.codex-tmp/thirteen-layered-rc12-zh-deal-audio/web-mobile",
+  "target": "/Users/mac/projects/.codex-tmp/game4-thirteen-rc12-20260831/public/thirteen/game",
+  "sourceFileCount": 515,
+  "targetFileCount": 515,
+  "sourceByteCount": 14612195,
+  "targetByteCount": 14612195,
+  "comparisonAlgorithm": "sha256(LC_ALL=C sorted relative-path shasum lines)",
+  "sourceComparisonSha256": "fc2b2cb93e367a530e9c14add6c0e55f9f8a18d8b092e41e25777b8da9aded59",
+  "targetComparisonSha256": "fc2b2cb93e367a530e9c14add6c0e55f9f8a18d8b092e41e25777b8da9aded59",
+  "identical": true
+}

@@ -1,0 +1,19 @@
+{
+  "feature": "Thirteen editor-native economy UI RC23 game4 tree identity",
+  "sourceProject": "/Users/mac/projects/cocos-game-studio/games/Thirteen",
+  "sourceCommit": "985d54a",
+  "creatorVersion": "3.8.8",
+  "platform": "web-mobile",
+  "release": true,
+  "startSceneUuid": "5066c4ee-d702-4879-8ddb-a69b5836eb08",
+  "sourceBuild": "/Users/mac/projects/cocos-game-studio/games/Thirteen/build/economy-editor-native-rc23/web-mobile",
+  "hostBuild": "public/thirteen/game",
+  "fileCount": 600,
+  "packageBytes": 21384079,
+  "sourceTreeSha256": "b5b2a0e56ef1d52b41446af5d8868143b60b30f082bb1dc598f1953f46ccd290",
+  "hostTreeSha256": "b5b2a0e56ef1d52b41446af5d8868143b60b30f082bb1dc598f1953f46ccd290",
+  "identical": true,
+  "game4Base": "a5589752ce97ba1ae8367390d472c567321f7c7a",
+  "serviceWorkerVersion": "v52",
+  "rollbackTree": "/Users/mac/projects/.codex-tmp/game4-thirteen-editor-native-rc23-old-a558975"
+}

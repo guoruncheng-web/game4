@@ -1,0 +1,20 @@
+[Unit]
+Description=Game Box (Next.js) - www.gameai.xingzdh.com
+After=network.target docker.service
+
+[Service]
+Type=simple
+User=deploy
+WorkingDirectory=/srv/gameai
+Environment=NODE_ENV=production
+Environment=PORT=7010
+Environment=HOSTNAME=127.0.0.1
+# next start 不会自己读 .env.local(那是 next dev 的行为),用 --env-file 显式喂进去
+ExecStart=/usr/bin/node --env-file=/srv/gameai/.env.local /srv/gameai/node_modules/next/dist/bin/next start -p 7010 -H 127.0.0.1
+Restart=always
+RestartSec=3
+StandardOutput=append:/var/log/gameai.log
+StandardError=append:/var/log/gameai.log
+
+[Install]
+WantedBy=multi-user.target

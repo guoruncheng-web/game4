@@ -1,0 +1,223 @@
+{
+  "feature": "Thirteen PWA offline replay",
+  "online": {
+    "names": [
+      "game-box-shell-v53",
+      "game-box-assets-v53",
+      "game-box-static-v53"
+    ],
+    "assetCount": 118,
+    "shellKeys": [
+      "/icons/icon-192.png",
+      "/icons/icon-512.png",
+      "/offline",
+      "/thirteen",
+      "/thirteen/game/index.html"
+    ],
+    "cachedGameIndex": true,
+    "cachedSettings": true,
+    "cachedAudioClips": 21,
+    "cachedRoute": true,
+    "onlineCanvas": true,
+    "releaseLanguage": "zh-CN",
+    "trustedAudio": {
+      "before": {
+        "architecture": "scene-mounted-six-bus",
+        "assignedSources": 6,
+        "missingSources": [],
+        "loadedClips": 21,
+        "ready": true,
+        "contextState": "suspended",
+        "unlocked": false,
+        "scene": "lobby",
+        "tension": false,
+        "musicPlaying": false,
+        "ambiencePlaying": false,
+        "liveSfx": 0,
+        "liveVoice": 0,
+        "dealPulseAttempts": 0,
+        "dealPulsePlayed": 0
+      },
+      "after": {
+        "architecture": "scene-mounted-six-bus",
+        "assignedSources": 6,
+        "missingSources": [],
+        "loadedClips": 21,
+        "ready": true,
+        "contextState": "running",
+        "unlocked": true,
+        "scene": "lobby",
+        "tension": false,
+        "musicPlaying": true,
+        "ambiencePlaying": true,
+        "liveSfx": 0,
+        "liveVoice": 0,
+        "dealPulseAttempts": 0,
+        "dealPulsePlayed": 0
+      },
+      "clickPoint": {
+        "x": 640,
+        "y": 316.5,
+        "rect": [
+          0,
+          0,
+          1280,
+          633
+        ]
+      },
+      "inputProbe": {
+        "parentActiveElement": "IFRAME",
+        "frameActiveElement": "GameCanvas",
+        "events": {
+          "mouse": 1,
+          "touch": 0,
+          "pointer": 1
+        }
+      }
+    },
+    "accountIdentity": {
+      "playerName": "test-thirteen-pwa-1788359814158",
+      "avatarSource": "/api/avatar/999998?v=1",
+      "runtimeAvatarFrame": true,
+      "textureWidth": 2048
+    },
+    "accountRooms": {
+      "selfName": "test-thirteen-pwa-1788359814158",
+      "selfAvatar": "/api/avatar/999998?v=1",
+      "privateEntry": {
+        "state": "private-entry",
+        "roomCode": "",
+        "connectionText": "已连接",
+        "waitingText": "输入房码加入，或创建新房间",
+        "readyInteractable": true,
+        "copyInteractable": true,
+        "tableStake": 100,
+        "walletBalance": 0,
+        "walletReserved": 0,
+        "selfReady": false,
+        "seatNames": [
+          "test-thirteen-pwa-1788359814158",
+          "等待玩家",
+          "等待玩家",
+          "等待玩家"
+        ],
+        "avatarSources": [
+          "/api/avatar/999998?v=1",
+          null,
+          null,
+          null
+        ]
+      },
+      "privateRoom": {
+        "state": "room",
+        "roomCode": "A1B 2C3",
+        "connectionText": "已连接",
+        "waitingText": "等待 2 名玩家",
+        "readyInteractable": true,
+        "copyInteractable": true,
+        "tableStake": 300,
+        "walletBalance": 0,
+        "walletReserved": 0,
+        "selfReady": false,
+        "seatNames": [
+          "test-thirteen-pwa-1788359814158",
+          "真实对手",
+          "等待玩家",
+          "等待玩家"
+        ],
+        "avatarSources": [
+          "/api/avatar/999998?v=1",
+          "/api/avatar/999998?v=1",
+          null,
+          null
+        ]
+      },
+      "quickQueue": {
+        "state": "queueing",
+        "roomCode": "",
+        "connectionText": "匹配中",
+        "waitingText": "已找到 2/4 人",
+        "readyInteractable": false,
+        "copyInteractable": false,
+        "tableStake": 300,
+        "walletBalance": 0,
+        "walletReserved": 0,
+        "selfReady": false,
+        "seatNames": [
+          "test-thirteen-pwa-1788359814158",
+          "玩家已匹配",
+          "等待玩家",
+          "等待玩家"
+        ],
+        "avatarSources": [
+          "/api/avatar/999998?v=1",
+          null,
+          null,
+          null
+        ]
+      }
+    },
+    "authenticatedEconomy": {
+      "iframeHasUid": true,
+      "iframeHasToken": true,
+      "requested": true,
+      "wallet": {
+        "diamonds": 9990,
+        "chips": 11000,
+        "reserved": 0,
+        "totalChips": 11000
+      },
+      "bridge": {
+        "diamonds": 9990,
+        "chips": 11000,
+        "reserved": 0,
+        "totalChips": 11000
+      },
+      "modalOpen": true,
+      "modalState": {
+        "open": true,
+        "serialized": true,
+        "selectedDiamonds": 10,
+        "wallet": {
+          "diamonds": 9990,
+          "chips": 11000,
+          "reserved": 0,
+          "totalChips": 11000
+        },
+        "result": "消耗 10 钻石  ·  获得 1,000 牌注",
+        "after": "兑换后牌注 12,000",
+        "error": "兑换成功",
+        "quickAmounts": [
+          1,
+          10,
+          50,
+          100
+        ]
+      },
+      "exchangeCallbackDispatched": true,
+      "economyAuthenticated": true,
+      "hasExchangeHandler": true,
+      "confirmInteractable": true,
+      "fetchProbe": [
+        {
+          "path": "/api/games/thirteen/exchange",
+          "method": "POST",
+          "status": 200,
+          "uidHeader": true,
+          "bearerHeader": true
+        }
+      ]
+    }
+  },
+  "offline": {
+    "pagePath": "/thirteen",
+    "canvas": true,
+    "canvasWidth": 1280,
+    "canvasHeight": 633,
+    "cocos": true,
+    "scene": "R02Lobby",
+    "releaseLanguage": "zh-CN",
+    "loadingOverlayVisible": false
+  },
+  "accepted": true
+}

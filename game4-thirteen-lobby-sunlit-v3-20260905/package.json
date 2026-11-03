@@ -1,0 +1,61 @@
+{
+  "name": "game4",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "ws": "node --import ./server/ts-register.mjs --env-file=.env.local server/ws.mjs",
+    "icons": "node tools/pwa/build-icons.mjs",
+    "fish:rtp": "node --import ./server/ts-register.mjs tools/sim/fish-hunter/rtp.mjs",
+    "fish:test": "node --import ./server/ts-register.mjs tools/sim/fish-hunter/room-test.mjs",
+    "ludo:test": "node --import ./server/ts-register.mjs tools/sim/ludo/rules-test.mjs",
+    "umo:test": "node --experimental-strip-types --import ./server/ts-register.mjs tools/sim/umo/room-test.mts",
+    "umo:pwa-test": "node tools/sim/umo/pwa-offline-test.mjs",
+    "thirteen:test": "node --experimental-strip-types --import ./server/ts-register.mjs tools/sim/thirteen/room-test.mjs",
+    "thirteen:host-test": "node tools/sim/thirteen/host-bridge-test.mjs",
+    "auth:token-test": "node --experimental-strip-types --import ./server/ts-register.mjs tools/sim/auth-uid-token-test.mts",
+    "auth:game-link-test": "node --env-file=.env.local --experimental-strip-types --import ./server/ts-register.mjs tools/sim/auth-game-link-test.mjs",
+    "wallet:test": "node --env-file=.env.local --experimental-strip-types --import ./server/ts-register.mjs tools/sim/wallet-v2-test.mts",
+    "wallet:pwa-test": "node --env-file=.env.local --experimental-strip-types --import ./server/ts-register.mjs tools/sim/thirteen/authenticated-pwa-test.mts",
+    "wallet:thirteen-test": "node --env-file=.env.local --experimental-strip-types --import ./server/ts-register.mjs tools/sim/thirteen/wallet-store-test.mjs",
+    "thirteen:p0-api-test": "node --env-file=.env.local --experimental-strip-types --import ./server/ts-register.mjs tools/sim/thirteen/p0-api-test.mts"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.20.0",
+    "lucide-react": "^1.31.0",
+    "next": "16.3.0",
+    "phaser": "^3.90.0",
+    "postgres": "^3.4.9",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "three": "^0.185.1",
+    "ws": "^8.21.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/three": "^0.185.4",
+    "@types/ws": "^8.18.1",
+    "eslint": "^9",
+    "eslint-config-next": "16.3.0",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "pnpm": {
+    "supportedArchitectures": {
+      "os": [
+        "darwin",
+        "linux"
+      ],
+      "cpu": [
+        "arm64",
+        "x64"
+      ]
+    }
+  }
+}

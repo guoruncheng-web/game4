@@ -1,0 +1,12 @@
+{
+  "feature": "Thirteen RC7 Chinese build tree identity",
+  "source": "/Users/mac/projects/cocos-game-studio/games/Thirteen/build/thirteen-layered-rc7-zh",
+  "host": "public/thirteen/game",
+  "sourceFiles": 512,
+  "hostFiles": 512,
+  "treeSha256": "6a2354b608de6529657fee70e0e5eb85e6dae3ca77545ed664c28677f78ebf14",
+  "pathsIdentical": true,
+  "bytesIdentical": true,
+  "previousTreeBackup": "/Users/mac/projects/.codex-tmp/game4-thirteen-rc6-host-tree-before-rc7-zh-20260831",
+  "accepted": true
+}

@@ -1,0 +1,69 @@
+{
+  "feature": "UMO PWA online, trusted audio and offline replay",
+  "firstLoad": {
+    "pagePath": "/umo",
+    "framePath": "/umo/game/index.html",
+    "canvas": true,
+    "canvasWidth": 520,
+    "canvasHeight": 866,
+    "cocos": true,
+    "scene": "MainMenu",
+    "mainMenuRoot": true,
+    "loadingOverlayVisible": false,
+    "serviceWorkerControlled": true
+  },
+  "online": {
+    "pagePath": "/umo",
+    "framePath": "/umo/game/index.html",
+    "canvas": true,
+    "canvasWidth": 520,
+    "canvasHeight": 866,
+    "cocos": true,
+    "scene": "MainMenu",
+    "mainMenuRoot": true,
+    "loadingOverlayVisible": false,
+    "serviceWorkerControlled": true
+  },
+  "audio": {
+    "before": {
+      "muted": false,
+      "sfxVolume": 0.7,
+      "contextState": "not-created"
+    },
+    "muted": {
+      "muted": true,
+      "sfxVolume": 0.7,
+      "contextState": "not-created"
+    },
+    "unmuted": {
+      "muted": false,
+      "sfxVolume": 0.7,
+      "contextState": "running"
+    }
+  },
+  "cache": {
+    "names": [
+      "game-box-shell-v25",
+      "game-box-assets-v25",
+      "game-box-static-v25"
+    ],
+    "umoAssetCount": 236,
+    "cachedGameIndex": true,
+    "cachedSettings": true,
+    "cachedMainBundle": true,
+    "cachedRoute": true
+  },
+  "offline": {
+    "pagePath": "/umo",
+    "framePath": "/umo/game/index.html",
+    "canvas": true,
+    "canvasWidth": 520,
+    "canvasHeight": 866,
+    "cocos": true,
+    "scene": "MainMenu",
+    "mainMenuRoot": true,
+    "loadingOverlayVisible": false,
+    "serviceWorkerControlled": true
+  },
+  "accepted": true
+}

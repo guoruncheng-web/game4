@@ -1,0 +1,11 @@
+{
+  "source": "/Users/mac/projects/.codex-tmp/thirteen-layered-rc13-v2-zh-card-interaction/web-mobile",
+  "target": "public/thirteen/game",
+  "sourceFiles": 515,
+  "targetFiles": 515,
+  "sourceBytes": 14613948,
+  "targetBytes": 14613948,
+  "sourceComparisonSha256": "ec287bff46485c785fa24f69ee20c9ac63fb97efd2759a25dfba757f44b6d111",
+  "targetComparisonSha256": "ec287bff46485c785fa24f69ee20c9ac63fb97efd2759a25dfba757f44b6d111",
+  "identical": true
+}

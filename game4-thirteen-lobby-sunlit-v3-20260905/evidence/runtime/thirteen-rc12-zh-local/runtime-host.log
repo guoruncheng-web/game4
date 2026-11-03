@@ -1,0 +1,24 @@
+{
+  "url": "http://127.0.0.1:3222/thirteen",
+  "seconds": 12,
+  "state": {
+    "canvas": false,
+    "w": 0,
+    "h": 0,
+    "cc": false,
+    "scene": null
+  },
+  "events": [],
+  "checked": {
+    "pagePath": "/thirteen",
+    "iframePath": "/thirteen/game/index.html",
+    "iframeSameOrigin": true,
+    "loadingOverlayVisible": false,
+    "canvas": true,
+    "canvasWidth": 520,
+    "canvasHeight": 953,
+    "cocos": true,
+    "scene": "O02RotateGuard"
+  },
+  "screenshot": "/Users/mac/projects/.codex-tmp/game4-thirteen-rc12-20260831/evidence/runtime/thirteen-rc12-zh-local/runtime-host.png"
+}

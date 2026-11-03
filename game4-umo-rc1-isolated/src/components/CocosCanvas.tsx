@@ -1,0 +1,67 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+
+type Props = {
+  src: string;
+  title: string;
+  gameId?: 'umo';
+  readyOnLoad?: boolean;
+  loadingText?: string;
+  showLoadingOverlay?: boolean;
+};
+
+/**
+ * Cocos 游戏使用同源 iframe，避免把 Creator 的 SystemJS/WebGL 生命周期塞进 React 树。
+ * Cocos 通过同源 API 查询公开玩家资料；httpOnly Cookie 仍只由浏览器携带。
+ */
+export default function CocosCanvas({
+  src,
+  title,
+  gameId = 'umo',
+  readyOnLoad = false,
+  loadingText = '正在摆好牌桌…',
+  showLoadingOverlay = true,
+}: Props) {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [ready, setReady] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe) return undefined;
+
+    function onMessage(event: MessageEvent<unknown>) {
+      if (event.origin !== window.location.origin || event.source !== iframe?.contentWindow) return;
+      const value = event.data as { source?: string; type?: string; version?: number } | null;
+      if (!value || value.source !== gameId || value.version !== 1) return;
+      if (value.type === `${gameId}:ready`) {
+        setReady(true);
+      } else if (value.type === `${gameId}:exit`) {
+        router.push('/');
+      }
+    }
+
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [gameId, router]);
+
+  return (
+    <div className="relative size-full overflow-hidden bg-[#040816]">
+      {showLoadingOverlay && !ready && (
+        <div className="absolute inset-0 z-10 grid place-items-center bg-[#040816] text-lg font-bold text-amber-200">
+          {loadingText}
+        </div>
+      )}
+      <iframe
+        ref={iframeRef}
+        src={src}
+        title={title}
+        allow="autoplay; fullscreen"
+        className="block size-full border-0"
+        onLoad={() => { if (readyOnLoad) setReady(true); }}
+      />
+    </div>
+  );
+}

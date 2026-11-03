@@ -1,0 +1,14 @@
+{
+  "game": "thirteen",
+  "releaseCandidate": "RC12-zh",
+  "sourceCommit": "b8bfb21ff03331e4a0fd3460dd5a6010271fc993",
+  "creatorVersion": "3.8.8",
+  "mainSceneUuid": "5066c4ee-d702-4879-8ddb-a69b5836eb08",
+  "fileCount": 515,
+  "byteCount": 14612195,
+  "buildTreeSha256": "dcba8a6a47927e892522b3876d277dc3e665b08fdb942c7eee967c54b75ed09f",
+  "serviceWorkerVersion": "v42",
+  "productionBuild": true,
+  "pwaOfflineAccepted": true,
+  "publicDeployment": false
+}
