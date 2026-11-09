@@ -232,7 +232,7 @@ function GameLink({ href, label, className, children, style, enabled = true, req
     <button
       type="button"
       disabled={loading}
-      onClick={() => openPanel('register')}
+      onClick={() => openPanel('login')}
       aria-label={`${label} · 需要先登录才能玩`}
       className={`${className} w-full text-left`}
       style={style}

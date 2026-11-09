@@ -1,0 +1,6 @@
+pnpm build
+Next.js 16.3.0 (webpack)
+./src/components/VoiceAudioPanel.tsx
+Module not found: Can't resolve 'agora-rtc-sdk-ng'
+Import trace: ./src/components/VoiceRoomPage.tsx
+Build failed because of webpack errors.

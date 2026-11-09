@@ -7,6 +7,7 @@ import { ArrowLeft, KeyRound, LogOut, RefreshCw, ShieldAlert, X } from 'lucide-r
 import { apiFetch, type ApiCredentials } from '@/lib/api-client';
 import Avatar from './Avatar';
 import Field from './AuthTextField';
+import { PUBLIC_REGISTRATION_ENABLED, registrationMode } from '@/lib/registration';
 
 export type AuthMode = 'register' | 'login' | 'account';
 type User = { uid: number; username: string; avatar: string; avatarUrl?: string | null; isAdmin?: boolean } | null;
@@ -24,7 +25,7 @@ export default function AuthDialog({
   onLogout: () => void | Promise<void>;
   presentation?: 'dialog' | 'page';
 }) {
-  const [mode, setMode] = useState<AuthMode>(initialMode);
+  const [mode, setMode] = useState<AuthMode>(registrationMode(initialMode));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -65,7 +66,7 @@ export default function AuthDialog({
   }, [requestClose]);
 
   async function submitRegister() {
-    if (loading) return;
+    if (!PUBLIC_REGISTRATION_ENABLED || loading) return;
     setLoading(true);
     setError('');
     try {
@@ -189,9 +190,9 @@ export default function AuthDialog({
                 <p className="px-1 text-base font-black text-[#173366]">账号设置</p>
               ) : (
                 <div className="gb-auth-tabs flex gap-1 rounded-2xl bg-slate-100 p-1">
-                  <TabButton active={mode === 'register'} onClick={() => { setMode('register'); setError(''); }}>
+                  {PUBLIC_REGISTRATION_ENABLED && <TabButton active={mode === 'register'} onClick={() => { setMode('register'); setError(''); }}>
                     一键注册
-                  </TabButton>
+                  </TabButton>}
                   <TabButton active={mode === 'login'} onClick={() => { setMode('login'); setError(''); }}>
                     登录
                   </TabButton>
@@ -207,7 +208,7 @@ export default function AuthDialog({
               </button>
             </div>}
 
-            {mode === 'register' && (
+            {PUBLIC_REGISTRATION_ENABLED && mode === 'register' && (
               <div className="gb-auth-register-panel space-y-3">
                 <p className="gb-auth-register-intro text-sm font-semibold leading-relaxed text-slate-500">
                   <strong>系统自动分配专属 UID</strong>
@@ -268,7 +269,7 @@ export default function AuthDialog({
                   disabled={loading || !username || !password || (loginNeedsCaptcha && captcha.length < 4)}
                   label={loading ? '登录中…' : '登录'}
                 />
-                {page && <><div className="gb-auth-v2-switch">还没有账号？<button type="button" className="gb-auth-mode-link" onClick={() => { setMode('register'); setError(''); }}>创建账号</button></div><p className="gb-auth-v2-footer">好游戏，和朋友一起。</p></>}
+                {page && <>{PUBLIC_REGISTRATION_ENABLED ? <div className="gb-auth-v2-switch">还没有账号？<button type="button" className="gb-auth-mode-link" onClick={() => { setMode('register'); setError(''); }}>创建账号</button></div> : <p className="gb-auth-v2-helper" role="note">当前为内测阶段，请使用提供的测试账号登录</p>}<p className="gb-auth-v2-footer">好游戏，和朋友一起。</p></>}
               </div>
             )}
 

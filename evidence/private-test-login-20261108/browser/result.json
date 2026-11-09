@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "origin": "http://127.0.0.1:3198",
+  "apiFixture": true,
+  "checks": [
+    "login URL renders login without registration",
+    "register URL renders login without registration",
+    "account URL renders login without registration",
+    "UID/password submission and required login captcha remain functional"
+  ],
+  "exceptions": [],
+  "registrationRequests": 0
+}

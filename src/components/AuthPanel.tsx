@@ -19,7 +19,7 @@ export default function AuthPanel() {
     return (
       <button
         type="button"
-        onClick={() => openPanel('register')}
+        onClick={() => openPanel('login')}
         className="flex items-center gap-1.5 rounded-full border border-white/90 bg-white/75 px-3.5 py-2.5 text-sm font-bold text-emerald-600 shadow-sm backdrop-blur transition active:scale-95"
       >
         <UserRound size={18} />

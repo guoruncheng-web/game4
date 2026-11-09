@@ -66,8 +66,8 @@ export default function ProfilePanel() {
           <span className="mx-auto grid size-20 place-items-center rounded-[2rem] bg-emerald-50 text-emerald-500"><UserRound size={38} /></span>
           <h1 className="mt-5 text-2xl font-black text-[#173366]">登录你的游戏账号</h1>
           <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-500">登录后可管理个人资料、好友消息和账号安全。</p>
-          <button type="button" onClick={() => openPanel('register')} className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-2xl bg-emerald-500 px-8 font-black text-white shadow-[0_6px_0_#22994b] active:translate-y-1 active:shadow-none">
-            <LogIn size={18} /> 登录 / 注册
+          <button type="button" onClick={() => openPanel('login')} className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-2xl bg-emerald-500 px-8 font-black text-white shadow-[0_6px_0_#22994b] active:translate-y-1 active:shadow-none">
+            <LogIn size={18} /> 登录
           </button>
         </div>
       </section>

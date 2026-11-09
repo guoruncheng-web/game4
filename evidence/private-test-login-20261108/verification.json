@@ -1,0 +1,24 @@
+{
+  "repository": "guoruncheng-web/game4",
+  "base": "21a1f0c4cdf1ec13e748cd6d0ab1d248e786fa76",
+  "pwaVersion": "v104",
+  "lint": {
+    "command": "pnpm lint",
+    "exitCode": 0,
+    "existingWarnings": 5
+  },
+  "browser": {
+    "command": "COCOS_CHROME=<existing Chromium> node tools/pwa/private-login-acceptance.mjs",
+    "passed": true,
+    "checks": 4,
+    "apiFixture": true,
+    "registrationRequests": 0
+  },
+  "productionBuild": {
+    "command": "pnpm build",
+    "exitCode": 1,
+    "reason": "Owner-installed dependencies lack agora-rtc-sdk-ng@4.24.8 required by the current main branch; no project dependencies installed in Linux"
+  },
+  "deployment": "not performed",
+  "registrationDefault": "closed on client and pinned personal backend"
+}
