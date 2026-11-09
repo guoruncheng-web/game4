@@ -325,3 +325,7 @@ Tween 动画 → run_game 验证 → 构建 → 产物在独立服务器上真�
   这时用 `check_dialog` 看一眼。
 
 # nodel_modules 目录安装依赖只能我在mac上面自己安装,不用你在linux帮我安装
+
+## 游戏独立仓库（2026-11-08）
+
+原生 Web 游戏的 src/games/<slug>/ 现在是固定 SHA 的 Git submodule，源码、专属页面、素材和制作工具都在 guoruncheng-web 下对应的私密仓库维护。不要在 PWA 提交游戏源码副本。PWA 的路由文件仅转发子模块中的 pwa/page.tsx；公共登录、宿主、语音、钱包和个人 Nest 后端仍独立维护。public/<slug>/ 是 games:prepare 生成的素材，不能手工修改。首次 clone 使用 --recurse-submodules；开发/构建前运行 pnpm games:prepare，交付运行 pnpm games:test、pnpm games:check、pnpm lint、pnpm build。游戏提交后运行 pnpm games:lock，在 PWA 同时提交子模块指针和 games.lock.json。完整映射及发布边界见 docs/GAME_REPOSITORIES.md。

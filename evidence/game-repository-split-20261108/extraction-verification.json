@@ -1,0 +1,67 @@
+[
+  {
+    "slug": "star-runner",
+    "files": 9,
+    "relocatedScripts": [],
+    "hashesVerified": true,
+    "relativeImportsResolved": true
+  },
+  {
+    "slug": "fruit-slasher",
+    "files": 58,
+    "relocatedScripts": [],
+    "hashesVerified": true,
+    "relativeImportsResolved": true
+  },
+  {
+    "slug": "neon-strike",
+    "files": 63,
+    "relocatedScripts": [],
+    "hashesVerified": true,
+    "relativeImportsResolved": true
+  },
+  {
+    "slug": "neon-strike-2d",
+    "files": 39,
+    "relocatedScripts": [],
+    "hashesVerified": true,
+    "relativeImportsResolved": true
+  },
+  {
+    "slug": "eight-ball",
+    "files": 28,
+    "relocatedScripts": [
+      "tools/blender/eight-ball/build_models.py"
+    ],
+    "hashesVerified": true,
+    "relativeImportsResolved": true
+  },
+  {
+    "slug": "triple-pile",
+    "files": 135,
+    "relocatedScripts": [
+      "tools/blender/triple-pile/build_models.py",
+      "tools/blender/triple-pile/preview.py"
+    ],
+    "hashesVerified": true,
+    "relativeImportsResolved": true
+  },
+  {
+    "slug": "fish-hunter",
+    "files": 81,
+    "relocatedScripts": [],
+    "hashesVerified": true,
+    "relativeImportsResolved": true
+  },
+  {
+    "slug": "ludo",
+    "files": 172,
+    "relocatedScripts": [
+      "tools/art/ludo/gen_manifest.mjs",
+      "tools/art/ludo/remove_avatar_chroma.mjs",
+      "tools/ludo/split_generated_assets.py"
+    ],
+    "hashesVerified": true,
+    "relativeImportsResolved": true
+  }
+]

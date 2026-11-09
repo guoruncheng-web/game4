@@ -1,0 +1,12 @@
+
+> game4@0.1.0 prebuild /Users/mac/projects/pwa-games/game4-repository-split
+> node tools/games.mjs prepare
+
+PWA games: 8 independent source repositories, 294 verified assets (prepare).
+
+> game4@0.1.0 build /Users/mac/projects/pwa-games/game4-repository-split
+> next build
+
+ ELIFECYCLE  Command failed.
+ WARN   Local package.json exists, but node_modules missing, did you mean to install?
+sh: next: command not found

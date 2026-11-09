@@ -1,0 +1,93 @@
+[
+  {
+    "slug": "star-runner",
+    "repository": "guoruncheng-web/star-runner",
+    "commit": "448638c5989cb0ac5604873b7b9d6f9cb5807c86",
+    "files": 9,
+    "sourcePaths": [
+      "src/games/star-runner"
+    ]
+  },
+  {
+    "slug": "fruit-slasher",
+    "repository": "guoruncheng-web/fruit-slasher",
+    "commit": "8ff03a266af2f0b3e73a50603c710f0ddfee80d6",
+    "files": 58,
+    "sourcePaths": [
+      "src/games/fruit-slasher",
+      "public/fruit-slasher"
+    ]
+  },
+  {
+    "slug": "neon-strike",
+    "repository": "guoruncheng-web/neon-strike",
+    "commit": "634ec1dfb41e91ebe674394a1dc822bae1e0ba0a",
+    "files": 63,
+    "sourcePaths": [
+      "src/games/neon-strike",
+      "public/neon-strike",
+      "tools/audio/neon-strike",
+      "tools/blender/neon-strike"
+    ]
+  },
+  {
+    "slug": "neon-strike-2d",
+    "repository": "guoruncheng-web/neon-strike-2d",
+    "commit": "066e84618bcbe0c3e3a29019419359095eb22d5b",
+    "files": 39,
+    "sourcePaths": [
+      "src/games/neon-strike-2d",
+      "public/neon-strike-2d"
+    ]
+  },
+  {
+    "slug": "eight-ball",
+    "repository": "guoruncheng-web/eight-ball",
+    "commit": "c47da946a749c64a07cb71994ac785ee769a0b89",
+    "files": 28,
+    "sourcePaths": [
+      "src/games/eight-ball",
+      "public/eight-ball",
+      "tools/blender/eight-ball"
+    ]
+  },
+  {
+    "slug": "triple-pile",
+    "repository": "guoruncheng-web/triple-pile",
+    "commit": "96039a085cb36f5becc8919c05f2c157b1120734",
+    "files": 135,
+    "sourcePaths": [
+      "src/games/triple-pile",
+      "public/triple-pile",
+      "tools/audio/triple-pile",
+      "tools/blender/triple-pile"
+    ]
+  },
+  {
+    "slug": "fish-hunter",
+    "repository": "guoruncheng-web/fish-hunter",
+    "commit": "3e651a0e50ece596009e1aa7bbcfb078c03fa2a7",
+    "files": 81,
+    "sourcePaths": [
+      "src/games/fish-hunter",
+      "public/fish-hunter",
+      "tools/art/fish-hunter",
+      "tools/audio/fish-hunter",
+      "tools/blender/fish-hunter"
+    ]
+  },
+  {
+    "slug": "ludo",
+    "repository": "guoruncheng-web/ludo",
+    "commit": "2a9e00cbd4294c1dfbc9bea53825e83cd753f1b5",
+    "files": 172,
+    "sourcePaths": [
+      "src/games/ludo",
+      "public/ludo",
+      "tools/art/ludo",
+      "tools/audio/ludo",
+      "tools/blender/ludo",
+      "tools/ludo"
+    ]
+  }
+]

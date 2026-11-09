@@ -21,7 +21,14 @@
     "wallet:test": "npm --prefix ../backend run wallet:test",
     "wallet:pwa-test": "npm --prefix ../backend run wallet:pwa-test",
     "wallet:thirteen-test": "npm --prefix ../backend run wallet:thirteen-test",
-    "thirteen:p0-api-test": "npm --prefix ../backend run thirteen:p0-api-test"
+    "thirteen:p0-api-test": "npm --prefix ../backend run thirteen:p0-api-test",
+    "games:prepare": "node tools/games.mjs prepare",
+    "games:check": "node tools/games.mjs check",
+    "games:lock": "node tools/games.mjs lock",
+    "games:test": "node --test tools/games.test.mjs",
+    "predev": "node tools/games.mjs prepare",
+    "prebuild": "node tools/games.mjs prepare",
+    "prestart": "node tools/games.mjs prepare"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.20.0",
