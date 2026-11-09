@@ -51,12 +51,12 @@ export default function FriendRequestBanner() {
   }
 
   return (
-    <aside className="fixed inset-x-3 top-[calc(0.75rem+env(safe-area-inset-top))] z-[70] mx-auto flex max-w-[450px] items-center gap-3 rounded-2xl border-2 border-white bg-[#fffdf7]/95 p-3 shadow-[0_12px_40px_rgba(23,51,102,0.22)] backdrop-blur-xl" role="status">
+    <aside className="gb-friend-notification fixed inset-x-3 top-[calc(0.75rem+env(safe-area-inset-top))] z-[70] mx-auto flex max-w-[450px] items-center gap-3 rounded-2xl border-2 border-[var(--club-line)] bg-[var(--club-surface)] p-3 shadow-[0_12px_40px_rgba(23,51,102,0.22)] backdrop-blur-xl" role="status">
       <button type="button" onClick={openRequests} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-        <Avatar emoji={request.sender.avatar} url={request.sender.avatarUrl} className="size-11 rounded-xl bg-emerald-50 text-2xl" />
+        <Avatar emoji={request.sender.avatar} url={request.sender.avatarUrl} className="size-11 rounded-xl bg-[var(--club-soft)] text-2xl" />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-black text-[#173366]">{request.sender.username} 请求添加你为好友</span>
-          <span className="mt-0.5 flex items-center gap-1 text-xs font-bold text-emerald-600"><UserPlus size={13} /> 点击前往消息列表</span>
+          <span className="block truncate text-sm font-black text-[var(--club-text)]">{request.sender.username} 请求添加你为好友</span>
+          <span className="mt-0.5 flex items-center gap-1 text-xs font-bold text-[var(--club-accent)]"><UserPlus size={13} /> 点击前往消息列表</span>
         </span>
       </button>
       <button
@@ -66,7 +66,7 @@ export default function FriendRequestBanner() {
           dismissedRef.current.add(request.id);
           setRequest(null);
         }}
-        className="grid size-9 shrink-0 place-items-center rounded-full text-slate-400"
+        className="grid size-9 shrink-0 place-items-center rounded-full text-[var(--club-muted)]"
       >
         <X size={18} />
       </button>

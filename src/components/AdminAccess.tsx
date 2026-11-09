@@ -10,7 +10,7 @@ export default function AdminAccess({ signedIn, username }: { signedIn: boolean;
   return (
     <main className="gb-system-page">
       <section className="gb-system-card">
-        <div className="gb-state-art gb-state-art--locked"><Link className="gb-state-back" href="/" aria-label="返回首页">‹</Link></div>
+        <Link className="gb-state-back" href="/" aria-label="返回首页">‹ 返回首页</Link><div className="gb-state-art gb-state-art--locked" aria-hidden="true" />
         <h1 className="text-2xl font-black">游戏管理后台</h1>
         <p className="mt-3 text-sm font-semibold leading-6 text-slate-300">
           {signedIn ? `当前账号 ${username} 没有管理员权限。` : '请先使用管理员账号登录。'}

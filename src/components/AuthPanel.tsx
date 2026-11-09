@@ -12,7 +12,7 @@ export default function AuthPanel() {
 
   // /me 还没回来时先占位,别先渲染"登录"再闪成用户名
   if (loading) {
-    return <span className="h-11 w-[4.5rem] rounded-full border border-white/90 bg-white/45" aria-hidden="true" />;
+    return <span className="h-11 w-[4.5rem] rounded-full border border-[var(--club-line)] bg-[var(--club-surface)]" aria-hidden="true" />;
   }
 
   if (!user) {
@@ -20,7 +20,7 @@ export default function AuthPanel() {
       <button
         type="button"
         onClick={() => openPanel('login')}
-        className="flex items-center gap-1.5 rounded-full border border-white/90 bg-white/75 px-3.5 py-2.5 text-sm font-bold text-emerald-600 shadow-sm backdrop-blur transition active:scale-95"
+        className="flex items-center gap-1.5 rounded-full border border-[var(--club-line)] bg-[var(--club-surface)] px-3.5 py-2.5 text-sm font-bold text-[var(--club-accent)] shadow-sm backdrop-blur transition active:scale-95"
       >
         <UserRound size={18} />
         登录
@@ -42,7 +42,7 @@ export default function AuthPanel() {
         type="button"
         onClick={() => openPanel('account')}
         aria-label={`账号 ${user.username},点击管理`}
-        className="flex max-w-[10rem] items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-700 transition active:scale-95"
+        className="flex max-w-[10rem] items-center gap-1.5 rounded-full border border-emerald-200 bg-[var(--club-soft)] px-2.5 py-1.5 text-xs font-bold text-[var(--club-accent)] transition active:scale-95"
       >
         <span className="text-base" aria-hidden="true">{user.avatar}</span>
         <span className="truncate">{user.username}</span>
@@ -51,7 +51,7 @@ export default function AuthPanel() {
         type="button"
         onClick={() => { void logout(); }}
         aria-label="退出登录"
-        className="grid size-11 place-items-center rounded-full border border-white/90 bg-white/75 text-slate-400 shadow-sm backdrop-blur transition active:scale-95"
+        className="grid size-11 place-items-center rounded-full border border-[var(--club-line)] bg-[var(--club-surface)] text-[var(--club-muted)] shadow-sm backdrop-blur transition active:scale-95"
       >
         <LogOut size={20} />
       </button>

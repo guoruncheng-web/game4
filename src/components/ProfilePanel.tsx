@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { LogIn, LogOut, UserRound } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useAuth } from './AuthProvider';
 import { apiFetch } from '@/lib/api-client';
 import AvatarUploader from './AvatarUploader';
 import Avatar from './Avatar';
 import { ClubIcon } from './ClubArt';
 import AuthTextField from './AuthTextField';
+import { useDialogFocus } from './useDialogFocus';
 
 export default function ProfilePanel() {
   const { user, wallet, openPanel, logout, updateAccessToken } = useAuth();
@@ -19,6 +20,9 @@ export default function ProfilePanel() {
   const [notice, setNotice] = useState('');
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
+
+  const dialog = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialog, () => { if (avatarOpen) setAvatarOpen(false); else closePassword(); }, avatarOpen || passwordOpen);
 
   function closePassword() {
     if (loading) return;
@@ -63,10 +67,10 @@ export default function ProfilePanel() {
     return (
       <section className="gb-profile-lodge gb-profile-lodge--empty grid min-h-[55dvh] place-items-center px-6 text-center">
         <div>
-          <span className="mx-auto grid size-20 place-items-center rounded-[2rem] bg-emerald-50 text-emerald-500"><UserRound size={38} /></span>
-          <h1 className="mt-5 text-2xl font-black text-[#173366]">登录你的游戏账号</h1>
-          <p className="mt-2 text-sm font-semibold leading-relaxed text-slate-500">登录后可管理个人资料、好友消息和账号安全。</p>
-          <button type="button" onClick={() => openPanel('login')} className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-2xl bg-emerald-500 px-8 font-black text-white shadow-[0_6px_0_#22994b] active:translate-y-1 active:shadow-none">
+          <span className="mx-auto grid size-20 place-items-center rounded-[2rem] bg-[var(--club-soft)] text-[var(--club-accent)]"><UserRound size={38} /></span>
+          <h1 className="mt-5 text-2xl font-black text-[var(--club-text)]">登录你的游戏账号</h1>
+          <p className="mt-2 text-sm font-semibold leading-relaxed text-[var(--club-muted)]">登录后可管理个人资料、好友消息和账号安全。</p>
+          <button type="button" onClick={() => openPanel('login')} className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-2xl gb-primary px-8 font-black text-white shadow-[0_6px_0_#22994b] active:translate-y-1 active:shadow-none">
             <LogIn size={18} /> 登录
           </button>
         </div>
@@ -82,12 +86,10 @@ export default function ProfilePanel() {
         <button type="button" className="gb-profile-edit-link" onClick={() => setAvatarOpen(true)} aria-label="打开头像设置">›</button>
       </div>
 
-      {avatarOpen && <div className="gb-profile-editor-page" role="dialog" aria-modal="true" aria-label="头像设置"><header><button type="button" onClick={() => setAvatarOpen(false)} aria-label="返回我的">‹</button><h2>我的头像</h2><p>展示个性，让好友更容易找到你</p></header><div className="gb-profile-editor-body"><AvatarUploader /></div></div>}
+      {avatarOpen && <div ref={dialog} className="gb-profile-editor-page" role="dialog" aria-modal="true" aria-label="头像设置"><header><button type="button" onClick={() => setAvatarOpen(false)} aria-label="返回我的">‹</button><h2>我的头像</h2><p>展示个性，让好友更容易找到你</p></header><div className="gb-profile-editor-body"><AvatarUploader /></div></div>}
 
       <div className="gb-profile-player-stats" aria-label="游戏资产">
-        <span><ClubIcon name="diamond" /><b>{wallet ? wallet.diamonds.toLocaleString() : '—'}</b><small>钻石</small></span>
-        <span><ClubIcon name="games" /><b>—</b><small>我的游戏</small></span>
-        <span><ClubIcon name="profile" /><b>—</b><small>我的好友</small></span>
+        <span><ClubIcon name="diamond" /><small>钻石余额</small><b>{wallet ? wallet.diamonds.toLocaleString() : '暂不可用'}</b></span>
       </div>
 
       <div className="gb-profile-scene-actions">
@@ -96,7 +98,7 @@ export default function ProfilePanel() {
         {user.isAdmin ? <Link href="/admin" aria-label="进入管理后台"><ClubIcon name="games" /><span>管理后台</span></Link> : null}
       </div>
 
-      {passwordOpen && <div className="gb-profile-password-panel gb-password-v2" role="dialog" aria-modal="true" aria-label="修改密码">
+      {passwordOpen && <div ref={dialog} className="gb-profile-password-panel gb-password-v2" role="dialog" aria-modal="true" aria-label="修改密码">
         <header className="gb-password-header"><button type="button" onClick={closePassword} disabled={loading} aria-label="返回我的">‹</button><span>账号安全</span><span className="gb-auth-v2-mark" aria-hidden="true" /></header>
         <div className="gb-password-v2-heading"><ClubIcon name="security" /><h2>给账号一份安心。</h2><p>设置新密码，保护你的游戏时光。</p></div>
         <p className="gb-password-v2-caption">正在修改的账号</p>
@@ -106,10 +108,10 @@ export default function ProfilePanel() {
         {error && <p role="alert" className="gb-password-v2-error">{error}</p>}
         {notice && <p role="status" className="gb-password-v2-success">{notice}</p>}
         <p className="gb-password-warning">修改成功后，其他设备需要重新登录。当前设备保持登录。</p>
-        <button type="button" onClick={() => { void changePassword(); }} disabled={loading || newPassword.length < 8 || !confirmPassword} className="min-h-12 w-full rounded-2xl bg-emerald-500 font-black text-white shadow-[0_5px_0_#22994b] active:translate-y-1 active:shadow-none disabled:bg-slate-300 disabled:shadow-none">
+        <button type="button" onClick={() => { void changePassword(); }} disabled={loading || newPassword.length < 8 || !confirmPassword} className="min-h-12 w-full rounded-2xl gb-primary font-black text-white shadow-[0_5px_0_#22994b] active:translate-y-1 active:shadow-none disabled:bg-slate-300 disabled:shadow-none">
           {loading ? '正在保存…' : '保存新密码'}
         </button>
-        <button type="button" onClick={closePassword} disabled={loading} className="min-h-10 w-full rounded-2xl bg-slate-100 font-black text-slate-500">返回我的</button>
+        <button type="button" onClick={closePassword} disabled={loading} className="min-h-10 w-full rounded-2xl bg-[var(--club-raised)] font-black text-[var(--club-muted)]">返回我的</button>
       </div>}
 
       {!passwordOpen && notice && <p className="gb-profile-scene-notice">{notice}</p>}

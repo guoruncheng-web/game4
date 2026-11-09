@@ -260,7 +260,7 @@ function LeaveBanner({ text }: { text: string | null }) {
   if (!text) return null;
   return (
     <div className="pointer-events-none fixed inset-x-0 top-[max(0.75rem,env(safe-area-inset-top))] z-[100] flex justify-center px-4">
-      <div className="animate-[tp-drop_0.25s_ease-out] rounded-2xl border border-white/20 bg-slate-900/90 px-4 py-2.5 text-sm font-bold text-amber-200 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur">
+      <div className="animate-[tp-drop_0.25s_ease-out] rounded-2xl border border-[var(--club-line)] bg-slate-900/90 px-4 py-2.5 text-sm font-bold text-amber-200 shadow-[0_8px_24px_rgba(0,0,0,0.35)] backdrop-blur">
         {text}
       </div>
     </div>
@@ -273,11 +273,11 @@ function InviteToast() {
   if (!invite) return null;
   return (
     <div className="fixed inset-x-0 bottom-0 z-[100] flex justify-center p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-      <div className="w-full max-w-sm rounded-3xl border border-white bg-white/95 p-4 shadow-[0_12px_40px_rgba(23,51,102,0.25)] backdrop-blur">
-        <p className="text-base font-black text-[#173366]">
+      <div className="gb-invite-toast w-full max-w-sm rounded-3xl border border-[var(--club-line)] bg-[var(--club-surface)] p-4 shadow-[0_12px_40px_rgba(23,51,102,0.25)] backdrop-blur">
+        <p className="text-base font-black text-[var(--club-text)]">
           {invite.from} 邀请你一起玩
         </p>
-        <p className="mt-1 text-sm font-bold text-slate-500">
+        <p className="mt-1 text-sm font-bold text-[var(--club-muted)]">
           {invite.game === 'fish-hunter' ? '深海捕鱼 · 一池鱼最多四个人' : '霓虹突击 2D · 双人协作'}
         </p>
         <div className="mt-3 flex gap-2">
@@ -289,7 +289,7 @@ function InviteToast() {
           </button>
           <button
             onClick={() => decline(invite.roomId)}
-            className="min-h-11 flex-1 rounded-2xl border border-slate-200 text-base font-bold text-slate-500"
+            className="min-h-11 flex-1 rounded-2xl border border-[var(--club-line)] text-base font-bold text-[var(--club-muted)]"
           >
             拒绝
           </button>
