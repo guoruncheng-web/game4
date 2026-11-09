@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import Avatar from './Avatar';
+import { useDialogFocus } from './useDialogFocus';
 import VoiceGameSheet from './VoiceGameSheet';
 import VoiceAudioPanel from './VoiceAudioPanel';
 import { ClubBrand, ClubIcon, cardStyle } from './ClubArt';
@@ -185,17 +186,9 @@ export default function VoiceRoomPage({ roomId }: { roomId: string }) {
 }
 
 function SheetFrame({ title, children, onClose, fullPage = false }: { title: string; children: ReactNode; onClose: () => void; fullPage?: boolean }) {
-  // 关闭按钮已按设计去掉，改为点蒙层关闭；键盘用户靠 Escape，否则弹窗将无法关闭。
-  // 确认弹窗（alertdialog）叠加在上层时让它优先，避免一次 Escape 连带关掉底层面板。
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape' || document.querySelector('[role="alertdialog"]')) return;
-      onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
-  return <div className={`voice-sheet-backdrop ${fullPage ? 'voice-full-page-backdrop' : ''}`} onClick={event => { if (event.target === event.currentTarget) onClose(); }}><section className={`voice-action-sheet ${fullPage ? 'voice-management-page' : ''}`} role="dialog" aria-modal="true" aria-label={title}><header><h2>{title}</h2>{fullPage && <button type="button" onClick={onClose} aria-label="返回">‹</button>}</header>{fullPage && <div className="voice-page-art"><ClubBrand /></div>}{children}</section></div>;
+  const dialog = useRef<HTMLElement>(null);
+  useDialogFocus(dialog, onClose);
+  return <div className={`voice-sheet-backdrop ${fullPage ? 'voice-full-page-backdrop' : ''}`} onClick={event => { if (event.target === event.currentTarget) onClose(); }}><section ref={dialog} className={`voice-action-sheet ${fullPage ? 'voice-management-page' : ''}`} role="dialog" aria-modal="true" aria-label={title}><header><h2>{title}</h2>{fullPage && <button type="button" onClick={onClose} aria-label="返回">‹</button>}</header>{fullPage && <div className="voice-page-art"><ClubBrand /></div>}{children}</section></div>;
 }
 
 function InviteSheet({ roomId, onClose, onError }: { roomId: string; onClose: () => void; onError: (value: string) => void }) {
@@ -254,5 +247,7 @@ function ManageSheet({ room, selected, onSelect, onClose, onUpdate, onLeave, onC
 }
 
 function ConfirmModal({ title, text, confirm, cancel = '再聊一会', busy, onCancel, onConfirm }: { title: string; text: string; confirm: string; cancel?: string; busy: boolean; onCancel: () => void; onConfirm: () => void }) {
-  return <div className="voice-sheet-backdrop voice-confirm-backdrop"><section className="voice-confirm" role="alertdialog" aria-modal="true" aria-labelledby="voice-confirm-title"><ClubIcon name="voice" /><h2 id="voice-confirm-title">{title}</h2><p>{text}</p><div><button type="button" onClick={onCancel}>{cancel}</button><button type="button" disabled={busy} onClick={onConfirm}>{confirm}</button></div></section></div>;
+  const dialog = useRef<HTMLElement>(null);
+  useDialogFocus(dialog, onCancel);
+  return <div className="voice-sheet-backdrop voice-confirm-backdrop"><section ref={dialog} className="voice-confirm" role="alertdialog" aria-modal="true" aria-labelledby="voice-confirm-title"><ClubIcon name="voice" /><h2 id="voice-confirm-title">{title}</h2><p>{text}</p><div><button type="button" onClick={onCancel}>{cancel}</button><button type="button" disabled={busy} onClick={onConfirm}>{confirm}</button></div></section></div>;
 }

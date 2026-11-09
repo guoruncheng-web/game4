@@ -1,0 +1,66 @@
+{
+  "repository": "guoruncheng-web/game4",
+  "branch": "pwa/nightclub-ui-20261109",
+  "ownerSelection": "夜游俱乐部",
+  "runtimeSourceCommit": "e3fa647408951d67f494e0cd9c7bdb1f78e8f930",
+  "pwaVersion": "v105",
+  "build": {
+    "command": "pnpm build",
+    "exitCode": 0,
+    "buildId": "aZT2hjQ6Nh0XrbTUl3OSb",
+    "gateway": "local UI fixture on 127.0.0.1:3202",
+    "deploymentArtifact": false,
+    "dependencyInstallation": false,
+    "reusedDependencies": "Existing Owner-installed dependencies; SDK reused from a read-only production filesystem mount"
+  },
+  "lint": {
+    "command": "pnpm lint",
+    "exitCode": 0,
+    "existingWarnings": 5
+  },
+  "uiBrowser": {
+    "passed": true,
+    "checks": 26,
+    "screenshots": 23,
+    "apiFixture": true,
+    "realAuthentication": false,
+    "realRtc": false,
+    "exceptions": []
+  },
+  "privateLogin": {
+    "passed": true,
+    "checks": 4,
+    "registrationRequests": 0
+  },
+  "offline": {
+    "passed": true,
+    "networkBlocked": true,
+    "newAssetsHashMatched": [
+      {
+        "path": "/assets/nightclub/game-covers-v1.webp",
+        "offlineHashMatched": true
+      },
+      {
+        "path": "/assets/nightclub/icons-v1.png",
+        "offlineHashMatched": true
+      }
+    ],
+    "installPromptHiddenOutsideGames": true
+  },
+  "precache": {
+    "files": 74,
+    "totalBytes": 8883289
+  },
+  "versionTests": {
+    "passed": 2
+  },
+  "nestedDialogRegression": {
+    "before": "nested-dialog-before-fix/result.json",
+    "after": "production-browser/result.json",
+    "oldBuildId": "o6-H2u3JHvKJFZfIDlcL7",
+    "oldSourceUncommitted": true
+  },
+  "deployment": "not deployed; personal production remains v104",
+  "companyCdnTouched": false,
+  "backendChanged": false
+}

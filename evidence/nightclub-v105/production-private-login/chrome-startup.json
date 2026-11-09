@@ -1,0 +1,6 @@
+{
+  "pid": 41548,
+  "exitCode": 0,
+  "signalCode": null,
+  "stderr": "\nDevTools listening on ws://127.0.0.1:41575/devtools/browser/ddfa2e4c-7b3c-4c65-8cb0-6bd78d2040a6\n[41548:41548:1109/012506.948874:ERROR:content/common/zygote/zygote_communication_linux.cc:293] Failed to send GetTerminationStatus message to zygote\n"
+}

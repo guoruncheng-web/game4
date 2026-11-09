@@ -58,6 +58,12 @@ function snoozed() {
 
 export default function PwaProvider() {
   const pathname = usePathname();
+  const [homeTab, setHomeTab] = useState('games');
+  useEffect(() => {
+    const changed = (event: Event) => setHomeTab(String((event as CustomEvent).detail));
+    window.addEventListener('game-box-tab-change', changed);
+    return () => window.removeEventListener('game-box-tab-change', changed);
+  }, []);
   const [install, setInstall] = useState<InstallEvent | null>(null);
   /** iOS 不会派发 beforeinstallprompt,只能教用户走"分享 → 添加到主屏幕" */
   const [ios, setIos] = useState(false);
@@ -209,7 +215,7 @@ export default function PwaProvider() {
 
   // 游戏页是全屏画布,底部弹任何东西都会挡住操作区,只在首页引导
   const home = pathname === '/';
-  const showInstall = home && !hidden && (!!install || ios);
+  const showInstall = home && homeTab === 'games' && !hidden && (!!install || ios);
 
   // 房内嵌入的游戏由外层 PWA 负责更新提示，避免重复浮层遮挡游戏操作。
   if (typeof window !== 'undefined' && window.self !== window.top) return null;
@@ -218,13 +224,13 @@ export default function PwaProvider() {
   return (
     <>
       {waiting && (
-        <div className="fixed inset-x-0 bottom-0 z-50 mx-auto mb-[calc(5.5rem+env(safe-area-inset-bottom))] flex w-[min(92vw,420px)] items-center gap-3 rounded-2xl border border-white bg-[#173366] px-4 py-3 text-white shadow-[0_10px_30px_rgba(23,51,102,0.35)]">
+        <div className="gb-update-prompt fixed inset-x-0 bottom-0 z-50 mx-auto mb-[calc(5.5rem+env(safe-area-inset-bottom))] flex w-[min(92vw,420px)] items-center gap-3 rounded-2xl border border-[var(--club-line)] bg-[#173366] px-4 py-3 text-white shadow-[0_10px_30px_rgba(23,51,102,0.35)]">
           <RefreshCw size={18} className="shrink-0" />
           <p className="flex-1 text-sm font-bold">有新版本可用</p>
           <button
             type="button"
             onClick={() => void refresh()}
-            className="rounded-xl bg-white/15 px-3 py-1.5 text-sm font-black transition active:scale-95"
+            className="rounded-xl bg-[var(--club-surface)] px-3 py-1.5 text-sm font-black transition active:scale-95"
           >
             立即刷新
           </button>
@@ -235,13 +241,13 @@ export default function PwaProvider() {
         <div
           role="dialog"
           aria-label="安装到桌面"
-          className="gb-install-prompt fixed inset-x-0 bottom-0 z-40 mx-auto mb-[calc(5.5rem+env(safe-area-inset-bottom))] w-[min(92vw,420px)] rounded-3xl border border-white bg-white/95 p-4 shadow-[0_12px_36px_rgba(47,104,97,0.22)] backdrop-blur"
+          className="gb-install-prompt fixed inset-x-0 bottom-0 z-40 mx-auto mb-[calc(5.5rem+env(safe-area-inset-bottom))] w-[min(92vw,420px)] rounded-3xl border border-[var(--club-line)] bg-[var(--club-surface)] p-4 shadow-[0_12px_36px_rgba(47,104,97,0.22)] backdrop-blur"
         >
           <button
             type="button"
             onClick={dismiss}
             aria-label="关闭安装提示"
-            className="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-slate-400 transition active:scale-90"
+            className="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-[var(--club-muted)] transition active:scale-90"
           >
             <X size={18} />
           </button>
@@ -250,9 +256,9 @@ export default function PwaProvider() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icons/qubaowan-icon-192-v1.png" alt="" width={48} height={48} className="size-12 shrink-0 rounded-2xl shadow-sm" />
             <div className="min-w-0">
-              <p className="text-base font-black text-[#173366]">把趣宝玩装到桌面</p>
-              <p className="mt-0.5 text-sm font-medium text-slate-500">
-                像 App 一样一点即玩,玩过的游戏素材会留在本地,断网也能开。
+              <p className="text-base font-black text-[var(--club-text)]">把趣宝玩装到桌面</p>
+              <p className="mt-0.5 text-sm font-medium text-[var(--club-muted)]">
+                安装后快速打开，玩过的素材会留在本地。登录和联机需要网络。
               </p>
             </div>
           </div>
@@ -267,11 +273,11 @@ export default function PwaProvider() {
               安装到桌面
             </button>
           ) : (
-            <p className="mt-4 flex flex-wrap items-center gap-1.5 rounded-2xl bg-emerald-50 px-3 py-2.5 text-sm font-bold text-emerald-800">
+            <p className="mt-4 flex flex-wrap items-center gap-1.5 rounded-2xl bg-[var(--club-soft)] px-3 py-2.5 text-sm font-bold text-[var(--club-accent)]">
               点底部的
-              <Share size={17} className="text-emerald-600" aria-label="分享" />
+              <Share size={17} className="text-[var(--club-accent)]" aria-label="分享" />
               分享,再选
-              <SquarePlus size={17} className="text-emerald-600" aria-label="添加到主屏幕" />
+              <SquarePlus size={17} className="text-[var(--club-accent)]" aria-label="添加到主屏幕" />
               「添加到主屏幕」
             </p>
           )}

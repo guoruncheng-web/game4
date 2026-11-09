@@ -1,0 +1,6 @@
+{
+  "pid": 40261,
+  "exitCode": 0,
+  "signalCode": null,
+  "stderr": "\nDevTools listening on ws://127.0.0.1:40783/devtools/browser/2a32b84c-f898-46e3-abbf-0a895f890073\n[40261:40276:1109/011556.611600:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT\n[40261:40261:1109/011558.162682:ERROR:content/common/zygote/zygote_communication_linux.cc:293] Failed to send GetTerminationStatus message to zygote\n[40261:40261:1109/011558.162983:ERROR:content/common/zygote/zygote_communication_linux.cc:293] Failed to send GetTerminationStatus message to zygote\n"
+}

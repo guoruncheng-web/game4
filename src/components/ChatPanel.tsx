@@ -180,15 +180,15 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
     return (
       <section className="gb-chat-screen gb-chat-screen--empty grid min-h-[55dvh] place-items-center px-6 text-center">
         <div>
-          <span className="mx-auto grid size-20 place-items-center rounded-[2rem] bg-emerald-50 text-emerald-500">
+          <span className="mx-auto grid size-20 place-items-center rounded-[2rem] bg-[var(--club-soft)] text-[var(--club-accent)]">
             <MessageCircle size={38} />
           </span>
-          <h1 className="mt-5 text-2xl font-black text-[#173366]">登录后和好友聊天</h1>
-          <p className="mt-2 text-sm font-semibold text-slate-500">搜索玩家昵称，添加好友后即可发送消息。</p>
+          <h1 className="mt-5 text-2xl font-black text-[var(--club-text)]">登录后和好友聊天</h1>
+          <p className="mt-2 text-sm font-semibold text-[var(--club-muted)]">搜索玩家昵称，添加好友后即可发送消息。</p>
           <button
             type="button"
             onClick={() => openPanel('login')}
-            className="mt-6 min-h-12 rounded-2xl bg-emerald-500 px-8 font-black text-white shadow-[0_6px_0_#22994b] active:translate-y-1 active:shadow-none"
+            className="mt-6 min-h-12 rounded-2xl gb-primary px-8 font-black text-white shadow-[0_6px_0_#22994b] active:translate-y-1 active:shadow-none"
           >
             登录
           </button>
@@ -201,32 +201,32 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
     const friendOnline = onlineIds.has(activeFriend.id);
     return (
       <section className="gb-chat-screen gb-chat-chat flex min-h-[calc(100dvh-12rem)] flex-col px-4">
-        <div className="gb-chat-chat-header flex items-center gap-3 border-b border-emerald-100 pb-3">
-          <button type="button" onClick={() => setActiveFriend(null)} className="grid size-10 place-items-center rounded-full bg-white text-slate-500" aria-label="返回好友列表">
+        <div className="gb-chat-chat-header flex items-center gap-3 border-b border-[var(--club-line)] pb-3">
+          <button type="button" onClick={() => setActiveFriend(null)} className="grid size-10 place-items-center rounded-full bg-[var(--club-surface)] text-[var(--club-muted)]" aria-label="返回好友列表">
             <ArrowLeft size={21} />
           </button>
-          <Avatar emoji={activeFriend.avatar} url={activeFriend.avatarUrl} className="size-11 rounded-2xl bg-white text-2xl" />
+          <Avatar emoji={activeFriend.avatar} url={activeFriend.avatarUrl} className="size-11 rounded-2xl bg-[var(--club-surface)] text-2xl" />
           <div>
-            <h1 className="font-black text-[#173366]">{activeFriend.username}</h1>
-            <p className={`text-xs font-bold ${friendOnline ? 'text-emerald-500' : 'text-slate-400'}`}>
+            <h1 className="font-black text-[var(--club-text)]">{activeFriend.username}</h1>
+            <p className={`text-xs font-bold ${friendOnline ? 'text-[var(--club-accent)]' : 'text-[var(--club-muted)]'}`}>
               {!connected ? '状态连接中' : friendOnline ? '在线' : '离线'}
             </p>
           </div>
         </div>
 
         <div className="gb-chat-chat-messages flex-1 space-y-2 overflow-y-auto py-4">
-          {messages.length === 0 && <p className="py-12 text-center text-sm font-bold text-slate-400">还没有消息，打个招呼吧</p>}
+          {messages.length === 0 && <p className="py-12 text-center text-sm font-bold text-[var(--club-muted)]">还没有消息，打个招呼吧</p>}
           {messages.map((message) => (
             <div key={message.id} className={`gb-chat-message-row flex items-end gap-2 ${message.mine ? 'gb-chat-message-row--mine justify-end' : 'justify-start'}`}>
               {!message.mine && (
-                <Avatar emoji={activeFriend.avatar} url={activeFriend.avatarUrl} className="size-8 rounded-xl bg-white text-lg shadow-sm" />
+                <Avatar emoji={activeFriend.avatar} url={activeFriend.avatarUrl} className="size-8 rounded-xl bg-[var(--club-surface)] text-lg shadow-sm" />
               )}
-              <div className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm font-semibold leading-relaxed ${message.mine ? 'rounded-br-md bg-emerald-500 text-white' : 'rounded-bl-md bg-white text-slate-700 shadow-sm'}`}>
+              <div className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm font-semibold leading-relaxed ${message.mine ? 'rounded-br-md gb-primary text-white' : 'rounded-bl-md bg-[var(--club-surface)] text-[var(--club-text)] shadow-sm'}`}>
                 {message.content}
                 <time className="gb-chat-message-time" dateTime={message.createdAt}>{new Date(message.createdAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</time>
               </div>
               {message.mine && (
-                <Avatar emoji={user.avatar} url={user.avatarUrl} className="size-8 rounded-xl bg-emerald-50 text-lg shadow-sm" />
+                <Avatar emoji={user.avatar} url={user.avatarUrl} className="size-8 rounded-xl bg-[var(--club-soft)] text-lg shadow-sm" />
               )}
             </div>
           ))}
@@ -234,7 +234,7 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
         </div>
 
         {error && <p className="mb-2 text-center text-xs font-bold text-rose-500">{error}</p>}
-        <div className="gb-chat-chat-composer sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] flex gap-2 rounded-2xl bg-white/90 p-2 shadow-lg backdrop-blur">
+        <div className="gb-chat-chat-composer sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] flex gap-2 rounded-2xl bg-[var(--club-surface)] p-2 shadow-lg backdrop-blur">
           <input
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
@@ -242,9 +242,9 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
             maxLength={500}
             placeholder="输入消息…"
             aria-label="消息内容"
-            className="min-w-0 flex-1 rounded-xl bg-slate-100 px-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-300"
+            className="min-w-0 flex-1 rounded-xl bg-[var(--club-raised)] px-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-300"
           />
-          <button type="button" onClick={() => { void sendMessage(); }} disabled={!draft.trim()} className="grid size-11 place-items-center rounded-xl bg-emerald-500 text-white disabled:bg-slate-300" aria-label="发送消息">
+          <button type="button" onClick={() => { void sendMessage(); }} disabled={!draft.trim()} className="grid size-11 place-items-center rounded-xl gb-primary text-white disabled:bg-slate-300" aria-label="发送消息">
             发送
           </button>
         </div>
@@ -255,8 +255,8 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
   return (
     <section className="gb-chat-screen gb-chat-lobby px-4 pb-5">
       <div className="mb-5">
-        <h1 className="text-[1.75rem] font-black tracking-[-0.04em] text-[#173366]">消息</h1>
-        <p className="mt-1 text-sm font-semibold text-emerald-600">找到玩家，成为好友后开始聊天</p>
+        <h1 className="text-[1.75rem] font-black tracking-[-0.04em] text-[var(--club-text)]">消息</h1>
+        <p className="mt-1 text-sm font-semibold text-[var(--club-accent)]">找到玩家，成为好友后开始聊天</p>
       </div>
 
       <div className="gb-chat-search-row"><button type="button" className="gb-chat-search-trigger" onClick={() => setSearchOpen(true)} aria-label="寻找玩家">
@@ -266,28 +266,28 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
       <button type="button" className="gb-chat-add-friend" onClick={() => setSearchOpen(true)}><Plus size={18} />添加好友</button></div>
 
       {searchOpen && <form className="gb-chat-search-panel flex gap-2" onSubmit={(event) => { event.preventDefault(); void searchUsers(); }}>
-        <label className="flex min-h-12 flex-1 items-center gap-2 rounded-2xl border-2 border-white bg-white/80 px-3 shadow-sm">
-          <Search size={18} className="text-slate-400" />
+        <label className="flex min-h-12 flex-1 items-center gap-2 rounded-2xl border-2 border-[var(--club-line)] bg-[var(--club-surface)] px-3 shadow-sm">
+          <Search size={18} className="text-[var(--club-muted)]" />
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索用户名或六位 UID" className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none" />
         </label>
-        <button type="submit" disabled={searching} className="rounded-2xl bg-emerald-500 px-4 text-sm font-black text-white disabled:bg-slate-300">
+        <button type="submit" disabled={searching} className="rounded-2xl gb-primary px-4 text-sm font-black text-white disabled:bg-slate-300">
           {searching ? '搜索中' : '搜索'}
         </button>
-        <button type="button" onClick={() => setSearchOpen(false)} className="rounded-2xl bg-slate-100 px-3 text-sm font-black text-slate-500" aria-label="关闭搜索">×</button>
+        <button type="button" onClick={() => setSearchOpen(false)} className="rounded-2xl bg-[var(--club-raised)] px-3 text-sm font-black text-[var(--club-muted)]" aria-label="关闭搜索">×</button>
       </form>}
 
       {error && <p className="mt-2 px-1 text-sm font-bold text-rose-500">{error}</p>}
       {results.length > 0 && (
-        <div className="mt-4 space-y-2 rounded-3xl border border-white bg-white/60 p-3">
-          <p className="px-1 text-xs font-black text-slate-400">搜索结果</p>
+        <div className="mt-4 space-y-2 rounded-3xl border border-[var(--club-line)] bg-[var(--club-surface)] p-3">
+          <p className="px-1 text-xs font-black text-[var(--club-muted)]">搜索结果</p>
           {results.map((person) => (
-            <div key={person.id} className="flex items-center gap-3 rounded-2xl bg-white p-3">
-              <Avatar emoji={person.avatar} url={person.avatarUrl} className="size-11 rounded-xl bg-emerald-50 text-2xl" />
+            <div key={person.id} className="flex items-center gap-3 rounded-2xl bg-[var(--club-surface)] p-3">
+              <Avatar emoji={person.avatar} url={person.avatarUrl} className="size-11 rounded-xl bg-[var(--club-soft)] text-2xl" />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-black text-[#173366]">{person.username}</span>
-                <span className="block font-mono text-[10px] font-bold text-emerald-600">UID {person.uid}</span>
+                <span className="block truncate text-sm font-black text-[var(--club-text)]">{person.username}</span>
+                <span className="block font-mono text-[10px] font-bold text-[var(--club-accent)]">UID {person.uid}</span>
               </span>
-              <button type="button" disabled={person.isFriend || person.requestSent || person.requestReceived} onClick={() => { void addFriend(person); }} className="flex min-h-9 items-center gap-1 rounded-xl bg-emerald-50 px-3 text-xs font-black text-emerald-600 disabled:text-slate-400">
+              <button type="button" disabled={person.isFriend || person.requestSent || person.requestReceived} onClick={() => { void addFriend(person); }} className="flex min-h-9 items-center gap-1 rounded-xl bg-[var(--club-soft)] px-3 text-xs font-black text-[var(--club-accent)] disabled:text-[var(--club-muted)]">
                 {person.isFriend ? '已是好友' : person.requestSent ? '已发送' : person.requestReceived ? '待你处理' : <><Plus size={15} /> 加好友</>}
               </button>
             </div>
@@ -303,14 +303,14 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
       {requestsOpen && (
         <div id="gb-chat-requests" className="gb-chat-requests">
           <p className="mb-2 px-1 text-sm font-black text-amber-700">好友申请</p>
-          {requests.length === 0 && <p className="text-sm text-slate-500">暂无待处理的好友申请</p>}
+          {requests.length === 0 && <p className="text-sm text-[var(--club-muted)]">暂无待处理的好友申请</p>}
           <div className="space-y-2">
             {requests.map((request) => (
-              <div key={request.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm">
-                <Avatar emoji={request.sender.avatar} url={request.sender.avatarUrl} className="size-11 rounded-xl bg-emerald-50 text-2xl" />
-                <span className="min-w-0 flex-1 truncate text-sm font-black text-[#173366]">{request.sender.username}</span>
-                <button type="button" onClick={() => { void respondToRequest(request, 'reject'); }} className="min-h-9 rounded-xl bg-slate-100 px-3 text-xs font-black text-slate-500">拒绝</button>
-                <button type="button" onClick={() => { void respondToRequest(request, 'accept'); }} className="min-h-9 rounded-xl bg-emerald-500 px-3 text-xs font-black text-white">同意</button>
+              <div key={request.id} className="flex items-center gap-3 rounded-2xl bg-[var(--club-surface)] p-3 shadow-sm">
+                <Avatar emoji={request.sender.avatar} url={request.sender.avatarUrl} className="size-11 rounded-xl bg-[var(--club-soft)] text-2xl" />
+                <span className="min-w-0 flex-1 truncate text-sm font-black text-[var(--club-text)]">{request.sender.username}</span>
+                <button type="button" onClick={() => { void respondToRequest(request, 'reject'); }} className="min-h-9 rounded-xl bg-[var(--club-raised)] px-3 text-xs font-black text-[var(--club-muted)]">拒绝</button>
+                <button type="button" onClick={() => { void respondToRequest(request, 'accept'); }} className="min-h-9 rounded-xl gb-primary px-3 text-xs font-black text-white">同意</button>
               </div>
             ))}
           </div>
@@ -318,30 +318,30 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
       )}
 
       <div className="gb-chat-friend-heading mb-3 mt-7 flex items-center gap-2 px-1">
-        <Users size={20} className="text-emerald-600" />
-        <h2 className="text-lg font-black text-[#173366]">好友</h2>
+        <Users size={20} className="text-[var(--club-accent)]" />
+        <h2 className="text-lg font-black text-[var(--club-text)]">好友</h2>
       </div>
       <div className="gb-chat-friend-list space-y-2">
-        {friends.length === 0 && <p className="rounded-3xl bg-white/60 px-4 py-10 text-center text-sm font-bold text-slate-400">还没有好友，先搜索昵称添加一个吧</p>}
+        {friends.length === 0 && <p className="rounded-3xl bg-[var(--club-surface)] px-4 py-10 text-center text-sm font-bold text-[var(--club-muted)]">还没有好友，先搜索昵称添加一个吧</p>}
         {friends.map((friend) => (
           <button key={friend.id} type="button" onClick={() => {
             setFriends((current) => current.map((item) => (
               item.id === friend.id ? { ...item, unreadCount: 0 } : item
             )));
             setActiveFriend(friend);
-          }} className="flex w-full items-center gap-3 rounded-2xl border border-white bg-white/85 p-3 text-left shadow-sm transition active:scale-[0.99]">
-            <span className="relative grid size-12 place-items-center rounded-2xl bg-emerald-50 text-2xl">
+          }} className="flex w-full items-center gap-3 rounded-2xl border border-[var(--club-line)] bg-[var(--club-surface)] p-3 text-left shadow-sm transition active:scale-[0.99]">
+            <span className="relative grid size-12 place-items-center rounded-2xl bg-[var(--club-soft)] text-2xl">
               <Avatar emoji={friend.avatar} url={friend.avatarUrl} className="size-full rounded-2xl text-2xl" />
               <span
-                className={`absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border-2 border-white ${connected && onlineIds.has(friend.id) ? 'bg-emerald-400' : 'bg-slate-300'}`}
+                className={`absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border-2 border-[var(--club-line)] ${connected && onlineIds.has(friend.id) ? 'bg-emerald-400' : 'bg-slate-300'}`}
                 aria-label={!connected ? '状态连接中' : onlineIds.has(friend.id) ? '在线' : '离线'}
               />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-black text-[#173366]">{friend.username}</span>
+              <span className="block truncate text-sm font-black text-[var(--club-text)]">{friend.username}</span>
               <span className="sr-only">UID {friend.uid}</span>
-              <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs font-semibold text-slate-400">
-                <span className={connected && onlineIds.has(friend.id) ? 'text-emerald-500' : 'text-slate-400'}>
+              <span className="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs font-semibold text-[var(--club-muted)]">
+                <span className={connected && onlineIds.has(friend.id) ? 'text-[var(--club-accent)]' : 'text-[var(--club-muted)]'}>
                   {!connected ? '连接中' : onlineIds.has(friend.id) ? '在线' : '离线'}
                 </span>
                 <span aria-hidden="true">·</span>

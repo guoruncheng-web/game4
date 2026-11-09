@@ -1,0 +1,8 @@
+{
+  "origin": "http://127.0.0.1:3203",
+  "version": "v105",
+  "passed": false,
+  "exceptions": [],
+  "icons": [],
+  "error": "TypeError: fetch failed"
+}

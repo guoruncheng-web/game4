@@ -1,0 +1,27 @@
+{
+  "origin": "http://127.0.0.1:3201",
+  "apiFixture": true,
+  "realRtc": false,
+  "realAuthentication": false,
+  "checks": [
+    "Legacy registration URL remains login-only",
+    "Nightclub background token applied",
+    "Password visibility toggles",
+    "Failed login reveals captcha",
+    "Game entries are unique",
+    "Maintenance entry remains disabled",
+    "393px homepage has no horizontal overflow",
+    "Arcade category shows three entries",
+    "All category restores ten entries",
+    "Create room dialog moves keyboard focus inside",
+    "Create room traps Tab at the last control",
+    "Closing dialog restores opener focus",
+    "Sending chat message renders the response",
+    "Conversation composer is above bottom navigation",
+    "Password save starts disabled",
+    "Password mismatch remains a validation error"
+  ],
+  "exceptions": [],
+  "passed": false,
+  "error": "Error: Condition: document.body.innerText.includes(\"这是一个用于验证\")\n    at wait (file:///home/gary/.cache/qubaowan-nightclub-ui-20261109/source/tools/pwa/nightclub-ui-acceptance.mjs:20:133)\n    at async file:///home/gary/.cache/qubaowan-nightclub-ui-20261109/source/tools/pwa/nightclub-ui-acceptance.mjs:63:59"
+}

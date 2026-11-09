@@ -10,7 +10,7 @@ import type { ReactNode, CSSProperties } from 'react';
 import { apiFetch, withGameCredentials } from '@/lib/api-client';
 import Avatar from '@/components/Avatar';
 import { Volume2, VolumeX } from 'lucide-react';
-import { ClubIcon, homeCardStyle } from '@/components/ClubArt';
+import { ClubBrand, ClubIcon, cardStyle } from '@/components/ClubArt';
 
 export default function Home() {
   const { user, wallet, loading: authLoading } = useAuth();
@@ -28,6 +28,7 @@ export default function Home() {
   const [pileLevel, setPileLevel] = useState(1);
   /** 捕鱼没有分数,卡片上显示的是钱包余额(单机模式那份,存在本机) */
   const [fishCoins, setFishCoins] = useState(500);
+  const [category, setCategory] = useState('全部');
   const [activeTab, setActiveTab] = useState<'games' | 'voice' | 'messages' | 'profile'>('games');
   const [conversationOpen, setConversationOpen] = useState(false);
   const [unreadMessages, setUnreadMessages] = useState(0);
@@ -126,6 +127,10 @@ export default function Home() {
     return () => window.removeEventListener('game-box-open-messages', openMessages);
   }, []);
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('game-box-tab-change', { detail: activeTab }));
+  }, [activeTab]);
+
   function toggleSound() {
     setSilent((current) => {
       const next = !current;
@@ -141,20 +146,21 @@ export default function Home() {
   }
 
   const worlds = [
-    { slug: 'star-runner', title: '星际跑酷', subtitle: '收集星星', stat: `最高分 ${bestScore}` },
-    { slug: 'fruit-slasher', title: '水果乱斗', subtitle: '指尖切水果', stat: `最高分 ${fruitBestScore}` },
-    { slug: 'eight-ball', title: '3D 台球', subtitle: '挑战 AI', stat: '三档对手' },
-    { slug: 'triple-pile', title: '叠叠消', subtitle: '火锅消除', stat: `第 ${pileLevel} / 12 关` },
-    { slug: 'fish-hunter', title: '捕鱼达人', subtitle: '好友同玩', stat: `金币 ${fishCoins}` },
-    { slug: 'umo', title: 'UMO', subtitle: '脉冲卡牌', stat: '经典 / 2v2' },
-    { slug: 'neon-strike-2d', title: '霓虹突击 2D', subtitle: '竖屏弹幕', stat: `最高分 ${neon2dBestScore}` },
-    { slug: 'ludo', title: '飞行棋', subtitle: '棋盘竞速', stat: '真人 / 机器人' },
-    { slug: 'thirteen', title: '南方十三张', subtitle: '好友开房', stat: '单机 / 四人联机' },
-    { slug: 'neon-strike', title: '霓虹突击', subtitle: '星际飞行', stat: `最高分 ${neonBestScore}` },
+    { slug: 'thirteen', title: '南方十三张', subtitle: '好友开房 · 四人联机', category: '多人同玩', stat: '单机 / 四人联机' },
+    { slug: 'umo', title: 'UMO', subtitle: '脉冲卡牌 · 经典 / 2v2', category: '多人同玩', stat: '经典 / 2v2' },
+    { slug: 'ludo', title: '飞行棋', subtitle: '棋盘竞速 · 好友同玩', category: '多人同玩', stat: '真人 / 机器人' },
+    { slug: 'eight-ball', title: '3D 台球', subtitle: '瞄准下一杆', category: '休闲解压', stat: '三档 AI 对手' },
+    { slug: 'fruit-slasher', title: '水果乱斗', subtitle: '指尖切水果', category: '休闲解压', stat: `最高分 ${fruitBestScore}` },
+    { slug: 'triple-pile', title: '叠叠消', subtitle: '火锅消除', category: '休闲解压', stat: `第 ${pileLevel} / 12 关` },
+    { slug: 'fish-hunter', title: '捕鱼达人', subtitle: '深海探索 · 好友同玩', category: '多人同玩', stat: `金币 ${fishCoins}` },
+    { slug: 'star-runner', title: '星际跑酷', subtitle: '向下一颗星出发', category: '街机挑战', stat: `最高分 ${bestScore}` },
+    { slug: 'neon-strike-2d', title: '霓虹突击 2D', subtitle: '竖屏弹幕', category: '街机挑战', stat: `最高分 ${neon2dBestScore}` },
+    { slug: 'neon-strike', title: '霓虹突击', subtitle: '星际飞行', category: '街机挑战', stat: `最高分 ${neonBestScore}` },
   ];
+  const visibleWorlds = category === '全部' ? worlds : worlds.filter(world => world.category === category);
   const tabs = [
-    { id: 'games', icon: 'home', label: '首页' },
-    { id: 'voice', icon: 'voice', label: '语聊' },
+    { id: 'games', icon: 'home', label: '游戏' },
+    { id: 'voice', icon: 'voice', label: '语音房' },
     { id: 'messages', icon: 'messages', label: '消息' },
     { id: 'profile', icon: 'profile', label: '我的' },
   ] as const;
@@ -163,33 +169,35 @@ export default function Home() {
     <main className={`gb-app gb-tab-${activeTab} ${conversationOpen ? 'gb-conversation-open' : ''}`}>
       <div className="gb-shell">
         <header className="gb-hero">
-          {activeTab === 'games' ? (
-            <div className="gb-player-header">
-              <button type="button" className="gb-avatar-button" onClick={() => setActiveTab('profile')} aria-label="打开我的资料">
-                {user ? <Avatar emoji={user.avatar} url={user.avatarUrl} /> : <ClubIcon name="profile" />}
-              </button>
-              <div className="gb-player-details"><b>{user?.username ?? '加载中'}</b><small>UID {user?.uid ?? '—'}</small><span className="gb-wallet"><ClubIcon name="diamond" />{(wallet?.diamonds ?? 0).toLocaleString('zh-CN')}</span></div>
-              <button type="button" className="gb-sound" onClick={toggleSound} aria-label={silent ? '打开音效' : '关闭音效'} aria-pressed={silent}>{silent ? <VolumeX /> : <Volume2 />}</button>
-            </div>
-          ) : <div className="gb-page-heading"><h1>{activeTab === 'voice' ? '语聊开黑' : activeTab === 'messages' ? '消息' : '我的'}</h1><p>{activeTab === 'voice' ? '找个房间，一起聊聊' : activeTab === 'messages' ? '和好友一起玩，更开心' : '记录每一次游戏时光'}</p></div>}
+          <ClubBrand />
+          <div className="gb-header-actions">
+            <span className="gb-wallet" aria-label={wallet ? `钻石 ${wallet.diamonds}` : '钻石余额暂不可用'}><ClubIcon name="diamond" />{wallet ? wallet.diamonds.toLocaleString('zh-CN') : '—'}</span>
+            <button type="button" className="gb-sound" onClick={toggleSound} aria-label={silent ? '打开音效' : '关闭音效'} aria-pressed={silent}>{silent ? <VolumeX /> : <Volume2 />}</button>
+            <button type="button" className="gb-avatar-button" onClick={() => setActiveTab('profile')} aria-label="打开我的资料">
+              {user ? <Avatar emoji={user.avatar} url={user.avatarUrl} /> : <ClubIcon name="profile" />}
+            </button>
+          </div>
         </header>
         <section className="gb-surface">
+          {activeTab !== 'games' && <div className="gb-page-heading"><span className="gb-eyebrow">MIDNIGHT SOCIAL</span><h1>{activeTab === 'voice' ? '找个房间，一起聊。' : activeTab === 'messages' ? '好友消息' : '我的俱乐部'}</h1><p>{activeTab === 'voice' ? '一段好聊天，从打个招呼开始。' : activeTab === 'messages' ? '下一局，约上熟悉的朋友。' : '每一次相聚，都从这里开始。'}</p></div>}
           {activeTab === 'games' && <div className="gb-home">
-            <div className="gb-shortcuts" aria-label="快捷入口">
-              <button type="button" onClick={() => document.getElementById('gb-games')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' })}><ClubIcon name="games" /><span>全部游戏</span></button>
-              <button type="button" onClick={() => setActiveTab('voice')}><ClubIcon name="voice" /><span>语聊开黑</span></button>
-              <button type="button" onClick={() => setActiveTab('messages')}><ClubIcon name="messages" /><span>好友消息</span>{unreadMessages > 0 && <i className="gb-dot" />}</button>
-              <button type="button" onClick={() => setActiveTab('profile')}><ClubIcon name="security" /><span>账号安全</span></button>
+            <div className="gb-home-intro"><span className="gb-eyebrow">YOUR LITTLE PLAY CLUB</span><h1>今晚，一起玩<span>。</span></h1><p>选一款喜欢的，让快乐发生。</p></div>
+            <button type="button" className="gb-social-entry" onClick={() => setActiveTab('voice')}>
+              <span className="gb-social-symbol"><ClubIcon name="voice" /></span>
+              <span className="gb-social-copy"><small>边玩边聊</small><b>去语音房，和朋友待一会</b><span>创建房间，或加入好友的小聚</span></span>
+              <span className="gb-social-arrow" aria-hidden="true">↗</span>
+            </button>
+            <div className="gb-section-heading"><h2>发现好游戏</h2><span>{worlds.length} 款游戏</span></div>
+            <div className="gb-game-categories" aria-label="游戏分类">
+              {['全部', '多人同玩', '休闲解压', '街机挑战'].map(item => <button type="button" key={item} aria-pressed={category === item} onClick={() => setCategory(item)}>{item}</button>)}
             </div>
-            <div className="gb-section-heading"><h1>趣宝玩<span className="gb-home-brand-tagline">一起玩，更好玩</span></h1><button type="button" onClick={() => document.getElementById('gb-games')?.scrollIntoView()}>全部游戏 ›</button></div>
-            <GameLink href="/thirteen" label="南方十三张 · 好友开房 · 四人联机" enabled={gameAvailability.thirteen !== false} className="gb-game-card gb-featured" style={homeCardStyle('thirteen')}>
-              <span className="gb-card-copy"><b>南方十三张</b><small>好友开房 · 四人联机</small><em>一起开局 ›</em></span>
-            </GameLink>
             <div id="gb-games" className="gb-game-grid">
-              {worlds.map((world) => <GameLink key={world.slug} href={`/${world.slug}`} label={`${world.title} · ${world.subtitle} · ${world.stat}`} enabled={gameAvailability[world.slug] !== false} className="gb-game-card" style={homeCardStyle(world.slug)}>
+              {visibleWorlds.map((world) => <GameLink key={world.slug} href={`/${world.slug}`} label={`${world.title} · ${world.subtitle} · ${world.stat}`} enabled={gameAvailability[world.slug] !== false} className="gb-game-card">
+                <span className="gb-game-cover" style={cardStyle(world.slug)} aria-hidden="true"><span className="gb-game-play">↗</span></span>
                 <span className="gb-card-copy"><b>{world.title}</b><small>{world.subtitle}</small><em>{world.stat}</em></span>
               </GameLink>)}
             </div>
+            <p className="gb-library-footer">好游戏，和朋友一起。</p>
           </div>}
           {activeTab === 'voice' && <VoiceLobby />}
           {activeTab === 'messages' && <ChatPanel onConversationChange={setConversationOpen} />}

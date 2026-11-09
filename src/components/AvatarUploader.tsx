@@ -108,7 +108,7 @@ export default function AvatarUploader() {
           emoji={user.avatar}
           url={previewUrl}
           alt={pending ? '新头像预览' : '我的头像'}
-          className="size-20 rounded-[1.6rem] border-4 border-white/70 bg-white text-4xl shadow-lg"
+          className="size-20 rounded-[1.6rem] border-4 border-[var(--club-line)] bg-[var(--club-surface)] text-4xl shadow-lg"
         />
       </div>
         <div className="gb-avatar-picker-actions">
@@ -116,7 +116,7 @@ export default function AvatarUploader() {
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={busy}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-2xl bg-white/25 px-4 text-sm font-black text-white disabled:opacity-60"
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-2xl bg-[var(--club-surface)] px-4 text-sm font-black text-white disabled:opacity-60"
           >
             <Camera size={16} />选择图片
           </button>
@@ -138,7 +138,7 @@ export default function AvatarUploader() {
             type="button"
             onClick={() => { void upload(); }}
             disabled={busy || !pending}
-            className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-white px-4 text-sm font-black text-emerald-600 disabled:opacity-60"
+            className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[var(--club-surface)] px-4 text-sm font-black text-[var(--club-accent)] disabled:opacity-60"
           >
             {busy ? <><Loader2 size={16} className="animate-spin" />上传中…</> : '确认使用'}
           </button>
@@ -146,7 +146,7 @@ export default function AvatarUploader() {
             type="button"
             onClick={() => { replacePending(null); setError(''); }}
             disabled={busy}
-            className="min-h-10 rounded-2xl bg-white/20 px-4 text-sm font-black text-white disabled:opacity-60"
+            className="min-h-10 rounded-2xl bg-[var(--club-surface)] px-4 text-sm font-black text-white disabled:opacity-60"
           >
             取消
           </button>}

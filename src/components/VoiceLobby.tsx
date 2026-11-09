@@ -1,8 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Avatar from './Avatar';
+import { useDialogFocus } from './useDialogFocus';
 import { ClubBrand, ClubIcon, cardStyle } from './ClubArt';
 import { useAuth } from './AuthProvider';
 import { withGameCredentials } from '@/lib/api-client';
@@ -123,6 +124,9 @@ function CreateRoomSheet({ username, onClose, onCreated }: { username: string; o
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  const dialog = useRef<HTMLElement>(null);
+  useDialogFocus(dialog, onClose);
+
   async function submit() {
     if (!title.trim() || saving) return;
     setSaving(true);
@@ -140,7 +144,7 @@ function CreateRoomSheet({ username, onClose, onCreated }: { username: string; o
   }
 
   return <div className="voice-sheet-backdrop voice-full-page-backdrop" role="presentation">
-    <section className="voice-create-sheet" role="dialog" aria-modal="true" aria-labelledby="voice-create-title">
+    <section ref={dialog} className="voice-create-sheet" role="dialog" aria-modal="true" aria-labelledby="voice-create-title">
       <header><h2 id="voice-create-title">创建房间</h2><button type="button" onClick={onClose} aria-label="关闭创建房间">×</button></header>
       <div className="voice-create-body">
       <label>房间名称<input value={title} maxLength={40} onChange={(event) => setTitle(event.target.value)} /><small>{title.length}/40</small></label>

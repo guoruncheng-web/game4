@@ -13,7 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
     id: '/',
     name: '趣宝玩',
     short_name: '趣宝玩',
-    description: '即开即玩的移动端小游戏合集,装到桌面后可离线游玩',
+    description: '和朋友一起玩的移动端小游戏合集',
     start_url: '/',
     scope: '/',
     // standalone 而不是 fullscreen:游戏页自己会铺满,首页还需要状态栏显示时间和电量
@@ -21,8 +21,8 @@ export default function manifest(): MetadataRoute.Manifest {
     // 'any' 而不是 'portrait':深海捕鱼是横屏的(见它的 DESIGN.md §4.3),方向交给各游戏页自己决定。
     // 竖屏那几款的画布是 aspect-[9/16],本来就不依赖这个锁,改了不受影响
     orientation: 'any',
-    background_color: '#fff5f7',
-    theme_color: '#fff5f7',
+    background_color: '#121826',
+    theme_color: '#121826',
     lang: 'zh-CN',
     categories: ['games', 'entertainment'],
     icons: [

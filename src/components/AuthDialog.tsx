@@ -1,12 +1,13 @@
 'use client';
 
 import Image from 'next/image';
-import { ClubBrand } from './ClubArt';
+import { cardStyle } from './ClubArt';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, KeyRound, LogOut, RefreshCw, ShieldAlert, X } from 'lucide-react';
 import { apiFetch, type ApiCredentials } from '@/lib/api-client';
 import Avatar from './Avatar';
 import Field from './AuthTextField';
+import { useDialogFocus } from './useDialogFocus';
 import { PUBLIC_REGISTRATION_ENABLED, registrationMode } from '@/lib/registration';
 
 export type AuthMode = 'register' | 'login' | 'account';
@@ -55,15 +56,10 @@ export default function AuthDialog({
     onClose();
   }, [firstSetup, onClose]);
 
-  // Esc 关闭 + 打开时把焦点移进弹窗,别让键盘用户还停在背后的页面上
+  useDialogFocus(dialogRef, requestClose, !page);
   useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') requestClose();
-    }
-    window.addEventListener('keydown', onKeyDown);
-    dialogRef.current?.querySelector<HTMLElement>('input, button')?.focus();
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [requestClose]);
+    if (page) dialogRef.current?.querySelector<HTMLElement>('input, button')?.focus();
+  }, [page]);
 
   async function submitRegister() {
     if (!PUBLIC_REGISTRATION_ENABLED || loading) return;
@@ -178,18 +174,18 @@ export default function AuthDialog({
       onClick={(event) => { if (!page && event.target === event.currentTarget) requestClose(); }}
     >
       {page && (mode !== 'account' || firstSetup) && <nav className="gb-auth-v2-brand" aria-label="趣宝玩">{mode === 'register' && <button type="button" aria-label="返回登录" onClick={() => { setMode('login'); setError(''); }}><ArrowLeft size={22} /></button>}<span className="gb-auth-v2-mark" aria-hidden="true" /><b>趣宝玩</b></nav>}
-      {page && <header className={`gb-auth-hero ${mode !== 'account' ? 'gb-auth-reference-hero' : ''} ${firstSetup ? 'gb-auth-setup-hero' : ''}`} aria-label="趣宝玩 · 一起玩，更好玩">{mode === 'account' && !firstSetup && <ClubBrand />}</header>}
+      {page && <header className="gb-auth-hero" aria-label="趣宝玩 · 一起玩，更好玩"><span className="gb-eyebrow">A LITTLE CLUB. A LOT OF FUN.</span><h2>和朋友待一会，<br />让快乐多一点。</h2><div className="gb-auth-cover-stack" aria-hidden="true"><span style={cardStyle('thirteen')} /><span style={cardStyle('umo')} /><span style={cardStyle('ludo')} /></div></header>}
       <div
         ref={dialogRef}
-        className={page ? 'gb-auth-form-card' : 'gb-auth-form-card w-full max-w-[440px] rounded-t-[2rem] border-4 border-white bg-[#fffdf7] p-5 shadow-[0_-10px_45px_rgba(23,51,102,0.25)] sm:rounded-[2rem]'}
+        className={page ? 'gb-auth-form-card' : 'gb-auth-form-card w-full max-w-[440px] rounded-t-[2rem] border-4 border-[var(--club-line)] bg-[var(--club-surface)] p-5 shadow-[0_-10px_45px_rgba(23,51,102,0.25)] sm:rounded-[2rem]'}
       >
         <>
             <div className="gb-auth-title"><h1>{mode === 'login' ? (page ? '回来，一起玩。' : '欢迎回来') : mode === 'register' ? (page ? '你的新玩家身份。' : '免费创建账号') : firstSetup ? '欢迎，新玩家。' : '修改密码'}</h1><p>{mode === 'account' ? (firstSetup ? '完成两步，就可以进入 趣宝玩' : '妥善保管你的账号信息') : mode === 'login' ? '登录你的 趣宝玩 账号' : '免费创建账号，开启一起玩的时光'}</p></div>
             {!page && <div className="gb-auth-mode-header mb-4 flex items-center justify-between">
               {mode === 'account' ? (
-                <p className="px-1 text-base font-black text-[#173366]">账号设置</p>
+                <p className="px-1 text-base font-black text-[var(--club-text)]">账号设置</p>
               ) : (
-                <div className="gb-auth-tabs flex gap-1 rounded-2xl bg-slate-100 p-1">
+                <div className="gb-auth-tabs flex gap-1 rounded-2xl bg-[var(--club-raised)] p-1">
                   {PUBLIC_REGISTRATION_ENABLED && <TabButton active={mode === 'register'} onClick={() => { setMode('register'); setError(''); }}>
                     一键注册
                   </TabButton>}
@@ -202,7 +198,7 @@ export default function AuthDialog({
                 type="button"
                 onClick={requestClose}
                 aria-label="关闭"
-                className={page ? 'gb-auth-page-back' : 'grid size-9 place-items-center rounded-full text-slate-400 transition active:scale-90'}
+                className={page ? 'gb-auth-page-back' : 'grid size-9 place-items-center rounded-full text-[var(--club-muted)] transition active:scale-90'}
               >
                 {page ? <ArrowLeft size={26} /> : <X size={20} />}
               </button>
@@ -210,7 +206,7 @@ export default function AuthDialog({
 
             {PUBLIC_REGISTRATION_ENABLED && mode === 'register' && (
               <div className="gb-auth-register-panel space-y-3">
-                <p className="gb-auth-register-intro text-sm font-semibold leading-relaxed text-slate-500">
+                <p className="gb-auth-register-intro text-sm font-semibold leading-relaxed text-[var(--club-muted)]">
                   <strong>系统自动分配专属 UID</strong>
                 </p>
                 <CaptchaField
@@ -240,7 +236,7 @@ export default function AuthDialog({
                   value={username}
                   onChange={setUsername}
                   placeholder="输入 UID 或用户名"
-                  visibleLabel={page ? "账号" : undefined}
+                  visibleLabel="账号"
                   autoComplete="username"
                   label="UID 或用户名"
                 />
@@ -248,7 +244,7 @@ export default function AuthDialog({
                   value={password}
                   onChange={setPassword}
                   placeholder="输入密码"
-                  visibleLabel={page ? "密码" : undefined}
+                  visibleLabel="密码"
                   type="password"
                   autoComplete="current-password"
                   label="密码"
@@ -276,27 +272,27 @@ export default function AuthDialog({
             {mode === 'account' && (
               <div className="space-y-3">
                 {firstSetup && <ol className="gb-setup-progress" aria-label="账号设置进度"><li aria-current="step"><b>1</b><span>保存 UID</span></li><li><b>2</b><span>设置密码</span></li></ol>}
-                {firstSetup ? <section className="gb-setup-uid" aria-labelledby="gb-setup-uid-title"><div><span id="gb-setup-uid-title">你的登录 UID</span><small>以后使用这个号码登录</small></div><b>{user?.uid}</b><button type="button" onClick={() => { if (!navigator.clipboard) { setError('复制不可用，请长按 UID 保存'); return; } if (user) void navigator.clipboard.writeText(String(user.uid)).then(() => setNotice('UID 已复制')).catch(() => setError('复制失败，请长按 UID 保存')); }} aria-label="复制 UID">复制 UID</button></section> : <div className="rounded-2xl border-2 border-slate-200 bg-white p-4">
-                  <p className="text-xs font-bold text-slate-400">登录 UID · 请记住这个号码</p>
+                {firstSetup ? <section className="gb-setup-uid" aria-labelledby="gb-setup-uid-title"><div><span id="gb-setup-uid-title">你的登录 UID</span><small>以后使用这个号码登录</small></div><b>{user?.uid}</b><button type="button" onClick={() => { if (!navigator.clipboard) { setError('复制不可用，请长按 UID 保存'); return; } if (user) void navigator.clipboard.writeText(String(user.uid)).then(() => setNotice('UID 已复制')).catch(() => setError('复制失败，请长按 UID 保存')); }} aria-label="复制 UID">复制 UID</button></section> : <div className="rounded-2xl border-2 border-[var(--club-line)] bg-[var(--club-surface)] p-4">
+                  <p className="text-xs font-bold text-[var(--club-muted)]">登录 UID · 请记住这个号码</p>
                   <p className="gb-login-uid">{user?.uid}</p>
                   <div className="mt-2 flex items-center gap-3">
                     <Avatar
                       emoji={user?.avatar ?? ''}
                       url={user?.avatarUrl}
                       alt="账号头像"
-                      className="size-12 rounded-2xl bg-emerald-50 text-2xl"
+                      className="size-12 rounded-2xl bg-[var(--club-soft)] text-2xl"
                     />
-                    <p className="select-all break-all font-mono text-base font-bold text-slate-800">
+                    <p className="select-all break-all font-mono text-base font-bold text-[var(--club-text)]">
                       {user?.username}
                     </p>
                   </div>
                 </div>}
 
-                {!firstSetup && <div className="flex items-center gap-2 px-1 pt-1 text-sm font-black text-[#173366]">
-                  <KeyRound size={16} className="text-emerald-500" />
+                {!firstSetup && <div className="flex items-center gap-2 px-1 pt-1 text-sm font-black text-[var(--club-text)]">
+                  <KeyRound size={16} className="text-[var(--club-accent)]" />
                   修改密码
                 </div>}
-                <p className="px-1 text-xs font-semibold leading-relaxed text-slate-400">
+                <p className="px-1 text-xs font-semibold leading-relaxed text-[var(--club-muted)]">
                   {firstSetup ? '设置登录密码' : '修改后其他设备将退出登录，当前设备会保持登录。'}
                 </p>
                 <Field
@@ -319,7 +315,7 @@ export default function AuthDialog({
                   onSubmit={submitPasswordChange}
                 />
                 {error && <ErrorLine text={error} />}
-                {notice && <p className="px-1 text-sm font-bold text-emerald-600">{notice}</p>}
+                {notice && <p className="px-1 text-sm font-bold text-[var(--club-accent)]">{notice}</p>}
                 <PrimaryButton
                   onClick={submitPasswordChange}
                   disabled={loading || newPassword.length < 8 || !confirmPassword}
@@ -328,7 +324,7 @@ export default function AuthDialog({
                 {!firstSetup && <button
                   type="button"
                   onClick={async () => { await onLogout(); setMode('login'); setFirstSetup(false); setPassword(''); setNewPassword(''); setConfirmPassword(''); }}
-                  className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-slate-200 bg-white text-base font-bold text-slate-500 transition active:scale-[0.99]"
+                  className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-[var(--club-line)] bg-[var(--club-surface)] text-base font-bold text-[var(--club-muted)] transition active:scale-[0.99]"
                 >
                   <LogOut size={18} />
                   退出登录
@@ -387,7 +383,7 @@ function CaptchaField({
         maxLength={6}
         autoComplete="off"
         aria-label="图形验证码"
-        className="gb-auth-captcha-input min-h-12 min-w-0 rounded-2xl border-2 border-slate-200 bg-white px-4 text-base font-bold uppercase tracking-[0.2em] text-slate-700 outline-none transition focus:border-emerald-400"
+        className="gb-auth-captcha-input min-h-12 min-w-0 rounded-2xl border-2 border-[var(--club-line)] bg-[var(--club-surface)] px-4 text-base font-bold uppercase tracking-[0.2em] text-[var(--club-text)] outline-none transition focus:border-emerald-400"
       />
     </div>
   );
@@ -400,7 +396,7 @@ function PrimaryButton({ onClick, disabled, label }: { onClick: () => void; disa
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="gb-auth-primary-button flex min-h-14 w-full items-center justify-center rounded-2xl bg-gradient-to-b from-[#43d875] to-[#2cbe60] text-lg font-black text-white shadow-[0_8px_0_#22994b] transition active:translate-y-1 active:shadow-[0_4px_0_#22994b] disabled:from-slate-300 disabled:to-slate-300 disabled:shadow-none"
+      className="gb-auth-primary-button"
     >
       {label}
     </button>
@@ -414,7 +410,7 @@ function TabButton({ active, onClick, children }: { active: boolean; onClick: ()
       onClick={onClick}
       aria-pressed={active}
       className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
-        active ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400'
+        active ? 'bg-[var(--club-surface)] text-[var(--club-accent)] shadow-sm' : 'text-[var(--club-muted)]'
       }`}
     >
       {children}

@@ -32,7 +32,7 @@ export default function AuthTextField({
       autoComplete={autoComplete}
       aria-label={label}
       maxLength={128}
-      className="gb-auth-text-field min-h-12 w-full rounded-2xl border-2 border-slate-200 bg-white px-4 text-base font-semibold text-slate-700 outline-none transition focus:border-emerald-400"
+      className="gb-auth-text-field min-h-12 w-full rounded-2xl border-2 border-[var(--club-line)] bg-[var(--club-surface)] px-4 text-base font-semibold text-[var(--club-text)] outline-none transition focus:border-emerald-400"
     />
     {secret && <button type="button" className="gb-auth-password-toggle" aria-label={revealed ? `隐藏${label}` : `显示${label}`} aria-pressed={revealed} onClick={() => setRevealed(!revealed)}><span className={`gb-auth-icon-eye ${revealed ? 'is-revealed' : ''}`} aria-hidden="true" /></button>}
     </div>
