@@ -7,7 +7,7 @@ import PwaPrepare from "@/components/PwaPrepare";
 import FriendRequestBanner from "@/components/FriendRequestBanner";
 import { PREPARE_BOOT_SCRIPT } from "@/lib/pwa-version";
 import "./globals.css";
-import "./nightclub.css";
+import "./social.css";
 
 const geistSans = localFont({
   src: "./fonts/Geist.woff2",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#121826",
+  themeColor: "#fff5f3",
   // 装到桌面后是全屏窗口,刘海区域要自己接管
   viewportFit: "cover",
   // 游戏靠触屏操作,双指缩放只会误触
@@ -67,7 +67,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* 首次进入首页:HTML 一到就显示“准备环境中”,不等 JS;开发模式不注册 SW,也就不准备 */}
         {process.env.NODE_ENV === "production" && <script dangerouslySetInnerHTML={{ __html: PREPARE_BOOT_SCRIPT }} />}
       </head>
-      <body className="min-h-full flex flex-col" data-theme="nightclub">
+      <body className="min-h-full flex flex-col" data-theme="social">
         <PwaPrepare />
         {/* 登录状态全站一份:头部按钮和首页卡片都要看它,各自 fetch 会互相打架 */}
         <AuthProvider>

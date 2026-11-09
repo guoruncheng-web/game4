@@ -1,0 +1,46 @@
+{
+  "candidate": "v106",
+  "baseline": "37422c2438b98e29b2facd2748fd9554395fb77e",
+  "deployed": false,
+  "lint": {
+    "exitCode": 0,
+    "errors": 0,
+    "preExistingWarnings": 5
+  },
+  "build": {
+    "exitCode": 0,
+    "precacheFiles": 84,
+    "precacheMB": 8.7
+  },
+  "ui": {
+    "passed": true,
+    "checks": 35,
+    "runtimeExceptions": 0,
+    "apiFixture": true,
+    "realAuthentication": false,
+    "realRtc": false,
+    "walletBalance": "synthetic wallet-updated event"
+  },
+  "offline": {
+    "passed": true,
+    "networkBlocked": true,
+    "assetHashMatches": 12,
+    "homeCachedMs": 1876
+  },
+  "review": {
+    "directDiscover": true,
+    "disabledGameClickBlocked": true,
+    "screenshotsReviewed": [
+      "03-home",
+      "19-small-phone",
+      "12-voice-room",
+      "07-messages",
+      "09-profile"
+    ]
+  },
+  "dependencyReuse": {
+    "note": "Local shared node_modules lacked Agora. Copied existing deployed patched 4.24.8 into an isolated ignored overlay; no package installation and no shared dependency mutation.",
+    "archiveSha256": "9f7d0a192129a56c7a2b3c56014eabc126dc47d45615ed1b37cae9e8902abfdc"
+  },
+  "logNormalization": "Copied build/lint logs with CR and trailing whitespace normalized; original logs retained in local build cache."
+}

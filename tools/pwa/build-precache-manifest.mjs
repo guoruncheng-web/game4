@@ -30,7 +30,7 @@ for (const path of walk(staticDir)) {
 if (files.length === 0) throw new Error('.next/static 为空,请先运行 next build');
 
 const referenced = new Set();
-const ASSET_REF = /\/(?:assets\/(?:game-box|nightclub)|icons)\/[A-Za-z0-9_./-]+\.(?:webp|png|jpe?g|avif|svg)/g;
+const ASSET_REF = /\/(?:assets\/(?:game-box|nightclub|social)|icons)\/[A-Za-z0-9_./-]+\.(?:webp|png|jpe?g|avif|svg)/g;
 for (const path of walk(join(root, 'src'))) {
   if (!/\.(tsx?|css)$/.test(path)) continue;
   for (const match of readFileSync(path, 'utf8').matchAll(ASSET_REF)) referenced.add(match[0]);

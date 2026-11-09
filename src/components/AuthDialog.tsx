@@ -174,7 +174,7 @@ export default function AuthDialog({
       onClick={(event) => { if (!page && event.target === event.currentTarget) requestClose(); }}
     >
       {page && (mode !== 'account' || firstSetup) && <nav className="gb-auth-v2-brand" aria-label="趣宝玩">{mode === 'register' && <button type="button" aria-label="返回登录" onClick={() => { setMode('login'); setError(''); }}><ArrowLeft size={22} /></button>}<span className="gb-auth-v2-mark" aria-hidden="true" /><b>趣宝玩</b></nav>}
-      {page && <header className="gb-auth-hero" aria-label="趣宝玩 · 一起玩，更好玩"><span className="gb-eyebrow">A LITTLE CLUB. A LOT OF FUN.</span><h2>和朋友待一会，<br />让快乐多一点。</h2><div className="gb-auth-cover-stack" aria-hidden="true"><span style={cardStyle('thirteen')} /><span style={cardStyle('umo')} /><span style={cardStyle('ludo')} /></div></header>}
+      {page && <header className="gb-auth-hero" aria-label="趣宝玩 · 一起玩，更好玩"><span className="gb-eyebrow">随时开一局，快乐在一起</span><h2>和朋友待一会，<br />让快乐多一点。</h2><div className="gb-auth-cover-stack" aria-hidden="true"><span style={cardStyle('thirteen')} /><span style={cardStyle('umo')} /><span style={cardStyle('ludo')} /></div></header>}
       <div
         ref={dialogRef}
         className={page ? 'gb-auth-form-card' : 'gb-auth-form-card w-full max-w-[440px] rounded-t-[2rem] border-4 border-[var(--club-line)] bg-[var(--club-surface)] p-5 shadow-[0_-10px_45px_rgba(23,51,102,0.25)] sm:rounded-[2rem]'}

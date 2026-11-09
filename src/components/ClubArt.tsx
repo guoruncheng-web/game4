@@ -9,13 +9,24 @@ export function ClubIcon({ name, className = '' }: { name: ClubIconName; classNa
   return <span aria-hidden="true" className={`gb-icon ${className}`} style={{ maskPosition: `${(index % 4) * 100 / 3}% ${Math.floor(index / 4) * 100 / 3}%` }} />;
 }
 
-/** 统一封面图集：与夜游俱乐部设计稿一致，不把文字烘焙进图片。 */
-const covers: Record<string, number> = { thirteen: 0, umo: 1, ludo: 2, 'eight-ball': 3, 'fruit-slasher': 4, 'triple-pile': 5, 'star-runner': 6, 'neon-strike-2d': 7, 'neon-strike': 8, 'fish-hunter': 9, 'thirteen-social': 11 };
+/** 原创立体插画：透明素材与真实 DOM 文案分别渲染。 */
+const covers: Record<string, string> = {
+  'thirteen': '/assets/social/thirteen-v1.webp',
+  'umo': '/assets/social/umo-v1.webp',
+  'ludo': '/assets/social/ludo-v1.webp',
+  'eight-ball': '/assets/social/eight-ball-v1.webp',
+  'fruit-slasher': '/assets/social/fruit-slasher-v1.webp',
+  'triple-pile': '/assets/social/triple-pile-v1.webp',
+  'star-runner': '/assets/social/star-runner-v1.webp',
+  'neon-strike-2d': '/assets/social/neon-strike-2d-v1.webp',
+  'neon-strike': '/assets/social/neon-strike-v1.webp',
+  'fish-hunter': '/assets/social/fish-hunter-v1.webp',
+  'thirteen-social': '/assets/social/thirteen-social-v1.webp',
+};
 export function cardStyle(slug: string): CSSProperties {
-  const index = covers[slug] ?? 0;
-  return { backgroundImage: "url('/assets/nightclub/game-covers-v1.webp')", backgroundSize: '300% 400%', backgroundPosition: `${index % 3 * 50}% ${Math.floor(index / 3) * 100 / 3}%` };
+  return { backgroundImage: `url('${covers[slug] ?? covers.thirteen}')`, backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' };
 }
 
 export function ClubBrand() {
-  return <div className="gb-brand" aria-label="趣宝玩"><span className="gb-brand-symbol"><ClubIcon name="games" /></span><span><b>趣宝玩</b><small>夜游俱乐部</small></span></div>;
+  return <div className="gb-brand" aria-label="趣宝玩"><span className="gb-brand-symbol"><ClubIcon name="games" /></span><span><b>趣宝玩</b><small>一起玩，更开心</small></span></div>;
 }
