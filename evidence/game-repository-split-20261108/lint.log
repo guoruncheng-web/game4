@@ -1,0 +1,7 @@
+
+> game4@0.1.0 lint /Users/mac/projects/pwa-games/game4-repository-split
+> eslint
+
+ ELIFECYCLE  Command failed.
+ WARN   Local package.json exists, but node_modules missing, did you mean to install?
+sh: eslint: command not found

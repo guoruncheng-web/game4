@@ -53,3 +53,12 @@ next-env.d.ts
 # comfyui 本地素材生成环境,不进仓库
 /comfyui/
 /ComfyUI/
+
+# 专属素材由独立游戏仓库生成，运行 pnpm games:prepare。
+/public/fruit-slasher/
+/public/neon-strike/
+/public/neon-strike-2d/
+/public/eight-ball/
+/public/triple-pile/
+/public/fish-hunter/
+/public/ludo/

@@ -1,0 +1,24 @@
+[submodule "star-runner"]
+	path = src/games/star-runner
+	url = https://github.com/guoruncheng-web/star-runner.git
+[submodule "fruit-slasher"]
+	path = src/games/fruit-slasher
+	url = https://github.com/guoruncheng-web/fruit-slasher.git
+[submodule "neon-strike"]
+	path = src/games/neon-strike
+	url = https://github.com/guoruncheng-web/neon-strike.git
+[submodule "neon-strike-2d"]
+	path = src/games/neon-strike-2d
+	url = https://github.com/guoruncheng-web/neon-strike-2d.git
+[submodule "eight-ball"]
+	path = src/games/eight-ball
+	url = https://github.com/guoruncheng-web/eight-ball.git
+[submodule "triple-pile"]
+	path = src/games/triple-pile
+	url = https://github.com/guoruncheng-web/triple-pile.git
+[submodule "fish-hunter"]
+	path = src/games/fish-hunter
+	url = https://github.com/guoruncheng-web/fish-hunter.git
+[submodule "ludo"]
+	path = src/games/ludo
+	url = https://github.com/guoruncheng-web/ludo.git

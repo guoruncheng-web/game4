@@ -1,0 +1,40 @@
+{
+  "sourceBaseline": "a7f933a1516e7c488d7407399f92dc2935b7b70c",
+  "account": "guoruncheng-web",
+  "newRepositories": 8,
+  "existingRepositories": 5,
+  "tests": {
+    "command": "node --test tools/games.test.mjs",
+    "passed": 8,
+    "failed": 0
+  },
+  "assetPreparation": {
+    "command": "node tools/games.mjs prepare",
+    "sourceModules": 8,
+    "files": 294,
+    "passed": true
+  },
+  "assetVerification": {
+    "command": "node tools/games.mjs check",
+    "sourceModules": 8,
+    "files": 294,
+    "passed": true
+  },
+  "gameplaySourceAndPages": "byte-identical to source baseline",
+  "runtimeVerification": "Blocked: Owner-managed Next.js dependencies are not installed in the migration checkout; Mac frontend installation is still in progress.",
+  "deployment": "not requested; not performed",
+  "pwaChecks": {
+    "lint": {
+      "command": "pnpm lint",
+      "exitCode": 1,
+      "log": "lint.log"
+    },
+    "build": {
+      "command": "pnpm build",
+      "exitCode": 1,
+      "log": "build.log"
+    }
+  },
+  "integrationBase": "21a1f0c4cdf1ec13e748cd6d0ab1d248e786fa76",
+  "sourceMatchesLatestMain": true
+}
