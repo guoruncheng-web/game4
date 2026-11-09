@@ -1,0 +1,15 @@
+
+> game4@0.1.0 lint /home/gary/.cache/qubaowan-nightclub-ui-20261109/source
+> eslint
+
+
+/home/gary/.cache/qubaowan-nightclub-ui-20261109/source/tools/pwa/social-acceptance.mjs
+  2:15  warning  'mkdtemp' is defined but never used   @typescript-eslint/no-unused-vars
+  2:23  warning  'readFile' is defined but never used  @typescript-eslint/no-unused-vars
+  2:42  warning  'rm' is defined but never used        @typescript-eslint/no-unused-vars
+  3:9   warning  'tmpdir' is defined but never used    @typescript-eslint/no-unused-vars
+
+/home/gary/.cache/qubaowan-nightclub-ui-20261109/source/tools/sim/voice/verify-room-selectors.mjs
+  15:98  warning  Expected an assignment or function call and instead saw an expression  @typescript-eslint/no-unused-expressions
+
+✖ 5 problems (0 errors, 5 warnings)

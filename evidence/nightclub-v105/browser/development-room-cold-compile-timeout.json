@@ -1,0 +1,28 @@
+{
+  "origin": "http://127.0.0.1:3201",
+  "apiFixture": true,
+  "realRtc": false,
+  "realAuthentication": false,
+  "checks": [
+    "Legacy registration URL remains login-only",
+    "Nightclub background token applied",
+    "Password visibility toggles",
+    "Failed login reveals captcha",
+    "Game entries are unique",
+    "Maintenance entry remains disabled",
+    "393px homepage has no horizontal overflow",
+    "Arcade category shows three entries",
+    "All category restores ten entries",
+    "Create room dialog moves keyboard focus inside",
+    "Create room traps Tab at the last control",
+    "Closing dialog restores opener focus",
+    "Sending chat message renders the response",
+    "Conversation composer is above bottom navigation",
+    "Password save starts disabled",
+    "Password mismatch remains a validation error",
+    "Long Chinese username has no horizontal overflow"
+  ],
+  "exceptions": [],
+  "passed": false,
+  "error": "Error: Page.navigate timeout\n    at Timeout._onTimeout (file:///home/gary/.cache/qubaowan-nightclub-ui-20261109/source/tools/pwa/nightclub-ui-acceptance.mjs:17:130)\n    at listOnTimeout (node:internal/timers:594:17)\n    at process.processTimers (node:internal/timers:529:7)"
+}

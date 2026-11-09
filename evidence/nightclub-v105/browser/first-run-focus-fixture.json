@@ -1,0 +1,22 @@
+{
+  "origin": "http://127.0.0.1:3201",
+  "apiFixture": true,
+  "realRtc": false,
+  "realAuthentication": false,
+  "checks": [
+    "Legacy registration URL remains login-only",
+    "Nightclub background token applied",
+    "Password visibility toggles",
+    "Failed login reveals captcha",
+    "Game entries are unique",
+    "Maintenance entry remains disabled",
+    "393px homepage has no horizontal overflow",
+    "Arcade category shows three entries",
+    "All category restores ten entries",
+    "Create room dialog moves keyboard focus inside",
+    "Create room traps Tab at the last control"
+  ],
+  "exceptions": [],
+  "passed": false,
+  "error": "AssertionError [ERR_ASSERTION]: Closing dialog restores opener focus\n    at check (file:///home/gary/.cache/qubaowan-nightclub-ui-20261109/source/tools/pwa/nightclub-ui-acceptance.mjs:21:46)\n    at async file:///home/gary/.cache/qubaowan-nightclub-ui-20261109/source/tools/pwa/nightclub-ui-acceptance.mjs:54:2"
+}

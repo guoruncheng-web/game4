@@ -1,0 +1,29 @@
+{
+  "origin": "http://127.0.0.1:3203",
+  "apiFixture": true,
+  "realRtc": false,
+  "realAuthentication": false,
+  "checks": [
+    "Legacy registration URL remains login-only",
+    "Nightclub background token applied",
+    "Password visibility toggles",
+    "Failed login reveals captcha",
+    "Game entries are unique",
+    "Maintenance entry remains disabled",
+    "393px homepage has no horizontal overflow",
+    "Arcade category shows three entries",
+    "All category restores ten entries",
+    "Create room dialog moves keyboard focus inside",
+    "Create room traps Tab at the last control",
+    "Closing dialog restores opener focus",
+    "Sending chat message renders the response",
+    "Conversation composer is above bottom navigation",
+    "Password save starts disabled",
+    "Password mismatch remains a validation error",
+    "Long Chinese username has no horizontal overflow",
+    "Eight authoritative microphone seats remain visible"
+  ],
+  "exceptions": [],
+  "passed": false,
+  "error": "Error: SyntaxError: Failed to execute 'querySelector' on 'Document': '[data-speaking-uid=345678]' is not a valid selector.\n    at <anonymous>:1:53\n    at evaluate (file:///home/gary/.cache/qubaowan-nightclub-ui-20261109/source/tools/pwa/nightclub-ui-acceptance.mjs:19:153)\n    at async check (file:///home/gary/.cache/qubaowan-nightclub-ui-20261109/source/tools/pwa/nightclub-ui-acceptance.mjs:21:49)\n    at async file:///home/gary/.cache/qubaowan-nightclub-ui-20261109/source/tools/pwa/nightclub-ui-acceptance.mjs:67:2"
+}
