@@ -27,6 +27,19 @@ export function cardStyle(slug: string): CSSProperties {
   return { backgroundImage: `url('${covers[slug] ?? covers.thirteen}')`, backgroundSize: 'contain', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' };
 }
 
+/** 导航使用逐项状态图；标题、角标与点击目标由 DOM 提供。 */
+const navArt: Partial<Record<ClubIconName, [string, string]>> = {
+  home: ['/assets/social/nav-home-v2.webp', '/assets/social/nav-home-selected-v2.webp'],
+  voice: ['/assets/social/nav-party-v2.webp', '/assets/social/nav-party-selected-v2.webp'],
+  messages: ['/assets/social/nav-message-v2.webp', '/assets/social/nav-message-selected-v2.webp'],
+  games: ['/assets/social/nav-discover-v2.webp', '/assets/social/nav-discover-selected-v2.webp'],
+  profile: ['/assets/social/nav-profile-v2.webp', '/assets/social/nav-profile-selected-v2.webp'],
+};
+export function ClubNavIcon({ name, selected }: { name: ClubIconName; selected: boolean }) {
+  const art = navArt[name] ?? navArt.home!;
+  return <span aria-hidden="true" className="gb-nav-icon" style={{ backgroundImage: `url('${art[selected ? 1 : 0]}')` }} />;
+}
+
 export function ClubBrand() {
   return <div className="gb-brand" aria-label="趣宝玩"><span className="gb-brand-symbol"><ClubIcon name="games" /></span><span><b>趣宝玩</b><small>一起玩，更开心</small></span></div>;
 }

@@ -254,16 +254,7 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
 
   return (
     <section className="gb-chat-screen gb-chat-lobby px-4 pb-5">
-      <div className="mb-5">
-        <h1 className="text-[1.75rem] font-black tracking-[-0.04em] text-[var(--club-text)]">消息</h1>
-        <p className="mt-1 text-sm font-semibold text-[var(--club-accent)]">找到玩家，成为好友后开始聊天</p>
-      </div>
-
-      <div className="gb-chat-search-row"><button type="button" className="gb-chat-search-trigger" onClick={() => setSearchOpen(true)} aria-label="寻找玩家">
-        <Search size={19} />
-        <span>搜索好友或玩家</span>
-      </button>
-      <button type="button" className="gb-chat-add-friend" onClick={() => setSearchOpen(true)}><Plus size={18} />添加好友</button></div>
+      <header className="gb-chat-list-header"><h1>消息</h1><button type="button" className="gb-chat-add-friend" onClick={() => setSearchOpen(true)} aria-label="添加好友"><Plus size={24} /></button></header>
 
       {searchOpen && <form className="gb-chat-search-panel flex gap-2" onSubmit={(event) => { event.preventDefault(); void searchUsers(); }}>
         <label className="flex min-h-12 flex-1 items-center gap-2 rounded-2xl border-2 border-[var(--club-line)] bg-[var(--club-surface)] px-3 shadow-sm">

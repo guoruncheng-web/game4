@@ -1,7 +1,6 @@
 'use client';
 
 import Image from 'next/image';
-import { cardStyle } from './ClubArt';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, KeyRound, LogOut, RefreshCw, ShieldAlert, X } from 'lucide-react';
 import { apiFetch, type ApiCredentials } from '@/lib/api-client';
@@ -174,13 +173,12 @@ export default function AuthDialog({
       onClick={(event) => { if (!page && event.target === event.currentTarget) requestClose(); }}
     >
       {page && (mode !== 'account' || firstSetup) && <nav className="gb-auth-v2-brand" aria-label="趣宝玩">{mode === 'register' && <button type="button" aria-label="返回登录" onClick={() => { setMode('login'); setError(''); }}><ArrowLeft size={22} /></button>}<span className="gb-auth-v2-mark" aria-hidden="true" /><b>趣宝玩</b></nav>}
-      {page && <header className="gb-auth-hero" aria-label="趣宝玩 · 一起玩，更好玩"><span className="gb-eyebrow">随时开一局，快乐在一起</span><h2>和朋友待一会，<br />让快乐多一点。</h2><div className="gb-auth-cover-stack" aria-hidden="true"><span style={cardStyle('thirteen')} /><span style={cardStyle('umo')} /><span style={cardStyle('ludo')} /></div></header>}
       <div
         ref={dialogRef}
         className={page ? 'gb-auth-form-card' : 'gb-auth-form-card w-full max-w-[440px] rounded-t-[2rem] border-4 border-[var(--club-line)] bg-[var(--club-surface)] p-5 shadow-[0_-10px_45px_rgba(23,51,102,0.25)] sm:rounded-[2rem]'}
       >
         <>
-            <div className="gb-auth-title"><h1>{mode === 'login' ? (page ? '回来，一起玩。' : '欢迎回来') : mode === 'register' ? (page ? '你的新玩家身份。' : '免费创建账号') : firstSetup ? '欢迎，新玩家。' : '修改密码'}</h1><p>{mode === 'account' ? (firstSetup ? '完成两步，就可以进入 趣宝玩' : '妥善保管你的账号信息') : mode === 'login' ? '登录你的 趣宝玩 账号' : '免费创建账号，开启一起玩的时光'}</p></div>
+            <div className="gb-auth-title"><h1>{mode === 'login' ? (page ? '账号登录' : '欢迎回来') : mode === 'register' ? (page ? '你的新玩家身份。' : '免费创建账号') : firstSetup ? '欢迎，新玩家。' : '修改密码'}</h1><p>{mode === 'account' ? (firstSetup ? '完成两步，就可以进入 趣宝玩' : '妥善保管你的账号信息') : mode === 'login' ? '登录你的 趣宝玩 账号' : '免费创建账号，开启一起玩的时光'}</p></div>
             {!page && <div className="gb-auth-mode-header mb-4 flex items-center justify-between">
               {mode === 'account' ? (
                 <p className="px-1 text-base font-black text-[var(--club-text)]">账号设置</p>

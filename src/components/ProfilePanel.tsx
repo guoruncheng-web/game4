@@ -80,6 +80,7 @@ export default function ProfilePanel() {
 
   return (
     <section className="gb-profile-lodge gb-profile-lodge--player">
+      <h1 className="sr-only">我的</h1>
       <div className="gb-profile-player-identity">
         <button type="button" className="gb-profile-avatar-link" onClick={() => setAvatarOpen(true)} aria-label="修改头像"><Avatar emoji={user.avatar} url={user.avatarUrl} /></button>
         <div><p className="gb-profile-player-name">{user.username}</p><p className="gb-profile-player-uid">UID {user.uid}</p></div>

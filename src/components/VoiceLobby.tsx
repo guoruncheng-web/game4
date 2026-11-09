@@ -78,7 +78,7 @@ export default function VoiceLobby() {
     <div className={`voice-lobby ${tab === 'invites' ? 'voice-invitations-page' : ''}`}>
       {tab === 'invites' && <><header className="voice-page-top"><button type="button" aria-label="返回语聊大厅" onClick={() => setTab('rooms')}>‹</button><h2>房间邀请</h2></header><div className="voice-page-art"><ClubBrand /></div></>}
       <div className="voice-lobby-hero">
-        <div><h2>语聊开黑</h2><p>找好友，一起聊</p></div>
+        <div><h1>派对</h1><p>找好友，一起聊</p></div>
         <button type="button" onClick={() => setCreateOpen(true)}><span aria-hidden="true">＋</span> 创建房间</button>
       </div>
 
@@ -93,7 +93,7 @@ export default function VoiceLobby() {
       {loading ? <VoiceLobbySkeleton /> : tab === 'rooms' ? (
         rooms.length > 0 ? <div className="voice-room-list">
           {rooms.map((room) => <button key={room.id} type="button" className="voice-room-card" onClick={() => void enterRoom(room.id)}>
-            <span className="voice-room-illustration" aria-hidden="true" />
+            <span className="voice-room-illustration" style={cardStyle(room.gameSlug ?? 'thirteen')} aria-hidden="true" />
             <span className="voice-room-copy"><b>{room.title}</b><small>{voiceGameTitle(room.gameSlug)}</small><em><ClubIcon name="security" />{room.visibility === 'friends' ? '好友可见' : '凭邀请加入'}</em></span>
             <span className="voice-room-footer"><span className="voice-room-avatars" aria-label={`${room.members.length} 位成员`}>
               {room.members.slice(0, 3).map((member) => <Avatar key={member.uid} emoji={member.avatar} url={member.avatarUrl} />)}
@@ -145,7 +145,7 @@ function CreateRoomSheet({ username, onClose, onCreated }: { username: string; o
 
   return <div className="voice-sheet-backdrop voice-full-page-backdrop" role="presentation">
     <section ref={dialog} className="voice-create-sheet" role="dialog" aria-modal="true" aria-labelledby="voice-create-title">
-      <header><h2 id="voice-create-title">创建房间</h2><button type="button" onClick={onClose} aria-label="关闭创建房间">×</button></header>
+      <header><button type="button" onClick={onClose} aria-label="关闭创建房间">取消</button><h2 id="voice-create-title">创建房间</h2><button className="voice-primary voice-create-confirm" type="button" disabled={saving || !title.trim()} onClick={() => void submit()}>{saving ? '创建中' : '确定'}</button></header>
       <div className="voice-create-body">
       <label>房间名称<input value={title} maxLength={40} onChange={(event) => setTitle(event.target.value)} /><small>{title.length}/40</small></label>
       <fieldset><legend>房间可见性</legend><div>
@@ -154,7 +154,6 @@ function CreateRoomSheet({ username, onClose, onCreated }: { username: string; o
       </div></fieldset>
       <label className="voice-switch-row"><span><b>上麦需审批</b><small>开启后由房主或管理员批准</small></span><input type="checkbox" checked={approval} onChange={(event) => setApproval(event.target.checked)} /></label>
       {error && <p className="voice-form-error" role="alert">{error}</p>}
-      <button className="voice-primary" type="button" disabled={saving || !title.trim()} onClick={() => void submit()}>{saving ? '正在创建…' : '创建并进入'}</button>
       </div>
     </section>
   </div>;

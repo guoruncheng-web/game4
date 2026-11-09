@@ -188,7 +188,7 @@ export default function VoiceRoomPage({ roomId }: { roomId: string }) {
 function SheetFrame({ title, children, onClose, fullPage = false }: { title: string; children: ReactNode; onClose: () => void; fullPage?: boolean }) {
   const dialog = useRef<HTMLElement>(null);
   useDialogFocus(dialog, onClose);
-  return <div className={`voice-sheet-backdrop ${fullPage ? 'voice-full-page-backdrop' : ''}`} onClick={event => { if (event.target === event.currentTarget) onClose(); }}><section ref={dialog} className={`voice-action-sheet ${fullPage ? 'voice-management-page' : ''}`} role="dialog" aria-modal="true" aria-label={title}><header><h2>{title}</h2>{fullPage && <button type="button" onClick={onClose} aria-label="返回">‹</button>}</header>{fullPage && <div className="voice-page-art"><ClubBrand /></div>}{children}</section></div>;
+  return <div className={`voice-sheet-backdrop ${fullPage ? 'voice-full-page-backdrop' : ''}`} onClick={event => { if (event.target === event.currentTarget) onClose(); }}><section ref={dialog} className={`voice-action-sheet ${fullPage ? 'voice-management-page' : ''}`} role="dialog" aria-modal="true" aria-label={title}>{!fullPage && <button type="button" className="voice-sheet-handle" aria-label={`关闭${title}`} onClick={onClose}><span /></button>}<header><h2>{title}</h2>{fullPage && <button type="button" onClick={onClose} aria-label="返回">‹</button>}</header>{fullPage && <div className="voice-page-art"><ClubBrand /></div>}{children}</section></div>;
 }
 
 function InviteSheet({ roomId, onClose, onError }: { roomId: string; onClose: () => void; onError: (value: string) => void }) {

@@ -1,0 +1,14 @@
+{
+  "origin": "http://127.0.0.1:3201",
+  "apiFixture": true,
+  "realRtc": false,
+  "realAuthentication": false,
+  "checks": [
+    "Legacy registration URL remains login-only",
+    "Light social background token applied",
+    "Password visibility toggles"
+  ],
+  "exceptions": [],
+  "passed": false,
+  "error": "Error: Condition: !!document.querySelector(\".gb-auth-captcha-input\")\n    at wait (file:///home/gary/.cache/qubaowan-huiwan-ui-20261109/source/tools/pwa/huiwan-ui-acceptance.mjs:20:133)\n    at async file:///home/gary/.cache/qubaowan-huiwan-ui-20261109/source/tools/pwa/huiwan-ui-acceptance.mjs:39:41"
+}

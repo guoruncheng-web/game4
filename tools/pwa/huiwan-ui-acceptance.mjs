@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {mkdir,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {startChrome} from './chrome-session.mjs';
-const [origin='http://127.0.0.1:3201',out='evidence/social-v106/browser']=process.argv.slice(2);
+const [origin='http://127.0.0.1:3201',out='evidence/social-v107/browser']=process.argv.slice(2);
 assert.equal(new URL(origin).hostname,'127.0.0.1');
 const fixture='http://127.0.0.1:3202';
 await mkdir(out,{recursive:true});
@@ -27,7 +27,7 @@ try{
  const tab=async index=>{await click(`.gb-bottom-nav button:nth-child(${index})`);};
  const overflow=async name=>check(name,'document.documentElement.scrollWidth<=innerWidth');
  await send('Page.enable');await send('Runtime.enable');await send('Network.enable');
- await send('Page.addScriptToEvaluateOnNewDocument',{source:"try{localStorage.setItem('game-box-prepared-version','v106');localStorage.setItem('game-box-install-dismissed-at',String(Date.now()));}catch{}"});
+ await send('Page.addScriptToEvaluateOnNewDocument',{source:"try{localStorage.setItem('game-box-prepared-version','v107');localStorage.setItem('game-box-install-dismissed-at',String(Date.now()));}catch{}"});
  await send('Emulation.setDeviceMetricsOverride',{width:393,height:852,deviceScaleFactor:1,mobile:true});
  await control({reset:true,roomsEmpty:false,friendsEmpty:false,voiceError:false,longName:false});
  await go('/auth?mode=register');await wait('!!document.querySelector("input[autocomplete=username]")');
@@ -58,11 +58,16 @@ try{
  await click('.voice-lobby-tabs button:last-child');await wait('!!document.querySelector(".voice-invite-card")');await shot('05-invitations');
  await click('.voice-lobby-tabs button:first-child');await click('.voice-lobby-hero>button');await wait('!!document.querySelector(".voice-create-sheet")');
  await check('Create room dialog moves keyboard focus inside','document.querySelector(".voice-create-sheet").contains(document.activeElement)');
- await evaluate('document.querySelector(".voice-create-body>.voice-primary").focus()');await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
+ await evaluate('document.querySelector(".voice-switch-row input").focus()');await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Tab',code:'Tab',windowsVirtualKeyCode:9});
  await check('Create room traps Tab at the last control','document.activeElement.getAttribute("aria-label")==="关闭创建房间"');
  await shot('06-create-room');await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});await wait('!document.querySelector(".voice-create-sheet")');
  await check('Closing dialog restores opener focus','document.activeElement===document.querySelector(".voice-lobby-hero>button")');
+ await click('.voice-lobby-hero>button');await wait('!!document.querySelector(".voice-create-confirm")');await click('.voice-create-confirm');await wait('document.querySelectorAll(".voice-seat").length===8');report.checks.push('Top confirmation creates the fixture room and opens it');
+ await go('/?tab=voice');await wait('!!document.querySelector(".voice-lobby")');await evaluate('window.dispatchEvent(new CustomEvent("game4:wallet-updated",{detail:{diamonds:1200}}))');
+
  await tab(3);await wait('document.querySelectorAll(".gb-chat-friend-list>button").length===2');await shot('07-messages');
+ await click('.gb-chat-add-friend');await wait('!!document.querySelector(".gb-chat-search-panel")');await shot('07b-friend-search');report.checks.push('Header add-friend entry opens player search');await click('[aria-label="关闭搜索"]');await wait('!document.querySelector(".gb-chat-search-panel")');
+
  await click('.gb-chat-friend-list>button:first-child');await wait('document.querySelectorAll(".gb-chat-message-row").length===2');await shot('08-conversation');
  await input('.gb-chat-chat-composer input','这是一条仅用于界面验收的消息');await click('[aria-label="发送消息"]');await wait('document.querySelectorAll(".gb-chat-message-row").length===3');report.checks.push('Sending chat message renders the response');
  await check('Conversation composer is above bottom navigation','document.querySelector(".gb-chat-chat-composer").getBoundingClientRect().bottom<=document.querySelector(".gb-bottom-nav").getBoundingClientRect().top');

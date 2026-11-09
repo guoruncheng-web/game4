@@ -10,7 +10,7 @@ import type { ReactNode, CSSProperties } from 'react';
 import { apiFetch, withGameCredentials } from '@/lib/api-client';
 import Avatar from '@/components/Avatar';
 import { Volume2, VolumeX } from 'lucide-react';
-import { ClubBrand, ClubIcon, cardStyle } from '@/components/ClubArt';
+import { ClubBrand, ClubIcon, ClubNavIcon, cardStyle } from '@/components/ClubArt';
 
 export default function Home() {
   const { user, wallet, loading: authLoading } = useAuth();
@@ -175,20 +175,19 @@ export default function Home() {
   return (
     <main className={`gb-app gb-tab-${activeTab} ${conversationOpen ? 'gb-conversation-open' : ''}`}>
       <div className="gb-shell">
-        <header className="gb-hero gb-home-header">
+        {activeTab === 'games' && <header className="gb-hero gb-home-header">
           <div className="gb-account">
             <button type="button" className="gb-avatar-button" onClick={() => setActiveTab('profile')} aria-label="打开我的资料">
               {user ? <Avatar emoji={user.avatar} url={user.avatarUrl} /> : <ClubIcon name="profile" />}
             </button>
-            <span className="gb-wallet" aria-label={wallet ? `钻石 ${wallet.diamonds}` : '钻石余额暂不可用'}><ClubIcon name="diamond" /><b>{wallet ? wallet.diamonds.toLocaleString('zh-CN') : '—'}</b></span>
+            <div className="gb-account-copy"><b className="gb-home-player-name">{user?.username ?? '欢迎来玩'}</b><span className="gb-wallet" aria-label={wallet ? `钻石 ${wallet.diamonds}` : '钻石余额暂不可用'}><ClubIcon name="diamond" /><b>{wallet ? wallet.diamonds.toLocaleString('zh-CN') : '—'}</b></span></div>
           </div>
           <div className="gb-header-actions">
             <ClubBrand />
             <button type="button" className="gb-sound" onClick={toggleSound} aria-label={silent ? '打开音效' : '关闭音效'} aria-pressed={silent}>{silent ? <VolumeX /> : <Volume2 />}</button>
           </div>
-        </header>
+        </header>}
         <section className="gb-surface">
-          {activeTab !== 'games' && activeTab !== 'discover' && <div className="gb-page-heading"><h1>{activeTab === 'voice' ? '语音派对' : activeTab === 'messages' ? '好友消息' : '我的'}</h1><p>{activeTab === 'voice' ? '找个房间，边玩边聊' : activeTab === 'messages' ? '叫上朋友，再来一局' : '你的资料和游戏账户'}</p></div>}
           {activeTab === 'games' && <div className="gb-home">
             <nav className="gb-quick-entries" aria-label="快捷入口">
               <button type="button" className="gb-quick-entry" data-tone="orange" onClick={() => discoverGames()}><span className="gb-quick-icon"><ClubIcon name="games" /></span><span>全部游戏</span></button>
@@ -229,7 +228,7 @@ export default function Home() {
         </section>
         <nav className="gb-bottom-nav" aria-label="主导航">
           {tabs.map((tab) => <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} aria-current={activeTab === tab.id ? 'page' : undefined}>
-            <ClubIcon name={tab.icon} /><span>{tab.label}</span>
+            <ClubNavIcon name={tab.icon} selected={activeTab === tab.id} /><span>{tab.label}</span>
             {tab.id === 'messages' && unreadMessages > 0 && <i className="gb-unread" aria-label={`${unreadMessages} 条未读消息`}>{unreadMessages > 99 ? '99+' : unreadMessages}</i>}
           </button>)}
         </nav>

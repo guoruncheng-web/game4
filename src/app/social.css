@@ -4,9 +4,9 @@
   --club-bg: #ffffff;
   --club-surface: #f6f7fa;
   --club-raised: #edf0f5;
-  --club-text: #272936;
+  --club-text: #333333;
   --club-muted: #737787;
-  --club-accent: #16b995;
+  --club-accent: #30d395;
   --club-accent-ink: #064e3f;
   --club-line: #eceef3;
   --club-soft: #e7f9f3;
@@ -448,3 +448,143 @@
 @media (max-width:360px) { .gb-play-card .gb-card-copy b { font-size: 14px; }.gb-feature-copy { width: 78%; }.gb-card-copy { padding-inline: 9px; } }
 
 .gb-auth-hero .gb-eyebrow { letter-spacing: 1px; }.gb-auth-primary-button { color: #064e3f; }.gb-section-link { color: #737380; }
+
+/* 5.26.31.2 原生布局参数：52dp 底栏、34dp 状态图、80dp 房间行。
+ * 动态场景仍等待 App 运行画面对照；不把资源静态定义当成运行验收。 */
+.gb-bottom-nav { min-height: calc(52px + env(safe-area-inset-bottom)); padding: 0 0 env(safe-area-inset-bottom); background: #fff; border-top: 0; backdrop-filter: none; }
+.gb-bottom-nav button { min-height: 52px; align-content: start; gap: 0; padding: 2px 0 0; color: #7f8389; font-size: 10px; font-weight: 400; }
+.gb-bottom-nav .gb-nav-icon { display: block; width: 34px; height: 34px; background-position: center; background-repeat: no-repeat; background-size: contain; }
+.gb-bottom-nav button > span:last-of-type { line-height: 14px; }
+.gb-bottom-nav [aria-current='page'] { color: #09bb07; font-weight: 400; }
+.gb-bottom-nav [aria-current='page']::before { content: none; }
+.gb-bottom-nav .gb-unread { top: 2px; left: calc(50% + 9px); min-width: 16px; height: 16px; padding: 0 4.5px; border: 1px solid #fff; font-size: 11px; background: #ff4d5c; }
+.gb-surface { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+.gb-tab-messages .gb-shell,.gb-tab-voice .gb-shell,.gb-tab-discover .gb-shell { background: #fff; }
+.gb-tab-messages .gb-surface { padding: env(safe-area-inset-top) 0 calc(52px + env(safe-area-inset-bottom)); }
+.gb-tab-voice .gb-surface,.gb-tab-discover .gb-surface { padding-top: calc(12px + env(safe-area-inset-top)); }
+.gb-hero { min-height: 80px; padding-top: calc(12px + env(safe-area-inset-top)); padding-bottom: 12px; }
+.gb-avatar-button { width: 48px; height: 48px; box-shadow: none; }
+.gb-section-heading :is(h1,h2) { color: #333; font-size: 20px; font-weight: 700; letter-spacing: 0; }
+.gb-quick-entry { color: #666; font-size: 12px; }
+.gb-quick-icon { width: 40px; height: 40px; box-shadow: none; }
+.gb-section-link { font-size: 12px; color: #666; }
+.gb-discover-intro { padding-top: 0; }.gb-discover-intro h1 { font-size: 22px; font-weight: 600; }
+/* 派对列表的80dp行与56dp封面，按真实可用数据呈现。 */
+.voice-lobby-hero { min-height: 44px; margin-bottom: 10px; }
+.voice-lobby-hero :is(h1,h2) { margin: 0; font-size: 22px; font-weight: 600; }
+.voice-lobby-hero p { display: none; }
+.voice-lobby-hero > button { min-height: 32px; padding-inline: 11px; border-radius: 16px; color: #168259; background: #e4faf0; font-size: 12px; }
+.voice-lobby-tabs { gap: 24px; margin-bottom: 2px; border: 0; }
+.voice-lobby-tabs button { min-height: 42px; font-size: 14px; }
+.voice-lobby-tabs [aria-selected='true'] { color: #333; font-weight: 600; }
+.voice-lobby-tabs [aria-selected='true']::after { right: calc(50% - 8px); left: calc(50% - 8px); bottom: 5px; height: 3px; background: #30d395; }
+.voice-room-list { display: grid; grid-template-columns: minmax(0,1fr); gap: 0; }
+.voice-room-card,.voice-room-card:nth-child(even) { display: grid; min-height: 80px; grid-template-columns: 56px minmax(0,1fr) auto; align-items: center; gap: 12px; padding: 12px 0; overflow: visible; border: 0; border-radius: 0; background: #fff; }
+.voice-room-illustration,.voice-room-card:nth-child(even) .voice-room-illustration { display: block; width: 56px; height: 56px; margin: 0; border: 0; border-radius: 8px; background-color: #f0ecfc; }
+.voice-room-illustration::after { content: none; }
+.voice-room-copy { gap: 2px; }
+.voice-room-copy b { font-size: 15px; font-weight: 500; line-height: 20px; }
+.voice-room-copy small { color: #666; font-size: 12px; }
+.voice-room-copy em { color: #999; font-size: 10px; }
+.voice-room-footer { display: grid; min-height: auto; justify-items: end; align-content: center; gap: 5px; margin: 0; padding: 0; }
+.voice-room-avatars > * { width: 17px; height: 17px; border-width: 1px; font-size: 10px; }
+.voice-room-count { color: #999; font-size: 12px; }.voice-room-count .gb-icon { width: 12px; height: 12px; }
+.voice-room-card-loading { background: linear-gradient(90deg,#f6f7f9 56px,transparent 56px); border-bottom: 10px solid #fff; }
+/* 消息：44dp标题、48dp头像和72dp会话行。 */
+.gb-chat-list-header { display: flex; min-height: 44px; align-items: center; justify-content: space-between; padding: 0 16px; background: #fff; }
+.gb-chat-list-header h1 { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: 0; }
+.gb-chat-list-header .gb-chat-add-friend { display: grid; width: 30px; min-height: 30px; place-items: center; padding: 0; border-radius: 0; color: #333; background: transparent; }
+.gb-chat-search-panel { margin: 8px 16px 12px; }
+.gb-chat-request-summary { min-height: 72px; gap: 12px; margin: 0; padding: 12px 16px; border: 0; border-radius: 0; background: #fff; }
+.gb-chat-request-symbol { width: 48px; height: 48px; border-radius: 12px; }
+.gb-chat-request-summary b { font-size: 15px; font-weight: 500; }.gb-chat-request-count { color: #999; }
+.gb-chat-requests { padding-inline: 16px; }
+.gb-chat-friend-heading { display: none; }
+.gb-chat-friend-list { gap: 0; }
+.gb-chat-friend-list > button { min-height: 72px; gap: 12px; padding: 12px 16px; border: 0; border-radius: 0; background: #fff; }
+.gb-chat-friend-list > button > span:first-child,.gb-chat-friend-list > button > span:first-child > :first-child { width: 48px; height: 48px; border-radius: 50%; }
+.gb-chat-friend-list > button > span:nth-child(2) > span:first-child { font-size: 15px; font-weight: 500; }
+.gb-chat-friend-list > button > span:nth-child(2) > span:last-child { font-size: 13px; font-weight: 400; }
+.gb-chat-friend-meta { font-size: 12px; color: #babbc2; }
+.gb-chat-chat { height: calc(100dvh - 52px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); min-height: 260px; }
+.gb-chat-chat-header { min-height: 54px; padding: 5px 16px; border: 0; background: #fff; }
+.gb-chat-chat-header > button { border: 0; background: transparent; }
+.gb-chat-chat-messages { padding: 16px; background: #f7f8fa; }
+.gb-chat-chat-composer { padding: 8px 12px; background: #f7f8fa; }
+/* 我的：独立个人资料页，68dp头像与原生18dp姓名。 */
+.gb-tab-profile .gb-shell { background: #f7f8fa url('/assets/social/profile-header-v2.webp') center top / 100% auto no-repeat; }
+.gb-tab-profile .gb-surface { padding: calc(24px + env(safe-area-inset-top)) 16px calc(76px + env(safe-area-inset-bottom)); }
+.gb-profile-player-identity { min-height: 108px; gap: 12px; padding: 12px 0; border: 0; border-radius: 0; background: transparent; }
+.gb-profile-avatar-link { width: 68px; height: 68px; border: 0; }
+.gb-profile-player-name { font-size: 18px; font-weight: 500; }
+.gb-profile-player-uid { margin-top: 8px; font-size: 14px; color: #aaabb3; }
+.gb-profile-edit-link { font-size: 22px; color: #b5b7bf; }
+.gb-profile-player-stats { margin: 12px 0; }
+.gb-profile-player-stats > span { min-height: 64px; border-radius: 12px; background: #fff; }
+.gb-profile-player-stats b { font-size: 18px; font-weight: 500; }
+.gb-profile-scene-actions { border-radius: 12px; }
+.gb-profile-scene-actions > * { min-height: 52px; font-size: 16px; font-weight: 400; }
+.gb-profile-scene-logout { min-height: 48px; margin-top: 16px; border: 0; border-radius: 12px; background: #fff; }
+@media (max-width:360px) { .gb-quick-entry { font-size: 10px; }.voice-room-card { gap: 10px; }.voice-room-avatars { display: none; } }
+
+/* 登录采用原生白页、中心品牌和48dp胶囊字段，保留PWA的UID/密码协议。 */
+.gb-auth-world { background: #fff; }
+.gb-auth-form-page { display: block; width: min(100%,480px); padding: calc(44px + env(safe-area-inset-top)) 36px calc(26px + env(safe-area-inset-bottom)); }
+.gb-auth-v2-brand { display: flex; flex-direction: column; justify-content: center; gap: 10px; margin: 72px 0 0; font-size: 22px; font-weight: 600; }
+.gb-auth-v2-brand .gb-auth-v2-mark { width: 84px; height: 84px; border-radius: 22px; background: url('/icons/qubaowan-icon-192-v1.png') center / contain no-repeat; mask: none; }
+.gb-auth-v2-brand > button { align-self: start; }
+.gb-auth-form-card { margin-top: 64px; }
+.gb-auth-mode-account .gb-auth-form-card { margin-top: 0; }
+.gb-auth-mode-login .gb-auth-title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.gb-auth-mode-login .gb-auth-text-field { min-height: 48px; border: 0; border-radius: 35px; background: #f7f8fa; font-size: 16px; font-weight: 400; }
+.gb-auth-mode-login .gb-auth-v2-label { margin: 12px 0 3px; padding-left: 16px; color: #999; font-size: 12px; font-weight: 400; }
+.gb-auth-mode-login .gb-auth-password-toggle { border-radius: 22px; }
+.gb-auth-mode-login .gb-auth-primary-button { min-height: 44px; margin-top: 20px; border-radius: 22px; color: #fff; background: #30d395; font-size: 16px; font-weight: 500; }
+.gb-auth-mode-login .gb-auth-v2-helper { margin-top: 20px; color: #999; font-size: 12px; }
+.gb-auth-mode-login .gb-auth-v2-footer { margin-top: 28px; font-size: 12px; color: #babbc2; letter-spacing: 0; }
+.gb-auth-modal .gb-auth-form-card { margin-top: 0; }
+/* 原生账户区：48dp头像、16dp昵称与22dp余额条。 */
+.gb-account { min-width: 0; gap: 12px; }
+.gb-account-copy { display: grid; min-width: 0; gap: 4px; justify-items: start; }
+.gb-home-player-name { display: block; max-width: 138px; overflow: hidden; color: #333; font-size: 16px; font-weight: 500; line-height: 21px; text-overflow: ellipsis; white-space: nowrap; }
+.gb-wallet { min-height: 22px; padding: 0 7px; font-size: 12px; color: #4a4a4a; }
+.gb-wallet .gb-icon { width: 18px; height: 18px; }
+.gb-quick-entries { min-height: 80px; padding: 0; }
+.gb-quick-entry { min-height: 80px; align-content: center; gap: 5px; }
+/* 创建房间为完整白页，取消/标题/确定在同一44dp顶栏。 */
+.voice-full-page-backdrop { align-items: stretch; padding: 0; background: #fff; backdrop-filter: none; }
+.voice-full-page-backdrop > :is(.voice-create-sheet,.voice-management-page) { width: min(100%,680px); max-height: none; min-height: 100dvh; margin: 0 auto; padding: env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom)); border: 0; border-radius: 0; background: #fff; }
+.voice-full-page-backdrop > .voice-create-sheet > header { display: grid; min-height: 44px; grid-template-columns: 56px minmax(0,1fr) 56px; gap: 0; margin: 0 0 16px; border: 0; }
+.voice-create-sheet > header h2 { font-size: 16px; font-weight: 500; text-align: center; }
+.voice-create-sheet > header button { width: auto; height: 44px; min-height: 44px; margin: 0; padding: 0; color: #333; font-size: 16px; text-align: left; }
+.voice-create-sheet > header .voice-create-confirm { height: 30px; min-height: 30px; padding: 0 10px; border-radius: 15px; color: #fff; background: #30d395; font-size: 14px; text-align: center; }
+.voice-create-body { gap: 24px; }
+.voice-create-body > label:not(.voice-switch-row),.voice-create-body legend { font-size: 12px; color: #999; }
+.voice-create-body input:not([type]),.voice-create-body input[type='text'],.voice-create-body select { min-height: 44px; border: 0; border-radius: 8px; background: #f7f8fa; }
+/* 底部成员/邀请弹层遵循10dp顶角、35dp把手和16dp标题。 */
+.voice-action-sheet:not(.voice-management-page):not(.voice-game-window) { position: relative; margin-bottom: 0; padding: 32px 16px calc(24px + env(safe-area-inset-bottom)); border: 0; border-radius: 10px 10px 0 0; background: #fff; }
+.voice-sheet-handle { position: absolute; top: 0; left: calc(50% - 22px); display: grid; width: 44px; height: 32px; place-items: start center; padding-top: 8px; }
+.voice-sheet-handle > span { width: 35px; height: 4px; border-radius: 2px; background: #e2e2e2; }
+.voice-action-sheet:not(.voice-management-page):not(.voice-game-window) > header { min-height: 28px; margin-bottom: 8px; border: 0; justify-content: center; }
+.voice-action-sheet > header h2 { font-size: 16px; font-weight: 600; }
+.voice-management-page > header { display: grid; min-height: 44px; grid-template-columns: 44px minmax(0,1fr) 44px; margin-bottom: 16px; border: 0; }
+.voice-management-page > header h2 { grid-area: 1/2; text-align: center; }
+.voice-management-page > header button { grid-area: 1/1; margin: 0; }
+.gb-chat-message-row > div { max-width: min(240px,78%); padding: 14px 16px 14px 21px; color: #343434; font-size: 16px; line-height: 24px; }
+.gb-chat-message-row--mine > div { padding-right: 21px; padding-left: 16px; color: #343434; }
+@media (max-width:360px) { .gb-home-player-name { max-width: 100px; font-size: 14px; }.gb-account { gap: 8px; } }
+@media (max-height:700px) { .gb-auth-form-page { padding-top: calc(24px + env(safe-area-inset-top)); }.gb-auth-v2-brand { margin-top: 32px; font-size: 20px; }.gb-auth-v2-brand .gb-auth-v2-mark { width: 64px; height: 64px; border-radius: 18px; }.gb-auth-form-card { margin-top: 32px; } }
+
+/* 当前原生私聊40dp头像；房间底栏48dp，圆控件视觉30dp、触控区44dp。 */
+.gb-chat-message-row > span { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; }
+.voice-room-dock { min-height: calc(48px + env(safe-area-inset-bottom)); padding: 2px 12px calc(2px + env(safe-area-inset-bottom)); border: 0; background: transparent; backdrop-filter: none; }
+.voice-dock-compose-row { min-height: 44px; gap: 6px; }
+.voice-audio-controls { gap: 3px; }
+.voice-microphone-toggle,.voice-playback-retry,.voice-game-list-entry,.voice-dock-more { width: 36px; height: 44px; border: 0; border-radius: 0; color: #fff; background: radial-gradient(circle at center,#0000004d 15px,transparent 15.5px); }
+.voice-microphone-toggle[aria-pressed='true'] { color: #30d395; background: radial-gradient(circle at center,#0000004d 15px,transparent 15.5px); }
+.voice-microphone-toggle svg,.voice-playback-retry svg,.voice-game-list-entry svg,.voice-dock-more svg { width: 20px; height: 20px; }
+.voice-composer { height: 32px; border: 0; border-radius: 16px; background: #0000004d; }
+.voice-composer input { min-height: 32px; padding: 0 12px; color: #fff; font-size: 13px; }
+.voice-composer input::placeholder { color: #ffffffd9; }
+.voice-composer button { width: 30px; height: 32px; color: #fff; }
+.voice-composer button:disabled { opacity: .5; }

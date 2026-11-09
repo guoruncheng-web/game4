@@ -1,0 +1,74 @@
+{
+  "source_package": "com.wepie.weplay",
+  "version": "5.26.31.2",
+  "apk_sha256": "da19b860b410f2baac55af96ad7709422e1c2d9918a2561360dd94893c58a3d3",
+  "note": "Imported UI reference resources. Game illustrations remain the separate original social-v106 set.",
+  "assets": [
+    {
+      "file": "/assets/social/nav-home-v2.webp",
+      "source": "res/drawable-xxhdpi/home_tab_game.webp",
+      "sha256": "34371e832aa0a1d1fd77187e8ca16db800ebabda989c7cf763012863a98d201f",
+      "purpose": "Decorative navigation icon, text and navigation remain live DOM"
+    },
+    {
+      "file": "/assets/social/nav-home-selected-v2.webp",
+      "source": "res/drawable-xxhdpi/home_tab_game_choose.webp",
+      "sha256": "89b06f9edea58597312219183878c37900343feecbdb66371f5bbef8603c807b",
+      "purpose": "Decorative navigation icon, text and navigation remain live DOM"
+    },
+    {
+      "file": "/assets/social/nav-party-v2.webp",
+      "source": "res/drawable-xxhdpi/home_tab_friend.webp",
+      "sha256": "17d0e7269606fd1eecb66b5ab70c793cbc9c46a3e3a11bcbc0adf5c1c6ca2275",
+      "purpose": "Decorative navigation icon, text and navigation remain live DOM"
+    },
+    {
+      "file": "/assets/social/nav-party-selected-v2.webp",
+      "source": "res/drawable-xxhdpi/home_tab_friend_choose.webp",
+      "sha256": "1e8c941e0d7f95e06fb111c2aade7a86d59ca586077f8ec83bf8fecfcb05f88b",
+      "purpose": "Decorative navigation icon, text and navigation remain live DOM"
+    },
+    {
+      "file": "/assets/social/nav-message-v2.webp",
+      "source": "res/drawable-xxhdpi/home_tab_message.webp",
+      "sha256": "dbc758ced8a739db895fd2d4b894aeeaae12a18c8315105f2c5878b24d016201",
+      "purpose": "Decorative navigation icon, text and navigation remain live DOM"
+    },
+    {
+      "file": "/assets/social/nav-message-selected-v2.webp",
+      "source": "res/drawable-xxhdpi/home_tab_message_choose.webp",
+      "sha256": "fbcc02652db0178b0e80a00c749da125d769ac196c59f54aa1e1b9b016f2e6a9",
+      "purpose": "Decorative navigation icon, text and navigation remain live DOM"
+    },
+    {
+      "file": "/assets/social/nav-discover-v2.webp",
+      "source": "res/drawable-xxhdpi/home_tab_discover.webp",
+      "sha256": "d0b7cdfc8fbfe80a4993255ad93f33ad3897e63a38a4fb06cdbd7cb94cf7aa80",
+      "purpose": "Decorative navigation icon, text and navigation remain live DOM"
+    },
+    {
+      "file": "/assets/social/nav-discover-selected-v2.webp",
+      "source": "res/drawable-xxhdpi/home_tab_discover_choose.webp",
+      "sha256": "ec8071558423e521da1d71038e97bd5267f644a439d9c4306011fbaed9a0f2d1",
+      "purpose": "Decorative navigation icon, text and navigation remain live DOM"
+    },
+    {
+      "file": "/assets/social/nav-profile-v2.webp",
+      "source": "res/drawable-xxhdpi/home_tab_me.webp",
+      "sha256": "a43a1a06dbce40925a9a11377e54a7570c6292630dec1e4bed52a2f7406c1db1",
+      "purpose": "Decorative navigation icon, text and navigation remain live DOM"
+    },
+    {
+      "file": "/assets/social/nav-profile-selected-v2.webp",
+      "source": "res/drawable-xxhdpi/home_tab_me_choose.webp",
+      "sha256": "b3bf36fa8ac584bfc9798a41f36ebe7b0ec45165a790260fca6f91eb47b875e0",
+      "purpose": "Decorative navigation icon, text and navigation remain live DOM"
+    },
+    {
+      "file": "/assets/social/profile-header-v2.webp",
+      "source": "res/drawable-xhdpi/me_head_bg.webp",
+      "sha256": "eba39a3808239932a662a1f74edc2f95d6dabdfb98e0c053088fafd57581a9f5",
+      "purpose": "Profile header background"
+    }
+  ]
+}

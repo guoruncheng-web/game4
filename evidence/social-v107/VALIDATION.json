@@ -1,0 +1,63 @@
+{
+  "candidate": "v107",
+  "baseline": "0fb075547730bda5bd7c97ffa240ca2a153750e8",
+  "deployed": false,
+  "reference": {
+    "package": "com.wepie.weplay",
+    "version": "5.26.31.2",
+    "versionCode": 10264,
+    "apkSha256": "da19b860b410f2baac55af96ad7709422e1c2d9918a2561360dd94893c58a3d3",
+    "decodedLayoutCount": 4096,
+    "reaScope": "normalized exact UI-resource subset inventory",
+    "businessControllersRecovered": false,
+    "runtime": "isolated API30 ARM64 emulator; actual prelogin screens only",
+    "loggedInReferenceCaptured": false,
+    "completeReplica": false
+  },
+  "lint": {
+    "exitCode": 0,
+    "errors": 0,
+    "preExistingWarnings": 5
+  },
+  "build": {
+    "exitCode": 0,
+    "gateway": "loopback fixture 3202 at build time",
+    "precacheFiles": 95,
+    "precacheMB": 8.7
+  },
+  "cacheVersionTests": {
+    "passed": 2,
+    "failed": 0
+  },
+  "ui": {
+    "passed": true,
+    "checks": 37,
+    "runtimeExceptions": 0,
+    "apiFixture": true,
+    "realAuthentication": false,
+    "realRtc": false,
+    "walletBalance": "synthetic wallet-updated event"
+  },
+  "offline": {
+    "passed": true,
+    "networkBlocked": true,
+    "assetHashMatches": 23,
+    "homeCachedMs": 2275
+  },
+  "visualReview": [
+    "01-login",
+    "03-home",
+    "06-create-room",
+    "08-conversation",
+    "09-profile",
+    "12-voice-room"
+  ],
+  "preservedFailure": "first-attempt-default-gateway/result.json",
+  "limitations": [
+    "No logged-in App comparison yet.",
+    "No real RTC or server mutation acceptance.",
+    "Direct room input adapts native entry rather than copying a separate input overlay.",
+    "Dynamic room theme, microphone arrangement and chat bubble skin remain pending runtime reference."
+  ],
+  "logNormalization": "CR and trailing whitespace normalized; original logs retained in local task cache."
+}
