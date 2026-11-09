@@ -82,6 +82,6 @@ export async function middleware(request: NextRequest) {
   // 独立鉴权页记住原目标，成功后再带凭据返回。
   const target = request.nextUrl.clone();
   target.pathname = '/auth';
-  target.search = `?mode=register&next=${encodeURIComponent(pathname)}`;
+  target.search = `?mode=login&next=${encodeURIComponent(pathname)}`;
   return NextResponse.redirect(target);
 }

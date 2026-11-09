@@ -7,6 +7,7 @@ import {
   apiFetch, setApiCredentials, type ApiCredentials,
 } from '@/lib/api-client';
 import { API_UID_HEADER } from '@/lib/api-contract';
+import { registrationMode } from '@/lib/registration';
 
 export type AuthUser = {
   uid: number;
@@ -90,14 +91,14 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     if (params.get('login') !== '1') return undefined;
     const from = params.get('from');
     const next = from && from.startsWith('/') && !from.startsWith('//') ? from : '/';
-    const timer = window.setTimeout(() => router.replace(`/auth?mode=register&next=${encodeURIComponent(next)}`), 0);
+    const timer = window.setTimeout(() => router.replace(`/auth?mode=login&next=${encodeURIComponent(next)}`), 0);
     return () => window.clearTimeout(timer);
   }, [router]);
 
-  const openPanel = useCallback((mode: AuthMode = 'register') => {
+  const openPanel = useCallback((mode: AuthMode = 'login') => {
     const current = `${window.location.pathname}${window.location.search}`;
     const next = current.startsWith('/auth') ? '/' : current;
-    router.push(`/auth?mode=${mode}&next=${encodeURIComponent(next)}`);
+    router.push(`/auth?mode=${registrationMode(mode)}&next=${encodeURIComponent(next)}`);
   }, [router]);
 
   const refreshWallet = useCallback(async () => {

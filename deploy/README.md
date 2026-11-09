@@ -1,3 +1,11 @@
+# 当前个人 PWA 部署（2026-11-09）
+
+当前正式站点 `https://game.livegrc.chat` 已迁移至 `43.139.80.246`，运行 Docker Compose 项目 `qubaowan`（`/srv/gameai/migration/compose.yaml`）。下文 2026-09 的 systemd / Actions 流程为历史说明，不能据此向旧服务器发布。现有 GitHub 自动部署仍指向旧目标；在迁移工作流前不要通过合并 main 触发部署。
+
+Owner「上线」授权下，v104 已发布并完成公网验收。前端源 `63448f99554fa0979e826f373f1e123d49ec6cd1`，后端源 `61b412b5f491bccc7a8e867b983df4737484721a`；公开注册默认关闭，4 个普通测试账号登录和签名会话通过。构建复用已安装依赖，未安装项目依赖；个人数据库、加密状态和公司 CDN 均未变更。
+
+发布回执：`evidence/private-test-login-20261108/production-release/receipt.json`。服务器回执：`/srv/gameai/migration/current-release.json`。旧前端与后端均保留在 `/srv/gameai/migration/releases/private-login-v104-63448f9/rollback/` 记录所指位置，回滚不得恢复陈旧数据库。回滚或后续发布前须先核对实际服务、当前源 SHA 与迁移目录，按新服务器流程执行。
+
 # NestJS production deployment (2026-09-07)
 
 The PWA repository remains `guoruncheng-web/game4`. Backend source is the independent private repository `guoruncheng-web/game-studio-backend`; `backend-revision.txt` pins its exact commit. A read-only repository deploy key is stored as `BACKEND_READ_KEY` in game4 Actions. Existing `DEPLOY_SSH_KEY` remains exclusively in Actions.

@@ -187,10 +187,10 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
           <p className="mt-2 text-sm font-semibold text-slate-500">搜索玩家昵称，添加好友后即可发送消息。</p>
           <button
             type="button"
-            onClick={() => openPanel('register')}
+            onClick={() => openPanel('login')}
             className="mt-6 min-h-12 rounded-2xl bg-emerald-500 px-8 font-black text-white shadow-[0_6px_0_#22994b] active:translate-y-1 active:shadow-none"
           >
-            登录 / 注册
+            登录
           </button>
         </div>
       </section>
