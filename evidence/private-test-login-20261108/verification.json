@@ -16,9 +16,17 @@
   },
   "productionBuild": {
     "command": "pnpm build",
-    "exitCode": 1,
-    "reason": "Owner-installed dependencies lack agora-rtc-sdk-ng@4.24.8 required by the current main branch; no project dependencies installed in Linux"
+    "exitCode": 0,
+    "sourceCommit": "63448f99554fa0979e826f373f1e123d49ec6cd1",
+    "buildId": "wX9uZdS02B5NU1ibAuk7P",
+    "typeCheck": "passed",
+    "precache": {
+      "version": "v104",
+      "files": 102,
+      "megabytes": 18.3
+    },
+    "dependencies": "Reused Owner-installed local dependencies and accepted production SDK via a read-only filesystem mount; no project dependency installation."
   },
-  "deployment": "not performed",
+  "deployment": "deployed to game.livegrc.chat; full public HTTP and browser acceptance passed",
   "registrationDefault": "closed on client and pinned personal backend"
 }

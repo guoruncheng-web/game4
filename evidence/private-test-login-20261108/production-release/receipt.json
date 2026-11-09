@@ -1,0 +1,29 @@
+{
+  "ownerAuthorization": "上线",
+  "frontendCommit": "63448f99554fa0979e826f373f1e123d49ec6cd1",
+  "backendCommit": "61b412b5f491bccc7a8e867b983df4737484721a",
+  "origin": "https://game.livegrc.chat",
+  "host": "43.139.80.246",
+  "pwaVersion": "v104",
+  "buildId": "wX9uZdS02B5NU1ibAuk7P",
+  "publicHttp": {
+    "origin": "https://game.livegrc.chat",
+    "pwaVersion": "v104",
+    "registrationStatus": 403,
+    "registrationCode": "registration_closed",
+    "serviceWorkerHashMatched": true,
+    "authChunkHashMatched": true,
+    "ordinaryTestAccountsVerified": 4,
+    "signedSessionsVerified": 4,
+    "credentialsIncluded": false
+  },
+  "publicBrowser": {
+    "origin": "https://game.livegrc.chat",
+    "apiFixture": false,
+    "passed": true,
+    "exceptions": [],
+    "legacyRegistrationUrlRendersLogin": true,
+    "realBrowserLoginReachedGameList": true
+  },
+  "completedAt": "2026-11-09T05:22:39.600332+00:00"
+}

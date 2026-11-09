@@ -9,3 +9,5 @@
 本改动基于个人 PWA 当前主分支，独立于游戏仓库拆分分支。源码仅提交至 `guoruncheng-web/game4` 与 `guoruncheng-web/game-studio-backend`。发布目标是迁移后的 `game.livegrc.chat` / `43.139.80.246`；现有 GitHub 自动部署仍指向旧服务器，不通过合并 main 来触发旧流程。
 
 配套后端提交固定为 `61b412b5f491bccc7a8e867b983df4737484721a`，评审：https://github.com/guoruncheng-web/game-studio-backend/pull/1。PWA 缓存版本提升为 v104。
+
+2026-11-09 已按 Owner「上线」授权发布 v104。生产构建、TypeScript、公网注册拒绝、4 个普通账号真实登录与浏览器进入游戏首页均通过。发布源前端为 `63448f99554fa0979e826f373f1e123d49ec6cd1`，后端为上述固定提交。
