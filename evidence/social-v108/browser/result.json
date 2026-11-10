@@ -7,7 +7,7 @@
     "Legacy registration URL remains login-only",
     "Light social background token applied",
     "Password visibility toggles",
-    "Failed login reveals captcha",
+    "Failed login reveals a decoded visible captcha",
     "Game entries are unique",
     "Maintenance entry remains disabled",
     "Wallet event updates the displayed balance",

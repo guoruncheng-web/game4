@@ -24,7 +24,8 @@
     "apiFixture": true,
     "realAuthentication": false,
     "realRtc": false,
-    "screenshots": 37
+    "screenshots": 37,
+    "captchaImageDecoded": true
   },
   "offline": {
     "passed": true,

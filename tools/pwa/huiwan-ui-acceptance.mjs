@@ -36,7 +36,7 @@ try{
  await input('input[autocomplete=username]','123456');await input('input[autocomplete=current-password]','fixture-password');
  await click('[aria-label="显示密码"]');await check('Password visibility toggles','document.querySelector("input[autocomplete=current-password]").type==="text"');
  await click('[aria-label="隐藏密码"]');await shot('01-login');
- await click('.gb-auth-primary-button');await wait('!!document.querySelector(".gb-auth-captcha-input")');await check('Failed login reveals captcha','document.body.innerText.includes("账号或密码不对")');await shot('02-login-error');
+ await click('.gb-auth-primary-button');await wait('!!document.querySelector(".gb-auth-captcha-input")');await wait('document.querySelector(".gb-auth-captcha-image img")?.complete && document.querySelector(".gb-auth-captcha-image img").naturalWidth>0');await check('Failed login reveals a decoded visible captcha','document.body.innerText.includes("账号或密码不对") && getComputedStyle(document.querySelector(".gb-auth-captcha-image img")).visibility==="visible"');await shot('02-login-error');
  await send('Network.setCookie',{name:'gb_session',value:'nightclub-ui-fixture',url:origin,path:'/'});
  await go('/');await wait('document.querySelectorAll(".gb-game-card").length===10');await wait('!!document.querySelector(".gb-game-card[aria-disabled=true]")');
  await check('Game entries are unique','new Set([...document.querySelectorAll(".gb-game-card")].map(n=>n.getAttribute("aria-label"))).size===10');

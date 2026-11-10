@@ -18,6 +18,7 @@ http.createServer(async(req,res)=>{
  if(url.pathname==='/__fixture'){if(req.method==='POST'){if(body.reset){requests.length=0;messages.splice(2);roomMessages.splice(2);Object.assign(state,defaults);}Object.assign(state,body);}return send({state,requests});}
  requests.push({method:req.method,path:url.pathname});
  if(url.pathname==='/api/auth/me')return send({user:req.headers.cookie?.includes('gb_session=nightclub-ui-fixture')?{...me,username:state.longName?'这是一个用于验证中文长用户名换行的夜游玩家名字':me.username}:null,token:null});
+ if(url.pathname==='/api/auth/captcha'){res.writeHead(200,{'content-type':'image/svg+xml','cache-control':'no-store','x-qubaowan-fixture':'display-only-captcha'});return res.end('<svg xmlns="http://www.w3.org/2000/svg" width="168" height="56" viewBox="0 0 168 56"><rect width="168" height="56" rx="8" fill="#f7f8fa"/><path d="M4 38L160 15M9 12L159 43" stroke="#cce9e0" stroke-width="2"/><text x="23" y="39" fill="#258e70" font-family="monospace" font-size="32" font-weight="bold" letter-spacing="7">W7K2</text></svg>');}
  if(url.pathname==='/api/auth/login')return send({error:'账号或密码不对',requireCaptcha:true},401);
  if(url.pathname==='/api/auth/register')return send({code:'registration_closed',error:'暂未开放注册'},403);
  if(url.pathname==='/api/auth/logout'){res.setHeader('set-cookie','gb_session=; Path=/; Max-Age=0');return send({ok:true});}
