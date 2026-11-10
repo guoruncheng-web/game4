@@ -1,0 +1,49 @@
+{
+  "source_package": "com.wepie.weplay",
+  "version": "5.26.31.2",
+  "apk_sha256": "da19b860b410f2baac55af96ad7709422e1c2d9918a2561360dd94893c58a3d3",
+  "assets": [
+    {
+      "file": "/assets/social/room-purple-v3.webp",
+      "source": "res/drawable-xxhdpi/cp_room_bg.webp",
+      "sha256": "3dfa29dcb213f43a5b090983b4758741655c08ca751ff292a60373ebfdc48c3a",
+      "purpose": "Bundled CP purple theme chosen for PWA voice room; not asserted as ordinary-room default"
+    },
+    {
+      "file": "/assets/social/room-seat-empty-v3.webp",
+      "source": "res/drawable-xhdpi/room_seat_empty_ic.webp",
+      "sha256": "7bdb54a6748309184286487f59b7c5b5814f457bf51230018bf087fb8f0aee35",
+      "purpose": "Empty-seat plus from room_new_head_view_v2"
+    },
+    {
+      "file": "/assets/social/room-more-v3.webp",
+      "source": "res/drawable-xxhdpi/voice_room_more_icon_new.webp",
+      "sha256": "2399af1434102a716c2060342b3ade35a5f89c9e3adaa7c621c4ba01fe5bfff2",
+      "purpose": "room_bottom_view more control"
+    },
+    {
+      "file": "/assets/social/room-mic-on-v3.webp",
+      "source": "res/drawable-xxhdpi/voice_room_mic_on_new.webp",
+      "sha256": "6376b79696e9de1dbf01b3534aae5c2245693cf8ca04274b888816ee19acafb1",
+      "purpose": "room_bottom_view microphone on; mapped to real PWA microphone state"
+    },
+    {
+      "file": "/assets/social/room-mic-off-v3.webp",
+      "source": "res/drawable-xxhdpi/voice_room_mic_off_icon_new.webp",
+      "sha256": "50373740f7c94a52d7526585ee2d7d2ccc31cc396bf8314c35761954487fd3aa",
+      "purpose": "Bundled microphone-off counterpart mapped to real PWA state"
+    },
+    {
+      "file": "/assets/social/room-header-more-v3.webp",
+      "source": "res/drawable-xhdpi/user_info_more_img.webp",
+      "sha256": "0a1e1378d48440f452a67a3d649e0e48af6040f7dc56d013a17074393c2f55d1",
+      "purpose": "voice_room_title_view room_more_iv"
+    },
+    {
+      "file": "/assets/social/room-back-v3.webp",
+      "source": "res/drawable-xhdpi/action_bar_back_white.webp",
+      "sha256": "bfed504f1c57044c86d54f1c90ea707c1fd6206a64deaf8a3c7ef08f9c3f0735",
+      "purpose": "Generic native white return arrow; PWA room back retains leave confirmation"
+    }
+  ]
+}

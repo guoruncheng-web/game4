@@ -6,6 +6,7 @@ import { useAuth } from './AuthProvider';
 import { useCoop } from './CoopProvider';
 import { apiFetch } from '@/lib/api-client';
 import Avatar from './Avatar';
+import { useVisualViewport } from './useVisualViewport';
 
 type Friend = {
   id: number;
@@ -38,17 +39,25 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
   const [results, setResults] = useState<SearchUser[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [searching, setSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const searchField = useRef<HTMLInputElement>(null);
+  const searchGeneration = useRef(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const [requestsOpen, setRequestsOpen] = useState(false);
   const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
+  const pageRef = useRef<HTMLElement>(null);
+  useVisualViewport(pageRef, activeFriend ? `friend-${activeFriend.id}` : searchOpen ? 'search' : requestsOpen ? 'requests' : '');
   const onlineIds = new Set(online.map((person) => person.id));
 
   useEffect(() => {
-    onConversationChange?.(Boolean(activeFriend));
+    onConversationChange?.(Boolean(activeFriend || searchOpen || requestsOpen));
     return () => onConversationChange?.(false);
-  }, [activeFriend, onConversationChange]);
+  }, [activeFriend, searchOpen, requestsOpen, onConversationChange]);
+
+  useEffect(() => { if (searchOpen) searchField.current?.focus(); }, [searchOpen]);
 
   const loadFriends = useCallback(async () => {
     if (!user) return;
@@ -105,17 +114,20 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
       setError('至少输入 2 个字符');
       return;
     }
+    const generation = ++searchGeneration.current;
     setSearching(true);
+    setHasSearched(false);
     setError('');
     try {
       const res = await apiFetch(`/api/friends/search?q=${encodeURIComponent(value)}`);
       const data = await res.json();
+      if (generation !== searchGeneration.current) return;
       if (!res.ok) setError(data.error ?? '搜索失败');
-      else setResults(data.users);
+      else { setResults(data.users); setHasSearched(true); }
     } catch {
-      setError('网络不太好，请重试');
+      if (generation === searchGeneration.current) setError('网络不太好，请重试');
     } finally {
-      setSearching(false);
+      if (generation === searchGeneration.current) setSearching(false);
     }
   }
 
@@ -158,22 +170,23 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
 
   async function sendMessage() {
     const content = draft.trim();
-    if (!activeFriend || !content) return;
-    setDraft('');
+    if (!activeFriend || !content || sending) return;
+    setSending(true);
     setError('');
-    const res = await apiFetch('/api/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ friendId: activeFriend.id, content }),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      setDraft(content);
-      setError(data.error ?? '发送失败');
-      return;
-    }
-    setMessages((current) => [...current, data.message]);
-    void loadFriends();
+    try {
+      const res = await apiFetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ friendId: activeFriend.id, content }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? '发送失败');
+      setDraft(current => current.trim() === content ? '' : current);
+      setMessages(current => [...current, data.message]);
+      void loadFriends();
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : '网络不太好，请重试');
+    } finally { setSending(false); }
   }
 
   if (!user) {
@@ -197,10 +210,23 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
     );
   }
 
+  if (!activeFriend && searchOpen) return <section ref={pageRef} className="gb-chat-screen gb-chat-detail-page gb-chat-search-page">
+    <header className="gb-chat-detail-header"><button type="button" onClick={() => setSearchOpen(false)} aria-label="关闭搜索"><ArrowLeft size={22} /></button><h1>添加好友</h1><span /></header>
+    <form className="gb-chat-search-panel" onSubmit={event => { event.preventDefault(); void searchUsers(); }}><label><Search size={20} /><input ref={searchField} value={query} onChange={event => { searchGeneration.current += 1; setQuery(event.target.value); setHasSearched(false); setResults([]); setSearching(false); setError(''); }} placeholder="搜索用户名或六位 UID" aria-label="搜索用户名或UID" enterKeyHint="search" /><button type="button" className="gb-chat-clear-search" aria-label="清空搜索" hidden={!query} onClick={() => { searchGeneration.current += 1; setQuery(''); setResults([]); setHasSearched(false); setSearching(false); setError(''); searchField.current?.focus(); }}>×</button></label><button type="submit" disabled={searching}>{searching ? '查询中' : '查询'}</button></form>
+    <p className="gb-chat-my-uid">我的 UID：{user.uid}</p>
+    {error && <p className="gb-chat-detail-error" role="alert">{error}</p>}
+    {searching && <p className="gb-chat-detail-empty" role="status">正在查找玩家…</p>}
+    {!searching && !error && !hasSearched && <p className="gb-chat-detail-empty">输入昵称或 UID，找到一起玩的朋友</p>}
+    {!searching && !error && hasSearched && results.length === 0 && <p className="gb-chat-detail-empty">没有找到相关玩家，换个昵称或 UID 试试</p>}
+    <div className="gb-chat-search-results">{results.map(person => <div key={person.id} className="gb-chat-detail-row"><Avatar emoji={person.avatar} url={person.avatarUrl} /><span><b>{person.username}</b><small>UID {person.uid}</small></span><button type="button" disabled={person.isFriend || person.requestSent || person.requestReceived} onClick={() => void addFriend(person)}>{person.isFriend ? '已是好友' : person.requestSent ? '已发送' : person.requestReceived ? '待你处理' : '加好友'}</button></div>)}</div>
+  </section>;
+
+  if (!activeFriend && requestsOpen) return <section ref={pageRef} className="gb-chat-screen gb-chat-detail-page gb-chat-requests-page"><header className="gb-chat-detail-header"><button type="button" onClick={() => setRequestsOpen(false)} aria-label="返回消息"><ArrowLeft size={22} /></button><h1>好友申请</h1><span /></header>{error && <p className="gb-chat-detail-error" role="alert">{error}</p>}{requests.length === 0 && <p className="gb-chat-detail-empty">暂无待处理的好友申请</p>}<div className="gb-chat-request-list">{requests.map(request => <div key={request.id} className="gb-chat-detail-row"><Avatar emoji={request.sender.avatar} url={request.sender.avatarUrl} /><span><b>{request.sender.username}</b><small>UID {request.sender.uid}</small></span><button type="button" className="is-secondary" onClick={() => void respondToRequest(request, 'reject')}>拒绝</button><button type="button" onClick={() => void respondToRequest(request, 'accept')}>同意</button></div>)}</div></section>;
+
   if (activeFriend) {
     const friendOnline = onlineIds.has(activeFriend.id);
     return (
-      <section className="gb-chat-screen gb-chat-chat flex min-h-[calc(100dvh-12rem)] flex-col px-4">
+      <section ref={pageRef} className="gb-chat-screen gb-chat-chat flex min-h-[calc(100dvh-12rem)] flex-col px-4">
         <div className="gb-chat-chat-header flex items-center gap-3 border-b border-[var(--club-line)] pb-3">
           <button type="button" onClick={() => setActiveFriend(null)} className="grid size-10 place-items-center rounded-full bg-[var(--club-surface)] text-[var(--club-muted)]" aria-label="返回好友列表">
             <ArrowLeft size={21} />
@@ -216,20 +242,12 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
 
         <div className="gb-chat-chat-messages flex-1 space-y-2 overflow-y-auto py-4">
           {messages.length === 0 && <p className="py-12 text-center text-sm font-bold text-[var(--club-muted)]">还没有消息，打个招呼吧</p>}
-          {messages.map((message) => (
-            <div key={message.id} className={`gb-chat-message-row flex items-end gap-2 ${message.mine ? 'gb-chat-message-row--mine justify-end' : 'justify-start'}`}>
-              {!message.mine && (
-                <Avatar emoji={activeFriend.avatar} url={activeFriend.avatarUrl} className="size-8 rounded-xl bg-[var(--club-surface)] text-lg shadow-sm" />
-              )}
-              <div className={`max-w-[78%] rounded-2xl px-3.5 py-2.5 text-sm font-semibold leading-relaxed ${message.mine ? 'rounded-br-md gb-primary text-white' : 'rounded-bl-md bg-[var(--club-surface)] text-[var(--club-text)] shadow-sm'}`}>
-                {message.content}
-                <time className="gb-chat-message-time" dateTime={message.createdAt}>{new Date(message.createdAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</time>
-              </div>
-              {message.mine && (
-                <Avatar emoji={user.avatar} url={user.avatarUrl} className="size-8 rounded-xl bg-[var(--club-soft)] text-lg shadow-sm" />
-              )}
-            </div>
-          ))}
+          {messages.map((message, index) => {
+            const timestamp = Date.parse(message.createdAt);
+            const previous = index > 0 ? Date.parse(messages[index - 1].createdAt) : 0;
+            const showTime = index === 0 || timestamp - previous >= 5 * 60 * 1000;
+            return <div key={message.id} className="gb-chat-message-group">{showTime && <time className="gb-chat-message-time" dateTime={message.createdAt}>{new Date(message.createdAt).toLocaleString('zh-CN', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</time>}<div className={`gb-chat-message-row ${message.mine ? 'gb-chat-message-row--mine' : ''}`}><Avatar emoji={message.mine ? user.avatar : activeFriend.avatar} url={message.mine ? user.avatarUrl : activeFriend.avatarUrl} /><div className="gb-chat-message-bubble">{message.content}</div></div></div>;
+          })}
           <div ref={bottomRef} />
         </div>
 
@@ -244,8 +262,8 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
             aria-label="消息内容"
             className="min-w-0 flex-1 rounded-xl bg-[var(--club-raised)] px-3 text-sm font-semibold outline-none focus:ring-2 focus:ring-emerald-300"
           />
-          <button type="button" onClick={() => { void sendMessage(); }} disabled={!draft.trim()} className="grid size-11 place-items-center rounded-xl gb-primary text-white disabled:bg-slate-300" aria-label="发送消息">
-            发送
+          <button type="button" onClick={() => { void sendMessage(); }} disabled={sending || !draft.trim()} className="grid size-11 place-items-center rounded-xl gb-primary text-white disabled:bg-slate-300" aria-label="发送消息">
+            {sending ? '发送中' : '发送'}
           </button>
         </div>
       </section>
@@ -254,60 +272,13 @@ export default function ChatPanel({ onConversationChange }: { onConversationChan
 
   return (
     <section className="gb-chat-screen gb-chat-lobby px-4 pb-5">
-      <header className="gb-chat-list-header"><h1>消息</h1><button type="button" className="gb-chat-add-friend" onClick={() => setSearchOpen(true)} aria-label="添加好友"><Plus size={24} /></button></header>
+      <header className="gb-chat-list-header"><h1>消息</h1><button type="button" className="gb-chat-add-friend" onClick={() => { setError(''); setSearchOpen(true); }} aria-label="添加好友"><Plus size={24} /></button></header>
 
-      {searchOpen && <form className="gb-chat-search-panel flex gap-2" onSubmit={(event) => { event.preventDefault(); void searchUsers(); }}>
-        <label className="flex min-h-12 flex-1 items-center gap-2 rounded-2xl border-2 border-[var(--club-line)] bg-[var(--club-surface)] px-3 shadow-sm">
-          <Search size={18} className="text-[var(--club-muted)]" />
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索用户名或六位 UID" className="min-w-0 flex-1 bg-transparent text-sm font-bold outline-none" />
-        </label>
-        <button type="submit" disabled={searching} className="rounded-2xl gb-primary px-4 text-sm font-black text-white disabled:bg-slate-300">
-          {searching ? '搜索中' : '搜索'}
-        </button>
-        <button type="button" onClick={() => setSearchOpen(false)} className="rounded-2xl bg-[var(--club-raised)] px-3 text-sm font-black text-[var(--club-muted)]" aria-label="关闭搜索">×</button>
-      </form>}
-
-      {error && <p className="mt-2 px-1 text-sm font-bold text-rose-500">{error}</p>}
-      {results.length > 0 && (
-        <div className="mt-4 space-y-2 rounded-3xl border border-[var(--club-line)] bg-[var(--club-surface)] p-3">
-          <p className="px-1 text-xs font-black text-[var(--club-muted)]">搜索结果</p>
-          {results.map((person) => (
-            <div key={person.id} className="flex items-center gap-3 rounded-2xl bg-[var(--club-surface)] p-3">
-              <Avatar emoji={person.avatar} url={person.avatarUrl} className="size-11 rounded-xl bg-[var(--club-soft)] text-2xl" />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-black text-[var(--club-text)]">{person.username}</span>
-                <span className="block font-mono text-[10px] font-bold text-[var(--club-accent)]">UID {person.uid}</span>
-              </span>
-              <button type="button" disabled={person.isFriend || person.requestSent || person.requestReceived} onClick={() => { void addFriend(person); }} className="flex min-h-9 items-center gap-1 rounded-xl bg-[var(--club-soft)] px-3 text-xs font-black text-[var(--club-accent)] disabled:text-[var(--club-muted)]">
-                {person.isFriend ? '已是好友' : person.requestSent ? '已发送' : person.requestReceived ? '待你处理' : <><Plus size={15} /> 加好友</>}
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <button type="button" className="gb-chat-request-summary" aria-expanded={requestsOpen} aria-controls="gb-chat-requests" onClick={() => setRequestsOpen(!requestsOpen)}>
+      <button type="button" className="gb-chat-request-summary" aria-haspopup="dialog" onClick={() => { setError(''); setRequestsOpen(true); }}>
         <span className="gb-chat-request-symbol"><Users size={23} /></span><b>好友申请</b>
         <span className="gb-chat-request-avatars">{requests.slice(0, 3).map((request) => <Avatar key={request.id} emoji={request.sender.avatar} url={request.sender.avatarUrl} />)}</span>
         <span className="gb-chat-request-count">{requests.length}</span><span aria-hidden="true">›</span>
       </button>
-      {requestsOpen && (
-        <div id="gb-chat-requests" className="gb-chat-requests">
-          <p className="mb-2 px-1 text-sm font-black text-amber-700">好友申请</p>
-          {requests.length === 0 && <p className="text-sm text-[var(--club-muted)]">暂无待处理的好友申请</p>}
-          <div className="space-y-2">
-            {requests.map((request) => (
-              <div key={request.id} className="flex items-center gap-3 rounded-2xl bg-[var(--club-surface)] p-3 shadow-sm">
-                <Avatar emoji={request.sender.avatar} url={request.sender.avatarUrl} className="size-11 rounded-xl bg-[var(--club-soft)] text-2xl" />
-                <span className="min-w-0 flex-1 truncate text-sm font-black text-[var(--club-text)]">{request.sender.username}</span>
-                <button type="button" onClick={() => { void respondToRequest(request, 'reject'); }} className="min-h-9 rounded-xl bg-[var(--club-raised)] px-3 text-xs font-black text-[var(--club-muted)]">拒绝</button>
-                <button type="button" onClick={() => { void respondToRequest(request, 'accept'); }} className="min-h-9 rounded-xl gb-primary px-3 text-xs font-black text-white">同意</button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       <div className="gb-chat-friend-heading mb-3 mt-7 flex items-center gap-2 px-1">
         <Users size={20} className="text-[var(--club-accent)]" />
         <h2 className="text-lg font-black text-[var(--club-text)]">好友</h2>

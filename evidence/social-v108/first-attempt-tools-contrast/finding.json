@@ -1,0 +1,5 @@
+{
+  "source": "manual screenshot inspection after 54 interaction checks passed",
+  "finding": "Tools sheet inherited white background from the more-specific v107 sheet selector, while v108 set labels white. Controls existed and responded but were invisible.",
+  "fix": "Increase the dark tools sheet selector specificity; add browser label/background contrast check."
+}

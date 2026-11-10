@@ -1,5 +1,7 @@
 # 趣宝玩会玩样式对照（v107 候选）
 
+后续整站交互候选见 [v108 记录](SOCIAL_UI_V108.md)。
+
 个人 PWA：`guoruncheng-web/game4`，分支 `pwa/huiwan-ui-20261109`。
 v106 首版为 `0fb075547730bda5bd7c97ffa240ca2a153750e8`；v107 继续按当前
 会玩 Android 包校准。候选没有部署，线上仍为 v105。公司游戏、CDN、宿主和

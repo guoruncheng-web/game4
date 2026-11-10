@@ -8,6 +8,8 @@ import FriendRequestBanner from "@/components/FriendRequestBanner";
 import { PREPARE_BOOT_SCRIPT } from "@/lib/pwa-version";
 import "./globals.css";
 import "./social.css";
+import "./social-account-details.css";
+import "./social-interactions.css";
 
 const geistSans = localFont({
   src: "./fonts/Geist.woff2",

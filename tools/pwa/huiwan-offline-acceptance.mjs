@@ -4,7 +4,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { startChrome } from './chrome-session.mjs';
 
-const [origin = 'http://127.0.0.1:3203', out = 'evidence/social-v107/offline'] = process.argv.slice(2);
+const [origin = 'http://127.0.0.1:3203', out = 'evidence/social-v108/offline'] = process.argv.slice(2);
 const version = process.env.PWA_CACHE_VERSION;
 assert.match(version ?? '', /^v\d+$/);
 await mkdir(out, { recursive: true });
@@ -109,7 +109,7 @@ try {
   assert.equal(report.networkBlocked, true, 'uncached network request must fail offline');
   await send('Network.setCacheDisabled', {cacheDisabled:true});
   report.socialAssets=[];
-  for(const path of ['/assets/nightclub/icons-v1.png','/assets/social/nav-home-v2.webp','/assets/social/nav-home-selected-v2.webp','/assets/social/nav-party-v2.webp','/assets/social/nav-party-selected-v2.webp','/assets/social/nav-message-v2.webp','/assets/social/nav-message-selected-v2.webp','/assets/social/nav-discover-v2.webp','/assets/social/nav-discover-selected-v2.webp','/assets/social/nav-profile-v2.webp','/assets/social/nav-profile-selected-v2.webp','/assets/social/profile-header-v2.webp',...['thirteen','umo','ludo','eight-ball','fruit-slasher','triple-pile','fish-hunter','star-runner','neon-strike-2d','neon-strike','thirteen-social'].map(slug=>'/assets/social/'+slug+'-v1.webp')]) {
+  for(const path of ['/assets/social/room-more-v3.webp','/assets/social/room-mic-on-v3.webp','/assets/social/room-mic-off-v3.webp','/assets/social/room-header-more-v3.webp','/assets/social/room-back-v3.webp','/assets/social/room-purple-v3.webp','/assets/social/room-seat-empty-v3.webp','/assets/nightclub/icons-v1.png','/assets/social/nav-home-v2.webp','/assets/social/nav-home-selected-v2.webp','/assets/social/nav-party-v2.webp','/assets/social/nav-party-selected-v2.webp','/assets/social/nav-message-v2.webp','/assets/social/nav-message-selected-v2.webp','/assets/social/nav-discover-v2.webp','/assets/social/nav-discover-selected-v2.webp','/assets/social/nav-profile-v2.webp','/assets/social/nav-profile-selected-v2.webp','/assets/social/profile-header-v2.webp',...['thirteen','umo','ludo','eight-ball','fruit-slasher','triple-pile','fish-hunter','star-runner','neon-strike-2d','neon-strike','thirteen-social'].map(slug=>'/assets/social/'+slug+'-v1.webp')]) {
     const hash=await evaluate(`(async()=>{const r=await fetch('${path}');if(!r.ok)throw Error('asset unavailable offline');const b=await r.arrayBuffer();return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',b))).map(v=>v.toString(16).padStart(2,'0')).join('')})()`);
     const local=createHash('sha256').update(await readFile(join('public',path))).digest('hex');
     assert.equal(hash,local,path+' offline content differs');

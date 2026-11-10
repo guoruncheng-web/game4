@@ -6,7 +6,7 @@ let scrollLocks = 0;
 let originalBodyOverflow = '';
 
 /** 弹层打开时移入焦点，限制 Tab，关闭后恢复发起控件；仅最上层消费 Escape。 */
-export function useDialogFocus(ref: RefObject<HTMLElement | null>, onClose: () => void, enabled = true) {
+export function useDialogFocus(ref: RefObject<HTMLElement | null>, onClose: () => void, enabled = true, viewKey = '') {
   const close = useRef(onClose);
   useEffect(() => { close.current = onClose; }, [onClose]);
   useEffect(() => {
@@ -36,5 +36,5 @@ export function useDialogFocus(ref: RefObject<HTMLElement | null>, onClose: () =
       if (scrollLocks === 0) document.body.style.overflow = originalBodyOverflow;
       if (opener?.isConnected) opener.focus({ preventScroll: true });
     };
-  }, [enabled, ref]);
+  }, [enabled, ref, viewKey]);
 }

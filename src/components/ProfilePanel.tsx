@@ -10,6 +10,7 @@ import Avatar from './Avatar';
 import { ClubIcon } from './ClubArt';
 import AuthTextField from './AuthTextField';
 import { useDialogFocus } from './useDialogFocus';
+import { useVisualViewport } from './useVisualViewport';
 
 export default function ProfilePanel() {
   const { user, wallet, openPanel, logout, updateAccessToken } = useAuth();
@@ -20,9 +21,13 @@ export default function ProfilePanel() {
   const [notice, setNotice] = useState('');
   const [passwordOpen, setPasswordOpen] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [securityOpen, setSecurityOpen] = useState(false);
+  const [passwordFromSecurity, setPasswordFromSecurity] = useState(false);
 
   const dialog = useRef<HTMLDivElement>(null);
-  useDialogFocus(dialog, () => { if (avatarOpen) setAvatarOpen(false); else closePassword(); }, avatarOpen || passwordOpen);
+  const detailPage = avatarOpen ? 'avatar' : passwordOpen ? 'password' : securityOpen ? 'security' : '';
+  useVisualViewport(dialog, detailPage);
+  useDialogFocus(dialog, () => { if (avatarOpen) setAvatarOpen(false); else if (passwordOpen) closePassword(); else setSecurityOpen(false); }, Boolean(detailPage), detailPage);
 
   function closePassword() {
     if (loading) return;
@@ -30,6 +35,7 @@ export default function ProfilePanel() {
     setNewPassword('');
     setConfirmPassword('');
     setError('');
+    if (passwordFromSecurity) { setSecurityOpen(true); setPasswordFromSecurity(false); }
   }
 
   async function changePassword() {
@@ -87,32 +93,37 @@ export default function ProfilePanel() {
         <button type="button" className="gb-profile-edit-link" onClick={() => setAvatarOpen(true)} aria-label="打开头像设置">›</button>
       </div>
 
-      {avatarOpen && <div ref={dialog} className="gb-profile-editor-page" role="dialog" aria-modal="true" aria-label="头像设置"><header><button type="button" onClick={() => setAvatarOpen(false)} aria-label="返回我的">‹</button><h2>我的头像</h2><p>展示个性，让好友更容易找到你</p></header><div className="gb-profile-editor-body"><AvatarUploader /></div></div>}
+      {avatarOpen && <div ref={dialog} className="gb-profile-editor-page gb-account-detail" role="dialog" aria-modal="true" aria-label="头像设置">
+        <header className="gb-account-detail-header"><button type="button" onClick={() => setAvatarOpen(false)} aria-label="返回我的"><span aria-hidden="true">‹</span></button><h2>我的头像</h2><span aria-hidden="true" /></header>
+        <div className="gb-profile-editor-body gb-account-detail-body"><AvatarUploader /></div>
+      </div>}
 
       <div className="gb-profile-player-stats" aria-label="游戏资产">
         <span><ClubIcon name="diamond" /><small>钻石余额</small><b>{wallet ? wallet.diamonds.toLocaleString() : '暂不可用'}</b></span>
       </div>
 
       <div className="gb-profile-scene-actions">
-        <button type="button" onClick={() => setNotice('账号没有绑定邮箱，请妥善保存账号和密码。')} aria-label="账号安全"><ClubIcon name="security" /><span>账号安全</span></button>
+        <button type="button" onClick={() => setSecurityOpen(true)} aria-label="账号安全"><ClubIcon name="security" /><span>账号安全</span></button>
         <button type="button" onClick={() => { setError(''); setNotice(''); setPasswordOpen(true); }} aria-label="修改密码"><ClubIcon name="password" /><span>修改密码</span></button>
         {user.isAdmin ? <Link href="/admin" aria-label="进入管理后台"><ClubIcon name="games" /><span>管理后台</span></Link> : null}
       </div>
 
-      {passwordOpen && <div ref={dialog} className="gb-profile-password-panel gb-password-v2" role="dialog" aria-modal="true" aria-label="修改密码">
-        <header className="gb-password-header"><button type="button" onClick={closePassword} disabled={loading} aria-label="返回我的">‹</button><span>账号安全</span><span className="gb-auth-v2-mark" aria-hidden="true" /></header>
-        <div className="gb-password-v2-heading"><ClubIcon name="security" /><h2>给账号一份安心。</h2><p>设置新密码，保护你的游戏时光。</p></div>
-        <p className="gb-password-v2-caption">正在修改的账号</p>
-        <div className="gb-password-account"><Avatar emoji={user.avatar} url={user.avatarUrl} /><span>{user.username}<small>UID {user.uid}</small></span></div>
-        <div className="gb-password-field-row"><AuthTextField visibleLabel="新密码" type="password" value={newPassword} onChange={setNewPassword} autoComplete="new-password" placeholder="请输入新密码（至少 8 位）" label="新密码" /></div>
-        <div className="gb-password-field-row"><AuthTextField visibleLabel="确认新密码" type="password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" placeholder="请再次输入新密码" label="确认新密码" onSubmit={() => { void changePassword(); }} /></div>
-        {error && <p role="alert" className="gb-password-v2-error">{error}</p>}
-        {notice && <p role="status" className="gb-password-v2-success">{notice}</p>}
-        <p className="gb-password-warning">修改成功后，其他设备需要重新登录。当前设备保持登录。</p>
-        <button type="button" onClick={() => { void changePassword(); }} disabled={loading || newPassword.length < 8 || !confirmPassword} className="min-h-12 w-full rounded-2xl gb-primary font-black text-white shadow-[0_5px_0_#22994b] active:translate-y-1 active:shadow-none disabled:bg-slate-300 disabled:shadow-none">
+      {securityOpen && <div ref={dialog} className="gb-profile-editor-page gb-account-security-page gb-account-detail" role="dialog" aria-modal="true" aria-label="账号安全"><header className="gb-account-detail-header"><button type="button" onClick={() => setSecurityOpen(false)} aria-label="返回我的">‹</button><h2>账号与安全</h2><span /></header><div className="gb-account-security-list"><div><span>我的 UID</span><b>{user.uid}</b></div><div><span>登录方式</span><b>UID 与密码</b></div><button type="button" onClick={() => { setSecurityOpen(false); setPasswordFromSecurity(true); setPasswordOpen(true); setError(''); setNotice(''); }}><span>修改密码</span><b>›</b></button></div><p className="gb-account-security-tip">请妥善保存账号和密码。</p></div>}
+
+      {passwordOpen && <div ref={dialog} className="gb-profile-password-panel gb-password-v2 gb-account-detail" role="dialog" aria-modal="true" aria-label="修改密码">
+        <header className="gb-password-header gb-account-detail-header"><button type="button" onClick={closePassword} disabled={loading} aria-label="返回我的"><span aria-hidden="true">‹</span></button><h2>修改密码</h2><span aria-hidden="true" /></header>
+        <div className="gb-account-detail-body">
+          <div className="gb-account-detail-identity"><span>当前账号</span><b>{user.username}</b><small>UID {user.uid}</small></div>
+          <div className="gb-password-field-row"><AuthTextField visibleLabel="新密码" type="password" value={newPassword} onChange={setNewPassword} autoComplete="new-password" placeholder="请输入新密码（至少 8 位）" label="新密码" /></div>
+          <div className="gb-password-field-row"><AuthTextField visibleLabel="确认新密码" type="password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" placeholder="请再次输入新密码" label="确认新密码" onSubmit={() => { void changePassword(); }} /></div>
+          {error && <p role="alert" className="gb-password-v2-error">{error}</p>}
+          {notice && <p role="status" className="gb-password-v2-success">{notice}</p>}
+          <p className="gb-password-warning">修改后，其他设备需要重新登录。当前设备保持登录。</p>
+        </div>
+        <button type="button" onClick={() => { void changePassword(); }} disabled={loading || newPassword.length < 8 || !confirmPassword} className="gb-primary gb-account-detail-save">
           {loading ? '正在保存…' : '保存新密码'}
         </button>
-        <button type="button" onClick={closePassword} disabled={loading} className="min-h-10 w-full rounded-2xl bg-[var(--club-raised)] font-black text-[var(--club-muted)]">返回我的</button>
+        <button type="button" onClick={closePassword} disabled={loading} className="gb-account-detail-cancel">返回我的</button>
       </div>}
 
       {!passwordOpen && notice && <p className="gb-profile-scene-notice">{notice}</p>}

@@ -1,0 +1,267 @@
+/* v108 账号详情：采用当前包共用的白页、44 顶栏与胶囊表单尺度。
+ * 账号改密/本地裁图沿用 PWA 流程，不将未成年模式 PIN 页误作账号页。
+ * 仅在 .gb-account-detail 内生效，不改变登录、资料首页或游戏。 */
+.gb-account-security-list { margin-top: 12px; padding: 0 16px; }
+.gb-account-security-list > :is(div,button) { display: flex; width: 100%; min-height: 52px; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid #f1f2f5; font-size: 16px; text-align: left; }
+.gb-account-security-list b { color: #aaabb3; font-size: 14px; font-weight: 400; }
+.gb-account-security-tip { margin: 20px 16px; color: #aaabb3; font-size: 12px; }
+.gb-account-detail.gb-profile-editor-page,
+.gb-account-detail.gb-profile-password-panel {
+  position: fixed;
+  z-index: 110;
+  inset: 0;
+  display: flex;
+  width: min(100%,680px);
+  height: 100dvh;
+  margin: 0 auto;
+  padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  color: #333;
+  background: #fff;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.gb-account-detail > .gb-account-detail-header {
+  position: relative;
+  display: grid;
+  grid-template-columns: 44px minmax(0,1fr) 44px;
+  min-height: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+  padding: 0 4px;
+  border: 0;
+  background: #fff;
+}
+.gb-account-detail > .gb-account-detail-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 22px;
+  text-align: center;
+  letter-spacing: 0;
+}
+.gb-account-detail > .gb-account-detail-header > button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: #333;
+  background: transparent;
+  box-shadow: none;
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1;
+}
+.gb-account-detail > .gb-account-detail-header > span:last-child {
+  width: 44px;
+  height: 44px;
+  margin: 0;
+}
+.gb-account-detail .gb-account-detail-body {
+  min-width: 0;
+  padding: 24px 16px 0;
+}
+.gb-account-detail .gb-account-detail-identity {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+.gb-account-detail .gb-account-detail-identity > span,
+.gb-account-detail .gb-account-detail-identity > small {
+  color: #999;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+}
+.gb-account-detail .gb-account-detail-identity > b {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 22px;
+}
+.gb-account-detail .gb-password-field-row {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+.gb-account-detail .gb-auth-v2-label {
+  margin: 0 0 0 12px;
+  color: #666;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+}
+.gb-account-detail .gb-auth-field-shell { position: relative; }
+.gb-account-detail .gb-auth-field-icon { display: none; }
+.gb-account-detail .gb-auth-text-field {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  height: 48px;
+  margin: 0;
+  padding: 0 60px 0 16px;
+  border: 1px solid transparent;
+  border-radius: 24px;
+  outline: none;
+  color: #4a4a4a;
+  background: #f7f8fa;
+  box-shadow: none;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: normal;
+}
+.gb-account-detail .gb-auth-text-field::placeholder { color: #aaabb3; }
+.gb-account-detail .gb-auth-text-field:focus { border-color: #30d395; }
+.gb-account-detail .gb-auth-password-toggle {
+  top: 2px;
+  right: 8px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 22px;
+  color: #999;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 400;
+}
+.gb-account-detail .gb-password-warning {
+  margin: 8px 12px 0;
+  color: #999;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+}
+.gb-account-detail .gb-password-v2-error,
+.gb-account-detail .gb-account-avatar-error {
+  margin: 12px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: #cc4059;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+}
+.gb-account-detail .gb-password-v2-success {
+  margin: 12px 0;
+  color: #16835f;
+  font-size: 13px;
+  line-height: 20px;
+}
+.gb-account-detail.gb-password-v2 > .gb-account-detail-save {
+  width: calc(100% - 32px);
+  min-height: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  margin: 24px 16px 0;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 22px;
+  color: #fff;
+  background: #30d395;
+  box-shadow: none;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 22px;
+}
+.gb-account-detail.gb-password-v2 > .gb-account-detail-cancel {
+  width: calc(100% - 32px);
+  min-height: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  margin: 8px 16px 20px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 22px;
+  color: #999;
+  background: #fff;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 400;
+}
+.gb-account-detail .gb-account-avatar {
+  margin: 36px 0 0;
+  padding: 0;
+}
+.gb-account-detail .gb-account-avatar-identity {
+  display: grid;
+  justify-items: center;
+  gap: 0;
+  margin: 0 0 36px;
+}
+.gb-account-detail .gb-account-avatar-preview {
+  width: 80px;
+  height: 80px;
+  border: 0;
+  border-radius: 50%;
+  background: #f7f8fa;
+  box-shadow: none;
+  font-size: 40px;
+}
+.gb-account-detail .gb-account-avatar-name {
+  max-width: 100%;
+  margin: 12px 0 0;
+  overflow-wrap: anywhere;
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 22px;
+}
+.gb-account-detail .gb-account-avatar-uid {
+  margin: 4px 0 0;
+  color: #aaabb3;
+  font-size: 13px;
+  line-height: 18px;
+}
+.gb-account-detail .gb-avatar-picker-actions,
+.gb-account-detail .gb-avatar-confirm-actions {
+  display: flex;
+  gap: 12px;
+  padding: 0;
+}
+.gb-account-detail .gb-avatar-picker-actions > button,
+.gb-account-detail .gb-avatar-confirm-actions > button {
+  display: flex;
+  min-width: 0;
+  min-height: 44px;
+  height: 44px;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 22px;
+  color: #666;
+  background: #f7f8fa;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+}
+.gb-account-detail .gb-avatar-confirm-actions { margin-top: 24px; }
+.gb-account-detail .gb-avatar-confirm-actions > .gb-account-avatar-save {
+  color: #fff;
+  background: #30d395;
+  font-size: 16px;
+  font-weight: 500;
+}
+.gb-account-detail .gb-avatar-confirm-actions > .gb-account-avatar-cancel {
+  flex: 0 1 88px;
+  color: #999;
+  background: #fff;
+}
+.gb-account-detail button:disabled { opacity: .45; }

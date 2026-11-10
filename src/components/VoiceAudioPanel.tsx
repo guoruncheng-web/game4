@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Mic, MicOff, Volume2, LoaderCircle } from 'lucide-react';
+import { Volume2, LoaderCircle } from 'lucide-react';
 import { voiceRequest, type VoiceRoom } from '@/lib/voice-room';
 import { INITIAL_RTC_STATE, VoiceRtcSession, type RtcGrant } from '@/lib/voice/rtc-session';
 
@@ -75,7 +75,7 @@ export default function VoiceAudioPanel({ compact = false, onSpeakersChange, onH
   return <section className={`voice-audio-panel ${compact ? 'is-compact' : ''}`} aria-label="房间语音">
     <div className="voice-audio-status sr-only" role="status"><b>{label}</b><span>{state.microphone === 'on' ? '麦克风已开启' : state.microphone === 'starting' ? '正在开启麦克风…' : '麦克风已关闭'}</span></div>
     <div className="voice-audio-controls">
-      <button type="button" className="voice-microphone-toggle" data-publish={publish ? 'allowed' : 'denied'} disabled={!active || connecting} aria-label={state.microphone === 'off' ? '开启麦克风' : state.microphone === 'starting' ? '取消开启麦克风' : '关闭麦克风'} aria-pressed={state.microphone !== 'off'} title={label} onClick={() => void toggleMicrophone()}>{connecting ? <LoaderCircle size={22} aria-hidden="true" /> : state.microphone === 'off' ? <MicOff size={22} aria-hidden="true" /> : <Mic size={22} aria-hidden="true" />}</button>
+      <button type="button" className="voice-microphone-toggle" data-publish={publish ? 'allowed' : 'denied'} disabled={!active || connecting} aria-label={state.microphone === 'off' ? '开启麦克风' : state.microphone === 'starting' ? '取消开启麦克风' : '关闭麦克风'} aria-pressed={state.microphone !== 'off'} title={label} onClick={() => void toggleMicrophone()}>{connecting ? <LoaderCircle size={22} aria-hidden="true" /> : <span className={`voice-mic-art ${state.microphone === 'off' ? 'is-off' : 'is-on'}`} aria-hidden="true" />}</button>
       {state.playbackBlocked && <button type="button" className="voice-playback-retry" aria-label="恢复房间声音" onClick={() => session.current?.resumePlayback()}><Volume2 size={20} aria-hidden="true" /></button>}
     </div>
   </section>;

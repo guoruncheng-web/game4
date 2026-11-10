@@ -102,21 +102,23 @@ export default function AvatarUploader() {
   const previewUrl = pending?.previewUrl ?? user.avatarUrl ?? null;
 
   return (
-    <div className="gb-avatar-editor space-y-3">
-      <div className="flex items-center gap-4">
+    <div className="gb-avatar-editor gb-account-avatar" aria-busy={busy}>
+      <div className="gb-account-avatar-identity">
         <Avatar
           emoji={user.avatar}
           url={previewUrl}
           alt={pending ? '新头像预览' : '我的头像'}
-          className="size-20 rounded-[1.6rem] border-4 border-[var(--club-line)] bg-[var(--club-surface)] text-4xl shadow-lg"
+          className="gb-account-avatar-preview"
         />
+        <p className="gb-account-avatar-name">{user.username}</p>
+        <p className="gb-account-avatar-uid">UID {user.uid}</p>
       </div>
         <div className="gb-avatar-picker-actions">
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={busy}
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-2xl bg-[var(--club-surface)] px-4 text-sm font-black text-white disabled:opacity-60"
+            className="gb-account-avatar-choice"
           >
             <Camera size={16} />选择图片
           </button>
@@ -131,22 +133,22 @@ export default function AvatarUploader() {
         onChange={(event) => { void pickFile(event.target.files?.[0]); }}
       />
 
-      {error && <p className="rounded-xl bg-rose-500/20 px-3 py-2 text-xs font-bold text-white">{error}</p>}
+      {error && <p role="alert" className="gb-account-avatar-error">{error}</p>}
 
-        <div className="gb-avatar-confirm-actions flex gap-2">
+        <div className="gb-avatar-confirm-actions">
           <button
             type="button"
             onClick={() => { void upload(); }}
             disabled={busy || !pending}
-            className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[var(--club-surface)] px-4 text-sm font-black text-[var(--club-accent)] disabled:opacity-60"
+            className="gb-account-avatar-save"
           >
-            {busy ? <><Loader2 size={16} className="animate-spin" />上传中…</> : '确认使用'}
+            {busy ? <><Loader2 size={16} className="animate-spin" />处理中…</> : '确认使用'}
           </button>
           {pending && <button
             type="button"
             onClick={() => { replacePending(null); setError(''); }}
             disabled={busy}
-            className="min-h-10 rounded-2xl bg-[var(--club-surface)] px-4 text-sm font-black text-white disabled:opacity-60"
+            className="gb-account-avatar-cancel"
           >
             取消
           </button>}

@@ -1,0 +1,22 @@
+{
+  "origin": "http://127.0.0.1:13205",
+  "macReviewUrl": "http://127.0.0.1:13201/__review__/",
+  "apiFixture": true,
+  "realRtc": false,
+  "passed": true,
+  "exceptions": [],
+  "home": {
+    "mockIdentity": true,
+    "mockWallet": true,
+    "gameEntries": 10
+  },
+  "destinations": [
+    "party",
+    "messages",
+    "profile"
+  ],
+  "gallery": {
+    "screens": 37,
+    "filters": 5
+  }
+}

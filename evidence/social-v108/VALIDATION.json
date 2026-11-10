@@ -1,0 +1,73 @@
+{
+  "candidate": "v108",
+  "baseline": "e45cd9b201eb06c50d3fba037d76bb767c306170",
+  "deployed": false,
+  "lint": {
+    "exitCode": 0,
+    "errors": 0,
+    "preExistingWarnings": 5
+  },
+  "build": {
+    "exitCode": 0,
+    "precacheFiles": 102,
+    "precacheMB": 8.7,
+    "gateway": "http://127.0.0.1:3202 fixture at build time"
+  },
+  "cacheVersionTests": {
+    "passed": 2,
+    "failed": 0
+  },
+  "ui": {
+    "passed": true,
+    "checks": 55,
+    "runtimeExceptions": 0,
+    "apiFixture": true,
+    "realAuthentication": false,
+    "realRtc": false,
+    "screenshots": 37
+  },
+  "offline": {
+    "passed": true,
+    "networkBlocked": true,
+    "assetHashMatches": 30,
+    "homeCachedMs": 2346
+  },
+  "reviewedScreenshots": [
+    "07c-search-result",
+    "08-conversation",
+    "08b-short-viewport-conversation",
+    "09b-account-security",
+    "10-password",
+    "11-avatar",
+    "12-voice-room",
+    "12b-room-message",
+    "12d-room-tools",
+    "12e-room-members"
+  ],
+  "preservedFailures": [
+    "first-attempt-click-timing/result.json",
+    "first-attempt-tools-contrast/finding.json"
+  ],
+  "reference": {
+    "version": "5.26.31.2",
+    "businessControllersRecovered": false,
+    "loggedInRuntimeReference": false,
+    "roomTheme": "Explicit bundled CP purple theme, not asserted ordinary-room default",
+    "memberRow": "72/44/16 adaptation; native runtime binding unknown",
+    "fullPixelParityComplete": false
+  },
+  "reviewPreview": {
+    "gallery": "http://127.0.0.1:13201/__review__/",
+    "interactive": "http://127.0.0.1:13201/",
+    "host": "Mac loopback only",
+    "data": "isolated fixture, synthetic identity/balance/messages",
+    "production": false,
+    "passed": true,
+    "report": "review-preview/result.json"
+  },
+  "limitations": [
+    "No logged-in App reference yet.",
+    "Keyboard checked by resizing browser viewport, not native phone IME.",
+    "No real RTC, password mutation or avatar upload acceptance."
+  ]
+}
